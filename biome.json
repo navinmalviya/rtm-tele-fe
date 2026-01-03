@@ -1,0 +1,71 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"ignoreUnknown": true
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"indentWidth": 8,
+		"lineWidth": 100
+	},
+	"assist": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"complexity": {
+				"noExcessiveCognitiveComplexity": {
+					"level": "error",
+					"options": {
+						"maxAllowedComplexity": 35
+					}
+				},
+				"noUselessCatch": "off",
+				"noForEach": "off"
+			},
+			"correctness": {
+				"noUnusedImports": "error",
+				"noUndeclaredVariables": "error",
+				"useExhaustiveDependencies": "off",
+				"noUnusedVariables": "warn"
+			},
+			"style": {
+				"useBlockStatements": "off",
+				"useNamingConvention": "off",
+				"useTemplate": "off",
+				"useConst": "info",
+				"noParameterAssign": "off",
+				"noNonNullAssertion": "off",
+				"noNestedTernary": "off"
+			},
+			"suspicious": {
+				"noArrayIndexKey": "off",
+				"noExplicitAny": "off",
+				"noDoubleEquals": "warn",
+				"noImplicitAnyLet": "off",
+				"noShadowRestrictedNames": "off"
+			},
+			"a11y": {
+				"useKeyWithClickEvents": "off",
+				"useHeadingContent": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "single",
+			"jsxQuoteStyle": "double",
+			"trailingCommas": "es5",
+			"semicolons": "always",
+			"arrowParentheses": "always"
+		}
+	}
+}
