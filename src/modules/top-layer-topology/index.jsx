@@ -16,26 +16,43 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import { Box, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation';
 import { useBulkUpdateStations } from '@/hooks/stations';
 import { useStations } from '@/hooks/stations/useStations';
+import { StationNode } from '@/lib/common/nodes';
 import { AddStationForm } from '../stations';
-// import { StationService } from '@/services/stations'; // Assuming your bulk update is here
+
+const nodeTypes = {
+	station: StationNode,
+};
 
 export default function TopLayerTopology() {
 	const { data: stationNodes } = useStations();
+	const router = useRouter();
 	const { mutate: bulkUpdateStations } = useBulkUpdateStations();
 	const [nodes, setNodes, onNodesChange] = useNodesState([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-	// --- New States for Edit Mode ---
 	const [isEditMode, setIsEditMode] = useState(false);
-	const [movedNodes, setMovedNodes] = useState({}); // Stores: { id: {id, mapX, mapY} }
+	const [movedNodes, setMovedNodes] = useState({});
 
 	useEffect(() => {
 		if (stationNodes) {
-			setNodes(stationNodes);
+			const formattedNodes = stationNodes.map((node) => ({
+				...node,
+				type: 'station', // Use our custom type
+				data: {
+					...node.data,
+					label: node.data.label || node.name,
+					code: node.data.code || node.code,
+					// Pass the navigation function directly into the data object
+					onDoubleClick: () =>
+						router.push(`/admin/station/${node.id}`),
+				},
+			}));
+			setNodes(formattedNodes);
 		}
-	}, [stationNodes, setNodes]);
+	}, [stationNodes, setNodes, router]);
 
 	const onConnect = useCallback(
 		(params) => setEdges((eds) => addEdge(params, eds)),
@@ -87,14 +104,16 @@ export default function TopLayerTopology() {
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}
-				onNodesChange={onNodesChange}
+				nodeTypes={nodeTypes} // Register custom types
 				onEdgesChange={onEdgesChange}
+				onNodesChange={onNodesChange}
 				onConnect={onConnect}
+				nodesDraggable={isEditMode}
 				onNodeDragStop={onNodeDragStop}
 				onSelectionDragStop={onSelectionDragStop}
-				// Logic: Only draggable if Edit Mode is active
-				nodesDraggable={isEditMode}
-				elementsSelectable={isEditMode}
+				zoomOnDoubleClick={false}
+				nodesFocusable={true}
+				elementsSelectable={true}
 				fitView
 				colorMode="light"
 			>

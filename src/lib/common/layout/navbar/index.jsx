@@ -2,7 +2,7 @@
 
 import MenuIcon from '@mui/icons-material/Menu';
 import { Box, IconButton, Menu, MenuItem, Typography } from '@mui/material';
-import { usePathname } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
@@ -10,9 +10,12 @@ import { getNavbarTitle } from '@/lib/util';
 
 export default function CompactNavbar() {
 	const [anchorEl, setAnchorEl] = useState(null);
+	const params = useParams(); // Get stationId from URL
 	const pathname = usePathname();
 	const dispatch = useDispatch();
+	const router = useRouter();
 	const open = Boolean(anchorEl);
+	const isStationView = !!params.stationId;
 
 	const handleClick = (event) => {
 		setAnchorEl(event.currentTarget);
@@ -29,7 +32,6 @@ export default function CompactNavbar() {
 				alignItems: 'center',
 				width: '30%', // Restricts the navbar to 30% of the 1350px container
 				minWidth: '380px', // Prevents it from getting too squashed on smaller screens
-				mt: 4,
 				gap: 3, // Space between "RTM Tele" and the "Dashboard" pill
 			}}
 		>
@@ -41,7 +43,7 @@ export default function CompactNavbar() {
 						fontWeight: 800,
 						lineHeight: 1,
 						color: '#333',
-						fontSize: '1.4rem',
+						fontSize: '1.7rem',
 					}}
 				>
 					RTM tele
@@ -100,19 +102,90 @@ export default function CompactNavbar() {
 						},
 					}}
 				>
-					<MenuItem
-						onClick={() => {
-							dispatch(
-								openDrawer({
-									drawerName: 'addStationDrawer',
-								})
-							);
-							handleClose();
-						}}
-					>
-						Add station
-					</MenuItem>
-					<MenuItem onClick={handleClose}>Option 2</MenuItem>
+					{isStationView
+						? // --- STATION SPECIFIC MENU ---
+							[
+								<MenuItem
+									key="loc"
+									onClick={() => {
+										dispatch(
+											openDrawer({
+												drawerName: 'addLocationDrawer',
+											})
+										);
+										handleClose();
+									}}
+								>
+									Add Location
+								</MenuItem>,
+								<MenuItem
+									key="rack"
+									onClick={() => {
+										dispatch(
+											openDrawer({
+												drawerName: 'addRackDrawer',
+											})
+										);
+										handleClose();
+									}}
+								>
+									Add Rack
+								</MenuItem>,
+								<MenuItem
+									key="eq"
+									onClick={() => {
+										dispatch(
+											openDrawer({
+												drawerName: 'addEquipmentDrawer',
+											})
+										);
+										handleClose();
+									}}
+								>
+									Add Equipment
+								</MenuItem>,
+								<MenuItem
+									key="topo"
+									sx={{
+										borderTop: '1px solid #eee',
+										mt: 1,
+										color: '#1565c0',
+									}}
+									onClick={() =>
+										router.push(
+											'/admin/topology'
+										)
+									}
+								>
+									Top Layer Topology
+								</MenuItem>,
+							]
+						: // --- GLOBAL MENU ---
+							[
+								<MenuItem
+									key="station"
+									onClick={() => {
+										dispatch(
+											openDrawer({
+												drawerName: 'addStationDrawer',
+											})
+										);
+										handleClose();
+									}}
+								>
+									Add Station
+								</MenuItem>,
+								<MenuItem
+									key="dash"
+									onClick={() =>
+										router.push(
+											'/admin/dashboard'
+										)
+									}
+								>
+									Dashboard
+								</MenuItem>,
+							]}
 				</Menu>
 			</Box>
 		</Box>

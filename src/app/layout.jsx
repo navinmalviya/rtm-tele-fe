@@ -1,7 +1,7 @@
 'use client';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import { Box, Container, CssBaseline } from '@mui/material';
+import { Box, CssBaseline } from '@mui/material';
 import { QueryProvider, SessionProvider, StoreProvider } from '@/lib/providers';
 import { ToastProvider } from '@/lib/providers/ToastProvider';
 
@@ -17,27 +17,23 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<body className={`${geistSans.variable} ${geistMono.variable}`}>
 				<CssBaseline />
-
-				{/* 1. The Wrapper: Ensures the background covers the whole screen */}
-				<Box
-					sx={{
-						width: '100%',
-						display: 'flex',
-						justifyContent: 'center',
-					}}
-				>
-					{/* 2. The Content Constraint: Restricts width to 1350px */}
-					<Container
-						maxWidth={false}
-						sx={
-							{
-								// maxWidth: '1350px !important',
-								// padding: { xs: 2, md: 4 }, // Standard gutter spacing
-							}
-						}
+				{/* Global Background */}
+				<Box sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', width: '100%' }}>
+					{/* The 1400px Centered App Shell */}
+					<Box
+						sx={{
+							maxWidth: '1450px',
+							width: '100%', // Use 100%, NEVER 100vw
+							margin: '0 auto', // This handles the centering perfectly
+							bgcolor: '#fff',
+							minHeight: '100vh',
+							display: 'flex',
+							flexDirection: 'column',
+							boxShadow: '0 0 15px rgba(0,0,0,0.05)',
+						}}
 					>
 						<SessionProvider>
 							<ToastProvider>
@@ -48,7 +44,7 @@ export default function RootLayout({ children }) {
 								</StoreProvider>
 							</ToastProvider>
 						</SessionProvider>
-					</Container>
+					</Box>
 				</Box>
 			</body>
 		</html>
