@@ -100,7 +100,6 @@ export default function LocationTable({ locations, isLoading }) {
 		<Box
 			sx={{
 				width: '100%',
-				maxWidth: '1450px', // Strict boundary
 				overflow: 'hidden',
 				display: 'flex',
 				flexDirection: 'column',

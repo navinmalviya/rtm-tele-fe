@@ -8,9 +8,11 @@ import {
 	FormControlLabel,
 	Grid,
 	Link,
-	Paper,
+	Stack,
 	TextField,
 	Typography,
+	useMediaQuery,
+	useTheme,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { getSession, signIn } from 'next-auth/react';
@@ -20,6 +22,10 @@ import { redirectUser } from '@/lib/util';
 
 export default function LoginPage() {
 	const [loading, setLoading] = useState(false);
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+	const router = useRouter();
+
 	const {
 		control,
 		handleSubmit,
@@ -31,85 +37,132 @@ export default function LoginPage() {
 			remember: false,
 		},
 	});
-	// const { data: user, status } = useSession();
-	const router = useRouter();
 
 	const onSubmit = async (credentials) => {
 		setLoading(true);
-		await signIn('credentials', {
+		const response = await signIn('credentials', {
 			username: credentials.username,
 			password: credentials.password,
 			redirect: false,
-		}).then(async (response) => {
-			const session = await getSession();
-			if (response.status === 200 && session) {
-				redirectUser(session, router);
-			} else if (response.status === 401) {
-				setLoading(false);
-			}
 		});
+
+		const session = await getSession();
+		if (response?.status === 200 && session) {
+			redirectUser(session, router);
+		} else {
+			setLoading(false);
+			// Optional: Add a toast or error state here
+		}
 	};
 
-	// if (user) {
-	// 	redirectUser(user, router);
-	// 	return null;
-	// }
-
 	return (
-		<Grid container component="main" sx={{ height: '100vh' }}>
-			{/* Left Side: Image (30% width) */}
-			<Grid
-				item
-				xs={false}
-				sm={3.6} // Roughly 30%
-				sx={{
-					backgroundImage:
-						'url(https://images.unsplash.com/photo-1497215728101-856f4ea42174)',
-					backgroundRepeat: 'no-repeat',
-					backgroundColor: (t) => t.palette.grey[50],
-					backgroundSize: 'cover',
-					backgroundPosition: 'center',
-				}}
-			/>
-
-			{/* Right Side: Login Form (70% width) */}
-			<Grid item xs={12} sm={8.4} component={Paper} elevation={6} square>
-				<Box
+		<Grid container component="main" sx={{ height: '100vh', width: '100vw' }}>
+			{/* Left Side: Professional Branding Panel */}
+			{!isMobile && (
+				<Grid
+					item
+					xs={false}
+					lg={6}
 					sx={{
-						my: 8,
-						mx: 4,
+						bgcolor: 'background.paper', // #101214
 						display: 'flex',
 						flexDirection: 'column',
-						alignItems: 'center',
 						justifyContent: 'center',
-						height: '100%',
+						p: 8,
+						color: 'white',
+						position: 'relative',
+						overflow: 'hidden',
 					}}
 				>
+					<Box sx={{ position: 'relative', zIndex: 2 }}>
+						<Typography
+							variant="h2"
+							component="h1"
+							sx={{ fontWeight: 800, mb: 2 }}
+						>
+							Railway Telecom <br />
+							<Box
+								component="span"
+								sx={{ color: 'primary.main' }}
+							>
+								Control Desk
+							</Box>
+						</Typography>
+						<Typography
+							variant="h6"
+							sx={{
+								color: 'text.secondary',
+								fontWeight: 400,
+								maxWidth: 480,
+							}}
+						>
+							Real-time infrastructure monitoring and
+							maintenance management for Western Railway.
+						</Typography>
+					</Box>
+
+					{/* Subtle decorative element */}
+					<Box
+						sx={{
+							position: 'absolute',
+							bottom: -50,
+							right: -50,
+							width: 300,
+							height: 300,
+							borderRadius: '50%',
+							background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(16, 18, 20, 0) 70%)',
+						}}
+					/>
+				</Grid>
+			)}
+
+			{/* Right Side: Clean Login Form */}
+			<Grid
+				item
+				xs={12}
+				lg={6}
+				sx={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					bgcolor: 'background.default', // #F8FAFC
+					p: 4,
+				}}
+			>
+				<Box sx={{ width: '100%', maxWidth: 400 }}>
+					<Stack spacing={1} sx={{ mb: 4 }}>
+						<Typography
+							variant="h4"
+							sx={{
+								fontWeight: 800,
+								color: 'text.primary',
+							}}
+						>
+							Sign In
+						</Typography>
+						<Typography variant="body1" color="text.secondary">
+							Please enter your credentials to access your
+							dashboard.
+						</Typography>
+					</Stack>
+
 					<Box
 						component="form"
 						noValidate
 						onSubmit={handleSubmit(onSubmit)}
-						sx={{ width: '100%', maxWidth: '400px' }}
 					>
-						<Typography
-							component="h1"
-							variant="h4"
-							sx={{ fontWeight: 'bold', mb: 1 }}
-						>
-							Sign In
-						</Typography>
-						<Typography
-							variant="body2"
-							color="text.secondary"
-							sx={{ mb: 3 }}
-						>
-							Enter your username and password to
-							continue.
-						</Typography>
-
-						{/* Username Field */}
-						{!(loading || status === 'loading') ? (
-							<>
+						{loading ? (
+							<Box
+								sx={{
+									display: 'flex',
+									justifyContent: 'center',
+									py: 4,
+								}}
+							>
+								<CircularProgress />
+							</Box>
+						) : (
+							<Stack spacing={2.5}>
 								<Controller
 									name="username"
 									control={control}
@@ -119,9 +172,9 @@ export default function LoginPage() {
 									render={({ field }) => (
 										<TextField
 											{...field}
-											margin="normal"
 											fullWidth
 											label="Username"
+											variant="outlined"
 											autoFocus
 											error={
 												!!errors.username
@@ -131,11 +184,13 @@ export default function LoginPage() {
 													.username
 													?.message
 											}
+											sx={{
+												bgcolor: 'white',
+											}}
 										/>
 									)}
 								/>
 
-								{/* Password Field */}
 								<Controller
 									name="password"
 									control={control}
@@ -143,16 +198,16 @@ export default function LoginPage() {
 										required: 'Password is required',
 										minLength: {
 											value: 4,
-											message: 'Minimum 4 characters required',
+											message: 'Minimum 4 characters',
 										},
 									}}
 									render={({ field }) => (
 										<TextField
 											{...field}
-											margin="normal"
 											fullWidth
 											label="Password"
 											type="password"
+											variant="outlined"
 											error={
 												!!errors.password
 											}
@@ -161,6 +216,9 @@ export default function LoginPage() {
 													.password
 													?.message
 											}
+											sx={{
+												bgcolor: 'white',
+											}}
 										/>
 									)}
 								/>
@@ -171,7 +229,6 @@ export default function LoginPage() {
 										justifyContent:
 											'space-between',
 										alignItems: 'center',
-										mt: 1,
 									}}
 								>
 									<Controller
@@ -190,13 +247,24 @@ export default function LoginPage() {
 														color="primary"
 													/>
 												}
-												label="Remember me"
+												label={
+													<Typography variant="body2">
+														Remember
+														me
+													</Typography>
+												}
 											/>
 										)}
 									/>
 									<Link
 										href="#"
 										variant="body2"
+										sx={{
+											fontWeight: 600,
+											color: 'primary.main',
+											textDecoration:
+												'none',
+										}}
 									>
 										Forgot password?
 									</Link>
@@ -208,19 +276,31 @@ export default function LoginPage() {
 									variant="contained"
 									size="large"
 									sx={{
-										mt: 3,
-										mb: 2,
-										py: 1.5,
-										fontWeight: 'bold',
+										py: 1.8,
+										fontWeight: 800,
+										fontSize: '1rem',
+										textTransform:
+											'none',
+										boxShadow: 'none',
+										'&:hover': {
+											boxShadow: 'none',
+										},
 									}}
 								>
 									Login
 								</Button>
-							</>
-						) : (
-							<CircularProgress />
+							</Stack>
 						)}
 					</Box>
+
+					<Typography
+						variant="body2"
+						color="text.secondary"
+						align="center"
+						sx={{ mt: 6 }}
+					>
+						&copy; 2026 Indian Railways S&T Department
+					</Typography>
 				</Box>
 			</Grid>
 		</Grid>

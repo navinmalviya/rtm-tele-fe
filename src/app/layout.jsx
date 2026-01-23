@@ -2,7 +2,7 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Box, CssBaseline } from '@mui/material';
-import { QueryProvider, SessionProvider, StoreProvider } from '@/lib/providers';
+import { MuiThemeProvider, QueryProvider, SessionProvider, StoreProvider } from '@/lib/providers';
 import { ToastProvider } from '@/lib/providers/ToastProvider';
 
 const geistSans = Geist({
@@ -25,7 +25,6 @@ export default function RootLayout({ children }) {
 					{/* The 1400px Centered App Shell */}
 					<Box
 						sx={{
-							maxWidth: '1450px',
 							width: '100%', // Use 100%, NEVER 100vw
 							margin: '0 auto', // This handles the centering perfectly
 							bgcolor: '#fff',
@@ -39,7 +38,9 @@ export default function RootLayout({ children }) {
 							<ToastProvider>
 								<StoreProvider>
 									<QueryProvider>
-										{children}
+										<MuiThemeProvider>
+											{children}
+										</MuiThemeProvider>
 									</QueryProvider>
 								</StoreProvider>
 							</ToastProvider>
