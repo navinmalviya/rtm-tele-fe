@@ -1,12 +1,12 @@
 'use client';
 
-import { Close } from '@mui/icons-material';
+import { Close, Place } from '@mui/icons-material';
 import {
 	Box,
 	Button,
 	Divider,
 	IconButton,
-	MenuItem,
+	InputAdornment,
 	Stack,
 	TextField,
 	Typography,
@@ -16,13 +16,12 @@ import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useAddStation } from '@/hooks/stations';
 import { RtmDrawer } from '@/lib/common/layout';
-import { SECTIONS, SUB_SECTIONS } from '@/lib/constants';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 export default function AddStationForm({ initialData }) {
 	const dispatch = useDispatch();
 	const { mutate: addStation } = useAddStation();
-	const { data } = useSession();
+	const { data: session } = useSession();
 
 	const {
 		control,
@@ -33,25 +32,16 @@ export default function AddStationForm({ initialData }) {
 		defaultValues: {
 			code: '',
 			name: '',
-			section: '',
-			subSection: '',
-			mapX: initialData?.x || 0,
-			mapY: initialData?.y || 0,
-		},
-		values: {
-			code: '',
-			name: '',
-			section: '',
-			subSection: '',
 			mapX: initialData?.x || 0,
 			mapY: initialData?.y || 0,
 		},
 	});
 
-	// Validated Submit Function
-	const handleStationSubmit = (stationData) => {
-		addStation({ stationData, createdById: data?.user?.id });
-		reset(); // Clear form
+	const handleStationSubmit = (formData) => {
+		// Backend handles divisionId and createdById via JWT
+		addStation(formData);
+		reset();
+		dispatch(closeDrawer({ drawerName: 'addStationDrawer' }));
 	};
 
 	return (
@@ -59,16 +49,29 @@ export default function AddStationForm({ initialData }) {
 			{/* Header */}
 			<Box
 				sx={{
-					p: 2,
+					p: 3,
 					display: 'flex',
 					justifyContent: 'space-between',
 					alignItems: 'center',
-					bgcolor: '#f8f9fa',
+					bgcolor: 'white',
 				}}
 			>
-				<Typography variant="h6" sx={{ fontWeight: 800 }}>
-					Add Station
-				</Typography>
+				<Box>
+					<Typography
+						variant="h5"
+						sx={{ fontWeight: 800, color: '#1E293B' }}
+					>
+						Create Station
+					</Typography>
+					<Typography
+						variant="caption"
+						color="text.secondary"
+						sx={{ fontWeight: 600 }}
+					>
+						Adding to Division: **
+						{session?.user?.divisionCode || '...'}**
+					</Typography>
+				</Box>
 				<IconButton
 					onClick={() =>
 						dispatch(
@@ -77,159 +80,152 @@ export default function AddStationForm({ initialData }) {
 							})
 						)
 					}
+					sx={{ bgcolor: '#F1F5F9' }}
 				>
-					<Close />
+					<Close fontSize="small" />
 				</IconButton>
 			</Box>
 
-			<Divider />
+			<Divider sx={{ borderColor: '#F1F5F9' }} />
 
 			{/* Form Content */}
-			<Box sx={{ p: 3, flexGrow: 1, overflowY: 'auto' }}>
+			<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: 'white' }}>
 				<form
 					id="station-form"
 					onSubmit={handleSubmit(handleStationSubmit)}
 				>
-					<Stack spacing={3}>
-						<Controller
-							name="code"
-							control={control}
-							rules={{ required: 'Code is required' }}
-							render={({ field }) => (
-								<TextField
-									{...field}
-									label="Station Code"
-									fullWidth
-									error={!!errors.code}
-									helperText={
-										errors.code?.message
-									}
-								/>
-							)}
-						/>
-
-						<Controller
-							name="name"
-							control={control}
-							rules={{ required: 'Name is required' }}
-							render={({ field }) => (
-								<TextField
-									{...field}
-									label="Station Name"
-									fullWidth
-									error={!!errors.name}
-									helperText={
-										errors.name?.message
-									}
-								/>
-							)}
-						/>
-
-						<Controller
-							name="section"
-							control={control}
-							rules={{ required: 'Section is required' }}
-							render={({ field }) => (
-								<TextField
-									{...field}
-									select
-									label="Section"
-									fullWidth
-									error={!!errors.section}
-									helperText={
-										errors.section
-											?.message
-									}
-								>
-									{SECTIONS.map((o) => (
-										<MenuItem
-											key={o}
-											value={o}
-										>
-											{o}
-										</MenuItem>
-									))}
-								</TextField>
-							)}
-						/>
-
-						<Controller
-							name="subSection"
-							control={control}
-							rules={{
-								required: 'Sub-section is required',
-							}}
-							render={({ field }) => (
-								<TextField
-									{...field}
-									select
-									label="Sub-Section"
-									fullWidth
-									error={!!errors.subSection}
-									helperText={
-										errors.subSection
-											?.message
-									}
-								>
-									{SUB_SECTIONS.map((o) => (
-										<MenuItem
-											key={o}
-											value={o}
-										>
-											{o}
-										</MenuItem>
-									))}
-								</TextField>
-							)}
-						/>
-
-						{/* EDITABLE COORDINATES */}
-						<Stack direction="row" spacing={2}>
-							<Controller
-								name="mapX"
-								control={control}
-								rules={{
-									required: 'X is required',
+					<Stack spacing={4}>
+						<Box>
+							<Typography
+								variant="subtitle2"
+								sx={{
+									fontWeight: 700,
+									mb: 2,
+									color: '#64748B',
 								}}
-								render={({ field }) => (
-									<TextField
-										{...field}
-										label="X Coordinate"
-										type="number"
-										fullWidth
-										error={
-											!!errors.mapX
-										}
-										helperText={
-											errors.mapX
-												?.message
-										}
-									/>
-								)}
-							/>
-							<Controller
-								name="mapY"
-								control={control}
-								rules={{
-									required: 'Y is required',
+							>
+								IDENTIFICATION
+							</Typography>
+							<Stack spacing={3}>
+								<Controller
+									name="code"
+									control={control}
+									rules={{
+										required: 'Station code is required',
+									}}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											label="Station Code"
+											placeholder="e.g. RTM"
+											fullWidth
+											error={
+												!!errors.code
+											}
+											helperText={
+												errors
+													.code
+													?.message
+											}
+											InputProps={{
+												sx: {
+													borderRadius: 2,
+												},
+												startAdornment:
+													(
+														<InputAdornment position="start">
+															<Place
+																sx={{
+																	color: 'primary.main',
+																	fontSize: 20,
+																}}
+															/>
+														</InputAdornment>
+													),
+											}}
+										/>
+									)}
+								/>
+
+								<Controller
+									name="name"
+									control={control}
+									rules={{
+										required: 'Station name is required',
+									}}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											label="Station Name"
+											placeholder="e.g. Ratlam Junction"
+											fullWidth
+											error={
+												!!errors.name
+											}
+											helperText={
+												errors
+													.name
+													?.message
+											}
+											InputProps={{
+												sx: {
+													borderRadius: 2,
+												},
+											}}
+										/>
+									)}
+								/>
+							</Stack>
+						</Box>
+
+						<Box>
+							<Typography
+								variant="subtitle2"
+								sx={{
+									fontWeight: 700,
+									mb: 2,
+									color: '#64748B',
 								}}
-								render={({ field }) => (
-									<TextField
-										{...field}
-										label="Y Coordinate"
-										type="number"
-										fullWidth
-										error={
-											!!errors.mapY
-										}
-										helperText={
-											errors.mapY
-												?.message
-										}
-									/>
-								)}
-							/>
-						</Stack>
+							>
+								TOPOLOGY POSITION (CANVAS)
+							</Typography>
+							<Stack direction="row" spacing={2}>
+								<Controller
+									name="mapX"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											label="X coordinate"
+											type="number"
+											fullWidth
+											InputProps={{
+												sx: {
+													borderRadius: 2,
+												},
+											}}
+										/>
+									)}
+								/>
+								<Controller
+									name="mapY"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											label="Y coordinate"
+											type="number"
+											fullWidth
+											InputProps={{
+												sx: {
+													borderRadius: 2,
+												},
+											}}
+										/>
+									)}
+								/>
+							</Stack>
+						</Box>
 					</Stack>
 				</form>
 			</Box>
@@ -237,10 +233,10 @@ export default function AddStationForm({ initialData }) {
 			<Divider />
 
 			{/* Footer Actions */}
-			<Box sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+			<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
 				<Stack direction="row" spacing={2}>
 					<Button
-						variant="outlined"
+						variant="text"
 						fullWidth
 						onClick={() =>
 							dispatch(
@@ -249,7 +245,7 @@ export default function AddStationForm({ initialData }) {
 								})
 							)
 						}
-						color="inherit"
+						sx={{ color: '#64748B', fontWeight: 700 }}
 					>
 						Cancel
 					</Button>
@@ -258,7 +254,16 @@ export default function AddStationForm({ initialData }) {
 						form="station-form"
 						variant="contained"
 						fullWidth
-						sx={{ bgcolor: '#2196f3', fontWeight: 700 }}
+						disableElevation
+						sx={{
+							bgcolor: '#3B82F6',
+							borderRadius: 2.5,
+							py: 1.5,
+							fontWeight: 700,
+							textTransform: 'none',
+							fontSize: '1rem',
+							'&:hover': { bgcolor: '#2563EB' },
+						}}
 					>
 						Save Station
 					</Button>

@@ -10,17 +10,14 @@ export const useAddStation = () => {
 	const showToast = useToast();
 
 	return useMutation({
-		mutationFn: ({ stationData, createdById }) => {
-			const payload = {
-				...stationData,
-				createdById,
-			};
-			console.log('payload', payload);
-			return StationService.addStation(payload);
+		// Simplified: stationData is now the direct payload from the form
+		mutationFn: (stationData) => {
+			console.log('Sending Station Payload:', stationData);
+			return StationService.addStation(stationData);
 		},
 
 		onSuccess: async () => {
-			// ✅ v5 invalidate syntax
+			// Refresh the stations list on the React Flow canvas
 			await queryClient.invalidateQueries({
 				queryKey: ['stations'],
 			});
@@ -30,10 +27,13 @@ export const useAddStation = () => {
 		},
 
 		onError: (error) => {
-			showToast(
-				error?.response?.data?.errors?.[0] || 'Failed to add station',
-				'error'
-			);
+			// Improved error parsing for Express/Prisma errors
+			const errorMessage =
+				error?.response?.data?.message ||
+				error?.response?.data?.error ||
+				'Failed to add station';
+
+			showToast(errorMessage, 'error');
 		},
 	});
 };
