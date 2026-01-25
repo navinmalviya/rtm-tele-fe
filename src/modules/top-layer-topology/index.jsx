@@ -5,21 +5,24 @@ import {
 	Background,
 	Controls,
 	MiniMap,
-	Panel, // Added for UI controls inside Flow
+	Panel,
 	ReactFlow,
 	useEdgesState,
 	useNodesState,
 } from '@xyflow/react';
 import { useCallback, useEffect, useState } from 'react';
 import '@xyflow/react/dist/style.css';
+import AddIcon from '@mui/icons-material/Add'; // Import Add Icon
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
-import { Box, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { Box, Divider, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 import { useBulkUpdateStations } from '@/hooks/stations';
 import { useStations } from '@/hooks/stations/useStations';
 import { StationNode } from '@/lib/common/nodes';
+import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import { AddStationForm } from '../stations';
 
 const nodeTypes = {
@@ -28,6 +31,7 @@ const nodeTypes = {
 
 export default function TopLayerTopology() {
 	const { data: stationNodes } = useStations();
+	const dispatch = useDispatch();
 	const router = useRouter();
 	const { mutate: bulkUpdateStations } = useBulkUpdateStations();
 	const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -40,12 +44,11 @@ export default function TopLayerTopology() {
 		if (stationNodes) {
 			const formattedNodes = stationNodes.map((node) => ({
 				...node,
-				type: 'station', // Use our custom type
+				type: 'station',
 				data: {
 					...node.data,
 					label: node.data.label || node.name,
 					code: node.data.code || node.code,
-					// Pass the navigation function directly into the data object
 					onDoubleClick: () =>
 						router.push(`/admin/station/${node.id}`),
 				},
@@ -59,9 +62,6 @@ export default function TopLayerTopology() {
 		[setEdges]
 	);
 
-	// --- New Event Handlers ---
-
-	// Tracks nodes as they are moved
 	const onNodeDragStop = useCallback((event, node) => {
 		setMovedNodes((prev) => ({
 			...prev,
@@ -69,7 +69,6 @@ export default function TopLayerTopology() {
 		}));
 	}, []);
 
-	// Tracks multiple nodes if dragged together
 	const onSelectionDragStop = useCallback((event, selectedNodes) => {
 		const updates = {};
 		selectedNodes.forEach((node) => {
@@ -84,27 +83,28 @@ export default function TopLayerTopology() {
 
 	const handleSave = () => {
 		const payload = Object.values(movedNodes);
-		if (payload.length > 0) {
-			console.log('Sending Bulk Update:', payload);
-			bulkUpdateStations({ stations: payload });
-		}
+		if (payload.length > 0) bulkUpdateStations({ stations: payload });
 		setIsEditMode(false);
 		setMovedNodes({});
 	};
 
 	const handleCancel = () => {
-		setNodes(stationNodes); // Reset to original positions from API
+		setNodes(stationNodes);
 		setMovedNodes({});
 		setIsEditMode(false);
 	};
 
 	return (
-		<Box sx={{ width: '100%', height: '100%' }}>
+		<Box sx={{ width: '100%', height: '100%', bgcolor: '#F8FAFC' }}>
+			{/* Add your logic here: 
+                Passing isFormOpen and setIsFormOpen to your component 
+            */}
 			<AddStationForm />
+
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}
-				nodeTypes={nodeTypes} // Register custom types
+				nodeTypes={nodeTypes}
 				onEdgesChange={onEdgesChange}
 				onNodesChange={onNodesChange}
 				onConnect={onConnect}
@@ -112,118 +112,146 @@ export default function TopLayerTopology() {
 				onNodeDragStop={onNodeDragStop}
 				onSelectionDragStop={onSelectionDragStop}
 				zoomOnDoubleClick={false}
-				nodesFocusable={true}
-				elementsSelectable={true}
 				fitView
-				colorMode="light"
 			>
-				<Background variant="dots" gap={20} size={1} color="#cbd5e1" />
+				<Background variant="dots" gap={24} size={1} color="#cbd5e1" />
+				<Panel position="top-left" style={{ margin: 0 }}>
+					<Typography variant="h4" sx={{ fontWeight: 800 }}>
+						Topology
+					</Typography>
+				</Panel>
 
-				{/* Floating Action Panel (Positioned top-right) */}
 				<Panel
 					position="top-right"
-					style={{
-						margin: 0,
-						top: '55px', // Match this to your Navbar's top position
-						right: '200px', // Optional: padding from the right edge
-						width: 'fit-content',
-					}}
+					style={{ top: '20px', right: '20px', margin: 0 }}
 				>
 					<Paper
-						elevation={4}
+						elevation={0}
 						sx={{
-							px: '8px',
-							py: '5px',
-							borderRadius: '100px',
-							border: '1px solid #e0e0e0',
+							p: 0.8,
+							borderRadius: '16px',
+							border: '1px solid #E2E8F0',
 							bgcolor: 'rgba(255, 255, 255, 0.9)',
-							backdropFilter: 'blur(2px)',
+							backdropFilter: 'blur(8px)',
+							boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
 						}}
 					>
-						{!isEditMode ? (
-							<IconButton
-								onClick={() => setIsEditMode(true)}
-								sx={{
-									bgcolor: '#fff',
-									border: '1.5px solid #2196f3',
-									// mr: 1.5,
-									width: 42,
-									height: 42,
-									'&:hover': {
-										bgcolor: '#fff',
-									},
-								}}
-							>
-								<EditIcon
-									sx={{
-										color: '#333',
-										fontSize: '1.3rem',
-									}}
-								/>
-							</IconButton>
-						) : (
-							<Stack
-								direction="row"
-								spacing={1}
-								alignItems="center"
-							>
-								<Typography
-									variant="caption"
-									sx={{
-										mr: 1,
-										fontWeight: 700,
-										color: 'primary.main',
-									}}
-								>
-									EDITING MODE
-								</Typography>
-								<IconButton
-									onClick={handleSave}
-									sx={{
-										bgcolor: '#fff',
-										border: '2px solid #4caf50',
-										// mr: 1.5,
-										width: 42,
-										height: 42,
-										'&:hover': {
-											bgcolor: '#fff',
-										},
-									}}
-								>
-									<SaveIcon
-										sx={{
-											color: '#4caf50',
-											fontSize: '1.3rem',
-										}}
+						<Stack
+							direction="row"
+							spacing={1}
+							alignItems="center"
+						>
+							{!isEditMode ? (
+								<>
+									{/* ADD STATION BUTTON */}
+									<Tooltip title="Add Station">
+										<IconButton
+											onClick={() => {
+												dispatch(
+													openDrawer(
+														{
+															drawerName: 'addStationDrawer',
+														}
+													)
+												);
+											}}
+											sx={{
+												bgcolor: 'primary.main',
+												color: 'white',
+												width: 40,
+												height: 40,
+												'&:hover': {
+													bgcolor: 'primary.dark',
+												},
+											}}
+										>
+											<AddIcon fontSize="small" />
+										</IconButton>
+									</Tooltip>
+
+									<Divider
+										orientation="vertical"
+										flexItem
+										sx={{ mx: 0.5 }}
 									/>
-								</IconButton>
-								<IconButton
-									onClick={handleCancel}
-									sx={{
-										bgcolor: '#fff',
-										border: '2px solid #ef5350',
-										// mr: 1.5,
-										width: 42,
-										height: 42,
-										'&:hover': {
-											bgcolor: '#fff',
-										},
-									}}
+
+									{/* EDIT BUTTON */}
+									<Tooltip title="Edit Layout">
+										<IconButton
+											onClick={() =>
+												setIsEditMode(
+													true
+												)
+											}
+											sx={{
+												bgcolor: 'white',
+												border: '1px solid #E2E8F0',
+												color: 'text.secondary',
+												width: 40,
+												height: 40,
+												'&:hover': {
+													bgcolor: '#F1F5F9',
+												},
+											}}
+										>
+											<EditIcon fontSize="small" />
+										</IconButton>
+									</Tooltip>
+								</>
+							) : (
+								<Stack
+									direction="row"
+									spacing={1}
+									alignItems="center"
 								>
-									<CancelIcon
+									<Typography
+										variant="caption"
 										sx={{
-											color: '#ef5350',
-											fontSize: '1.3rem',
+											fontWeight: 800,
+											color: 'primary.main',
+											px: 1,
 										}}
-									/>
-								</IconButton>
-							</Stack>
-						)}
+									>
+										EDITING MODE
+									</Typography>
+									<IconButton
+										onClick={handleSave}
+										sx={{
+											bgcolor: '#4caf50',
+											color: 'white',
+											width: 40,
+											height: 40,
+											'&:hover': {
+												bgcolor: '#388e3c',
+											},
+										}}
+									>
+										<SaveIcon fontSize="small" />
+									</IconButton>
+									<IconButton
+										onClick={
+											handleCancel
+										}
+										sx={{
+											bgcolor: '#ef5350',
+											color: 'white',
+											width: 40,
+											height: 40,
+											'&:hover': {
+												bgcolor: '#d32f2f',
+											},
+										}}
+									>
+										<CancelIcon fontSize="small" />
+									</IconButton>
+								</Stack>
+							)}
+						</Stack>
 					</Paper>
 				</Panel>
 
 				<Controls position="bottom-right" />
-				<MiniMap position="bottom-right" zoomable pannable />
+				<MiniMap position="bottom-left" zoomable pannable />
 			</ReactFlow>
 		</Box>
 	);

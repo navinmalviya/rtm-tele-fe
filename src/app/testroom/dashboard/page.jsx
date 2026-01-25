@@ -27,7 +27,7 @@ export default function DashboardPage() {
 			</Stack>
 
 			<Grid container spacing={3} justifyContent="space-between">
-				<Grid item xs={12} md={4} flexGrow={1}>
+				<Grid size={{ xs: 12, md: 4 }} flexGrow={1}>
 					<StatCard
 						label="Pending Inspections"
 						value="41"
@@ -36,7 +36,7 @@ export default function DashboardPage() {
 						color="#3B82F6"
 					/>
 				</Grid>
-				<Grid item xs={12} md={4} flexGrow={1}>
+				<Grid size={{ xs: 12, md: 4 }} flexGrow={1}>
 					<StatCard
 						label="Due Cable Testing"
 						value="81"
@@ -45,7 +45,7 @@ export default function DashboardPage() {
 						color="#10B981"
 					/>
 				</Grid>
-				<Grid item xs={12} md={4} flexGrow={1}>
+				<Grid size={{ xs: 12, md: 4 }} flexGrow={1}>
 					<StatCard
 						label="Due Socket Testing"
 						value="12"

@@ -96,8 +96,8 @@ export default function LoginPage() {
 								maxWidth: 480,
 							}}
 						>
-							Real-time infrastructure monitoring and
-							maintenance management for Western Railway.
+							Infrastructure monitoring and maintenance
+							management for Western Railway.
 						</Typography>
 					</Box>
 

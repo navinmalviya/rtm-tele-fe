@@ -9,12 +9,14 @@ import {
 	ListItemText,
 	Typography,
 } from '@mui/material';
+import Cookies from 'js-cookie';
 import { usePathname, useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
 const sidebarWidth = 280;
 
 const menuItems = [
-	{ text: 'Dashboard', icon: <Dashboard />, path: '/testroom' },
+	{ text: 'Dashboard', icon: <Dashboard />, path: '/testroom/dashboard' },
 	{ text: 'Topology', icon: <Hub />, path: '/testroom/topology' },
 	{ text: 'Reports', icon: <Assessment />, path: '/testroom/reports' },
 	{ text: 'Asset Management', icon: <Inventory />, path: '/testroom/assets' },
@@ -23,6 +25,28 @@ const menuItems = [
 export default function SideMenu() {
 	const pathname = usePathname();
 	const router = useRouter();
+	const handleLogout = async () => {
+		// 1. Clear NextAuth Session (Clears 'next-auth.session-token')
+		await signOut({ redirect: false });
+
+		// 2. Clear Custom Cookies
+		// If you know the names:
+		// Cookies.remove('next-auth.csrf-token');
+		// Cookies.remove('next-auth.callback-url');
+		// Cookies.remove('__next_hmr_refresh_hash__');
+
+		// If you want to clear ALL cookies:
+		Object.keys(Cookies.get()).forEach((cookieName) => {
+			Cookies.remove(cookieName);
+		});
+
+		// 3. Clear Storage
+		localStorage.clear();
+		sessionStorage.clear();
+
+		// 4. Redirect to home/login
+		router.push('/');
+	};
 
 	return (
 		<Box
@@ -147,7 +171,7 @@ export default function SideMenu() {
 					<ListItemIcon sx={{ color: 'inherit', minWidth: 45 }}>
 						<Logout />
 					</ListItemIcon>
-					<ListItemText primary="Logout" />
+					<ListItemText onClick={handleLogout} primary="Logout" />
 				</ListItemButton>
 			</Box>
 		</Box>

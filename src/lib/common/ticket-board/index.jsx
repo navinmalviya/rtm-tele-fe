@@ -7,7 +7,7 @@ const initialData = {
 	columns: {
 		todo: { id: 'todo', title: 'To Do', taskIds: ['task-1', 'task-2'] },
 		progress: { id: 'progress', title: 'In Progress', taskIds: ['task-3'] },
-		done: { id: 'done', title: 'Testing', taskIds: [] },
+		done: { id: 'done', title: 'Done', taskIds: [] },
 	},
 	tasks: {
 		'task-1': {

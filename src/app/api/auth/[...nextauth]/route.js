@@ -23,7 +23,10 @@ export const authOptions = {
 							username: data.user.username,
 							name: data.user.fullName,
 							role: data.user.role,
-							accessToken: data.accessToken,
+							accessToken: data.accessToken, // This remains at the top level
+							// Fix: Access these from data.user
+							divisionId: data.user.divisionId,
+							divisionCode: data.user.divisionCode,
 						};
 					}
 					return null;
