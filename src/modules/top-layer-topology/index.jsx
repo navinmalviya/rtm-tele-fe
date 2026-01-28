@@ -12,18 +12,35 @@ import {
 } from '@xyflow/react';
 import { useCallback, useEffect, useState } from 'react';
 import '@xyflow/react/dist/style.css';
-import AddIcon from '@mui/icons-material/Add'; // Import Add Icon
+import AccountTreeIcon from '@mui/icons-material/AccountTree'; // For Section
+import AddIcon from '@mui/icons-material/Add';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
+import LinearScaleIcon from '@mui/icons-material/LinearScale'; // For Sub-section
+import PlaceIcon from '@mui/icons-material/Place'; // For Station
 import SaveIcon from '@mui/icons-material/Save';
-import { Box, Divider, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import {
+	Box,
+	Divider,
+	IconButton,
+	ListItemIcon,
+	ListItemText,
+	Menu,
+	MenuItem,
+	Paper,
+	Stack,
+	Tooltip,
+	Typography,
+} from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { useBulkUpdateStations } from '@/hooks/stations';
 import { useStations } from '@/hooks/stations/useStations';
 import { StationNode } from '@/lib/common/nodes';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import { AddSectionForm } from '../sections';
 import { AddStationForm } from '../stations';
+import { AddSubSectionForm } from '../sub-sections';
 
 const nodeTypes = {
 	station: StationNode,
@@ -40,6 +57,18 @@ export default function TopLayerTopology() {
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [movedNodes, setMovedNodes] = useState({});
 
+	// Menu State
+	const [anchorEl, setAnchorEl] = useState(null);
+	const isMenuOpen = Boolean(anchorEl);
+
+	const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+	const handleMenuClose = () => setAnchorEl(null);
+
+	const handleAction = (drawerName) => {
+		dispatch(openDrawer({ drawerName }));
+		handleMenuClose();
+	};
+
 	useEffect(() => {
 		if (stationNodes) {
 			const formattedNodes = stationNodes.map((node) => ({
@@ -50,7 +79,7 @@ export default function TopLayerTopology() {
 					label: node.data.label || node.name,
 					code: node.data.code || node.code,
 					onDoubleClick: () =>
-						router.push(`/admin/station/${node.id}`),
+						router.push(`/testroom/station/${node.id}`),
 				},
 			}));
 			setNodes(formattedNodes);
@@ -95,11 +124,11 @@ export default function TopLayerTopology() {
 	};
 
 	return (
-		<Box sx={{ width: '100%', height: '100%', bgcolor: '#F8FAFC' }}>
-			{/* Add your logic here: 
-                Passing isFormOpen and setIsFormOpen to your component 
-            */}
+		<Box sx={{ width: '100%', height: '100%', bgcolor: '#F8FAFC', p: 2 }}>
 			<AddStationForm />
+			<AddSubSectionForm />
+			<AddSectionForm />
+			{/* Note: You will need to add <AddSectionForm /> and <AddSubSectionForm /> here later */}
 
 			<ReactFlow
 				nodes={nodes}
@@ -113,10 +142,12 @@ export default function TopLayerTopology() {
 				onSelectionDragStop={onSelectionDragStop}
 				zoomOnDoubleClick={false}
 				fitView
+				// defaultViewport={{ x: -10, y: -40, zoom: 0.9 }}
 			>
 				<Background variant="dots" gap={24} size={1} color="#cbd5e1" />
+
 				<Panel position="top-left" style={{ margin: 0 }}>
-					<Typography variant="h4" sx={{ fontWeight: 800 }}>
+					<Typography variant="h4" sx={{ fontWeight: 800, p: 2 }}>
 						Topology
 					</Typography>
 				</Panel>
@@ -143,18 +174,11 @@ export default function TopLayerTopology() {
 						>
 							{!isEditMode ? (
 								<>
-									{/* ADD STATION BUTTON */}
-									<Tooltip title="Add Station">
+									<Tooltip title="Add New Asset">
 										<IconButton
-											onClick={() => {
-												dispatch(
-													openDrawer(
-														{
-															drawerName: 'addStationDrawer',
-														}
-													)
-												);
-											}}
+											onClick={
+												handleMenuOpen
+											}
 											sx={{
 												bgcolor: 'primary.main',
 												color: 'white',
@@ -169,13 +193,109 @@ export default function TopLayerTopology() {
 										</IconButton>
 									</Tooltip>
 
+									{/* DROPDOWN MENU */}
+									<Menu
+										anchorEl={anchorEl}
+										open={isMenuOpen}
+										onClose={
+											handleMenuClose
+										}
+										slotProps={{
+											paper: {
+												elevation: 4,
+												sx: {
+													minWidth: 200,
+													mt: 1.5,
+													borderRadius:
+														'10px',
+													bgcolor: 'white',
+													border: '1px solid #e2e8f0',
+													'& .MuiMenuItem-root':
+														{
+															px: 2,
+															py: 1.2,
+															borderRadius:
+																'8px',
+															mx: 1,
+															my: 0.5,
+															'&:hover': {
+																bgcolor: '#f1f5f9',
+															},
+														},
+												},
+											},
+										}}
+										transformOrigin={{
+											horizontal: 'right',
+											vertical: 'top',
+										}}
+										anchorOrigin={{
+											horizontal: 'right',
+											vertical: 'bottom',
+										}}
+									>
+										<MenuItem
+											onClick={() =>
+												handleAction(
+													'addSectionDrawer'
+												)
+											}
+										>
+											<ListItemIcon>
+												<AccountTreeIcon fontSize="small" />
+											</ListItemIcon>
+											<ListItemText
+												primary="Add Section"
+												primaryTypographyProps={{
+													variant: 'body2',
+													fontWeight: 600,
+												}}
+											/>
+										</MenuItem>
+										<MenuItem
+											onClick={() =>
+												handleAction(
+													'addSubSectionDrawer'
+												)
+											}
+										>
+											<ListItemIcon>
+												<LinearScaleIcon fontSize="small" />
+											</ListItemIcon>
+											<ListItemText
+												primary="Add Sub-section"
+												primaryTypographyProps={{
+													variant: 'body2',
+													fontWeight: 600,
+												}}
+											/>
+										</MenuItem>
+										<MenuItem
+											onClick={() =>
+												handleAction(
+													'addStationDrawer'
+												)
+											}
+										>
+											<ListItemIcon>
+												<PlaceIcon fontSize="small" />
+											</ListItemIcon>
+											<ListItemText
+												primary="Add Station"
+												primaryTypographyProps={{
+													variant: 'body2',
+													fontWeight: 600,
+												}}
+											/>
+										</MenuItem>
+									</Menu>
+
 									<Divider
 										orientation="vertical"
 										flexItem
 										sx={{ mx: 0.5 }}
 									/>
 
-									{/* EDIT BUTTON */}
 									<Tooltip title="Edit Layout">
 										<IconButton
 											onClick={() =>

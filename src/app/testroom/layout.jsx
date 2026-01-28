@@ -5,7 +5,6 @@ import { Box } from '@mui/material';
 // import { ADMIN_NAV_LINKS } from '@/lib/constants';
 import { SideMenu } from '@/modules/testroom';
 import { store } from '../../lib/store';
-
 export default function Layout({ children }) {
 	store.subscribe(() => {
 		console.log('Store=>', store.getState());
@@ -26,7 +25,7 @@ export default function Layout({ children }) {
 				component="main"
 				sx={{
 					flexGrow: 1,
-					p: 4,
+					// p: 4,
 					ml: '280px', // Fixed Sidebar width
 					width: `calc(100% - 280px)`, // Dynamic calculation for the rest
 					display: 'flex',

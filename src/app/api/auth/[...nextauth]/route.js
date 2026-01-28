@@ -3,6 +3,7 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const authOptions = {
+	secret: process.env.NEXTAUTH_SECRET,
 	providers: [
 		CredentialsProvider({
 			name: 'Credentials',
@@ -12,6 +13,10 @@ export const authOptions = {
 			},
 			async authorize(credentials) {
 				try {
+					console.log(
+						'Checking credentials with Backend:',
+						credentials
+					);
 					const { data } = await axios.post(
 						`${process.env.BASE_URL}/auth/login`,
 						credentials

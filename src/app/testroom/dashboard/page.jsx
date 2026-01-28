@@ -7,7 +7,7 @@ import TicketBoard from '@/lib/common/ticket-board';
 
 export default function DashboardPage() {
 	return (
-		<Box sx={{ bgcolor: 'transparent' }}>
+		<Box sx={{ bgcolor: 'transparent', p: 4 }}>
 			<Stack
 				direction="row"
 				justifyContent="space-between"

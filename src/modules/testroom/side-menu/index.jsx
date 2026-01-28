@@ -1,5 +1,13 @@
 'use client';
-import { Assessment, Dashboard, Hub, Inventory, Logout, Settings } from '@mui/icons-material';
+import {
+	Assessment,
+	Dashboard,
+	Hub,
+	Inventory,
+	LibraryBooks,
+	Logout,
+	Settings,
+} from '@mui/icons-material';
 import {
 	Box,
 	List,
@@ -20,6 +28,7 @@ const menuItems = [
 	{ text: 'Topology', icon: <Hub />, path: '/testroom/topology' },
 	{ text: 'Reports', icon: <Assessment />, path: '/testroom/reports' },
 	{ text: 'Asset Management', icon: <Inventory />, path: '/testroom/assets' },
+	{ text: 'Equipment Library', icon: <LibraryBooks />, path: '/testroom/equipment-library' },
 ];
 
 export default function SideMenu() {
@@ -78,8 +87,8 @@ export default function SideMenu() {
 				>
 					<Hub sx={{ color: 'white' }} />
 				</Box>
-				<Typography variant="h6" sx={{ fontWeight: 800 }}>
-					RTM Telecom
+				<Typography variant="h7" sx={{ fontWeight: 800 }}>
+					Telcom Control Desk
 				</Typography>
 			</Box>
 
