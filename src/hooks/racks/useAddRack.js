@@ -10,10 +10,8 @@ export const useAddRack = () => {
 	const showToast = useToast();
 
 	return useMutation({
-		mutationFn: ({ rackData }) => {
-			const payload = {
-				...rackData,
-			};
+		mutationFn: (payload) => {
+			console.log('payload', payload);
 			return RackService.addRack(payload);
 		},
 
@@ -28,10 +26,7 @@ export const useAddRack = () => {
 		},
 
 		onError: (error) => {
-			showToast(
-				error?.response?.data?.errors?.[0] || 'Failed to add rack',
-				'error'
-			);
+			showToast(error?.response?.data?.errors?.[0] || 'Failed to add rack', 'error');
 		},
 	});
 };

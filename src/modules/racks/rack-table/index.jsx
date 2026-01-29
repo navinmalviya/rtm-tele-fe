@@ -1,142 +1,145 @@
-// src/modules/racks/components/RackTable.jsx
 'use client';
 
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import { Box, Chip, Typography } from '@mui/material';
+import { Delete, Edit, MapsHomeWork, Storage, Subtitles, ViewInAr } from '@mui/icons-material';
+import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import RtmDataGrid from '@/lib/common/datagrid';
-import RtmPopupMenu from '@/lib/common/rtm-popup-menu';
 
-export default function RackTable({ racks, isLoading }) {
-	console.log('racks', racks);
+export default function RackTable({ racks = [], isLoading }) {
 	const columns = useMemo(
 		() => [
 			{
 				field: 'name',
-				headerName: 'RACK NAME',
-				minWidth: 200,
-				flex: 1,
+				headerName: 'PHYSICAL ASSET ID',
+				flex: 1.5,
 				renderCell: (params) => (
-					<Box
-						sx={{
-							display: 'flex',
-							alignItems: 'center',
-							height: '100%',
-						}}
-					>
-						<Typography
-							variant="body2"
+					<Stack direction="row" spacing={2} alignItems="center">
+						<Box
 							sx={{
-								fontWeight: 700,
-								color: '#1a237e',
-								lineHeight: 1,
+								p: 1,
+								bgcolor: '#F8FAFC',
+								borderRadius: 1.5,
+								border: '1px solid #E2E8F0',
+								color: '#64748B',
+								display: 'flex',
 							}}
 						>
-							{params.value}
-						</Typography>
-					</Box>
-				),
-			},
-			{
-				field: 'location',
-				headerName: 'LOCATION (ROOM)',
-				minWidth: 200,
-				flex: 1,
-				// Extracting name from the nested location object provided by Prisma
-				valueGetter: (params) => params.name || 'Unassigned',
-				renderCell: (params) => (
-					<Box
-						sx={{
-							display: 'flex',
-							alignItems: 'center',
-							height: '100%',
-						}}
-					>
-						<Typography
-							variant="body2"
-							sx={{ color: '#475569', fontWeight: 500 }}
-						>
-							{params.value}
-						</Typography>
-					</Box>
+							<Storage fontSize="small" />
+						</Box>
+						<Box>
+							<Typography
+								sx={{
+									fontWeight: 800,
+									color: '#0F172A',
+									fontSize: '0.85rem',
+									lineHeight: 1,
+									mb: 0.5,
+								}}
+							>
+								{params.value}
+							</Typography>
+							<Stack direction="row" spacing={0.5} alignItems="center">
+								<MapsHomeWork sx={{ fontSize: 12, color: '#94A3B8' }} />
+								<Typography
+									sx={{
+										color: '#94A3B8',
+										fontSize: '0.72rem',
+										fontWeight: 600,
+										lineHeight: 1,
+									}}
+								>
+									{params.row.location?.name || 'Unassigned'}
+								</Typography>
+							</Stack>
+						</Box>
+					</Stack>
 				),
 			},
 			{
 				field: 'type',
-				headerName: 'TYPE',
-				width: 180,
+				headerName: 'CLASSIFICATION',
+				flex: 1,
 				renderCell: (params) => (
-					<Box
-						sx={{
-							display: 'flex',
-							alignItems: 'center',
-							height: '100%',
-						}}
-					>
+					<Stack spacing={0.5} justifyContent="center">
 						<Chip
 							label={params.value?.replace('_', ' ')}
 							size="small"
-							variant="outlined"
 							sx={{
-								fontSize: '0.7rem',
-								fontWeight: 600,
-								textTransform: 'capitalize',
+								bgcolor: '#F1F5F9',
+								color: '#475569',
+								fontWeight: 800,
+								fontSize: '0.65rem',
+								borderRadius: 1,
 							}}
 						/>
-					</Box>
+						<Stack
+							direction="row"
+							spacing={0.5}
+							alignItems="center"
+							sx={{ color: '#8B5CF6', pl: 0.5 }}
+						>
+							<ViewInAr sx={{ fontSize: 12 }} />
+							<Typography variant="caption" sx={{ fontWeight: 700 }}>
+								{params.value === 'FLOOR_STANDING' ? 'Fixed' : 'Compact'}
+							</Typography>
+						</Stack>
+					</Stack>
 				),
 			},
 			{
-				field: 'heightU',
-				headerName: 'HEIGHT',
-				width: 100,
-				align: 'center',
-				headerAlign: 'center',
-				valueGetter: (params) => `${params.value || 42}U`,
+				field: 'description',
+				headerName: 'TECHNICAL REMARKS',
+				flex: 1.5,
+				renderCell: (params) => (
+					<Stack direction="row" spacing={1} alignItems="center">
+						<Subtitles sx={{ fontSize: 14, color: '#94A3B8' }} />
+						<Typography
+							sx={{
+								fontSize: '0.75rem',
+								fontWeight: 600,
+								color: '#475569',
+								fontStyle: params.value ? 'normal' : 'italic',
+							}}
+						>
+							{params.value || 'No additional notes'}
+						</Typography>
+					</Stack>
+				),
 			},
 			{
 				field: 'actions',
 				headerName: '',
-				width: 80,
+				width: 100,
 				sortable: false,
-				disableColumnMenu: true,
 				align: 'right',
 				renderCell: (params) => {
 					const menuOptions = [
 						{
-							label: 'Edit',
-							icon: <EditIcon fontSize="small" />,
-							action: () =>
-								console.log(
-									'Edit Rack:',
-									params.row
-								),
+							label: 'Edit Rack',
+							icon: <Edit fontSize="small" />,
+							action: () => console.log('Edit:', params.row),
 						},
 						{
 							label: 'Delete',
-							icon: <DeleteIcon fontSize="small" />,
-							action: () =>
-								console.log(
-									'Delete Rack:',
-									params.row.id
-								),
+							icon: <Delete fontSize="small" />,
+							action: () => console.log('Delete:', params.row.id),
 							color: 'error.main',
 						},
 					];
 
 					return (
-						<Box
-							sx={{
-								pr: 1,
-								display: 'flex',
-								alignItems: 'center',
-								height: '100%',
-								justifyContent: 'flex-end',
-							}}
-						>
-							<RtmPopupMenu options={menuOptions} />
-						</Box>
+						<Stack direction="row" spacing={0.5} alignItems="center" sx={{ height: '100%' }}>
+							<Tooltip title="Edit Blueprint">
+								<IconButton size="small" sx={{ color: '#94A3B8' }}>
+									<Edit fontSize="small" />
+								</IconButton>
+							</Tooltip>
+							<Tooltip title="Delete">
+								<IconButton size="small" sx={{ color: '#FDA4AF' }}>
+									<Delete fontSize="small" />
+								</IconButton>
+							</Tooltip>
+						</Stack>
 					);
 				},
 			},
@@ -145,20 +148,14 @@ export default function RackTable({ racks, isLoading }) {
 	);
 
 	return (
-		<Box
-			sx={{
-				width: '100%',
-				maxWidth: '1450px',
-				overflow: 'hidden',
-				display: 'flex',
-				flexDirection: 'column',
-			}}
-		>
+		<Box sx={{ width: '100%', bgcolor: 'white', borderRadius: 2 }}>
 			<RtmDataGrid
 				rows={racks}
 				columns={columns}
 				loading={isLoading}
-				sx={{ width: '100%' }}
+				getRowId={(row) => row.id}
+				rowHeight={70}
+				disableRowSelectionOnClick
 			/>
 		</Box>
 	);
