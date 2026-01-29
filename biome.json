@@ -11,11 +11,8 @@
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab",
-		"indentWidth": 8,
+		"indentWidth": 2,
 		"lineWidth": 100
-	},
-	"assist": {
-		"enabled": true
 	},
 	"linter": {
 		"enabled": true,
@@ -24,9 +21,7 @@
 			"complexity": {
 				"noExcessiveCognitiveComplexity": {
 					"level": "error",
-					"options": {
-						"maxAllowedComplexity": 35
-					}
+					"options": { "maxAllowedComplexity": 35 }
 				},
 				"noUselessCatch": "off",
 				"noForEach": "off"

@@ -1,43 +1,52 @@
 'use client';
 
 import {
+	AddCircleOutline,
 	Business,
+	Category,
 	Close,
+	Delete,
+	ElectricBolt,
 	Memory,
-	SettingsInputComponent,
+	Numbers,
+	Search,
+	Speed,
 	Straighten,
-	Timer,
 } from '@mui/icons-material';
 import {
 	Box,
 	Button,
-	Checkbox,
 	Divider,
+	FormControlLabel,
 	IconButton,
 	InputAdornment,
 	ListItemText,
+	ListSubheader,
 	MenuItem,
+	Paper,
 	Stack,
+	Switch,
 	TextField,
 	Typography,
 } from '@mui/material';
-import { Controller, useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useAddEquipmentTemplate } from '@/hooks/eqiuipment-templates';
-import { usePortTemplates } from '@/hooks/port-templates'; // Assuming this exists to fetch library
+import { usePortTemplates } from '@/hooks/port-templates';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 export default function AddEquipmentTemplateDrawer() {
 	const dispatch = useDispatch();
 	const { mutate: addTemplate, isLoading } = useAddEquipmentTemplate();
-	const { data: portLibrary = [] } = usePortTemplates(); // Fetch standalone blueprints
+	const { data: portLibrary = [] } = usePortTemplates();
+	const [searchTerm, setSearchTerm] = useState('');
 
 	const {
 		control,
 		handleSubmit,
 		watch,
-		setValue,
 		formState: { errors },
 	} = useForm({
 		defaultValues: {
@@ -49,49 +58,69 @@ export default function AddEquipmentTemplateDrawer() {
 			codalLifeYears: 12,
 			isModular: false,
 			supply: '230V AC',
-			layer: 2,
 			isPoe: false,
 			switchingCapacity: '',
+			isMPLSEnables: false,
 			capacityKva: '',
 			operatingMode: 'Online Double Conversion',
-			chemistry: 'VRLA',
+			batteryType: 'VRLA',
 			defaultCellCount: 1,
 			capacityAh: '',
 			nominalCellVolt: 2.0,
-			portTemplateIds: [], // Linked IDs for Many-to-Many
+			isSMRBased: false,
+			portConfigs: [],
 		},
+	});
+
+	const { fields, append, remove } = useFieldArray({
+		control,
+		name: 'portConfigs',
 	});
 
 	const selectedCategory = watch('category');
 	const selectedSubCategory = watch('subCategory');
+	const currentConfigs = watch('portConfigs');
 
 	const handleFormSubmit = (formData) => {
-		// Ensure numeric types before sending to controller
+		// Logic: Automatic Layer Assignment based on Sub-Category
+		let autoLayer = null;
+		if (formData.category === 'NETWORKING') {
+			const layer3Types = ['L3_SWITCH', 'ROUTER', 'FIREWALL'];
+			const layer2Types = ['L2_SWITCH', 'ACCESS_POINT'];
+
+			if (layer3Types.includes(formData.subCategory)) autoLayer = 3;
+			else if (layer2Types.includes(formData.subCategory)) autoLayer = 2;
+		}
+
 		const payload = {
 			...formData,
-			uHeight: parseInt(formData.uHeight),
-			codalLifeYears: parseInt(formData.codalLifeYears),
+			layer: autoLayer, // Automatically calculated
+			uHeight: Number.parseInt(formData.uHeight),
+			codalLifeYears: Number.parseInt(formData.codalLifeYears),
 			switchingCapacity: formData.switchingCapacity
-				? parseFloat(formData.switchingCapacity)
+				? Number.parseFloat(formData.switchingCapacity)
 				: null,
-			capacityKva: formData.capacityKva ? parseFloat(formData.capacityKva) : null,
-			capacityAh: formData.capacityAh ? parseFloat(formData.capacityAh) : null,
+			capacityKva: formData.capacityKva ? Number.parseFloat(formData.capacityKva) : null,
+			capacityAh: formData.capacityAh ? Number.parseFloat(formData.capacityAh) : null,
+			defaultCellCount: Number.parseInt(formData.defaultCellCount),
+			nominalCellVolt: Number.parseFloat(formData.nominalCellVolt),
 		};
 		addTemplate(payload);
 	};
 
-	// Design Language Styles
-	const customSelectProps = {
-		MenuProps: {
-			PaperProps: {
-				sx: {
-					bgcolor: 'white',
-					boxShadow: '0px 8px 24px rgba(149, 157, 165, 0.2)',
-					border: '1px solid #E2E8F0',
-					'& .MuiMenuItem-root': { fontSize: '0.875rem' },
-				},
-			},
-		},
+	const handleAddPortType = (portId) => {
+		if (!portId) return;
+		const exists = currentConfigs.some((cfg) => cfg.portTemplateId === portId);
+		if (!exists) {
+			const portData = portLibrary.find((p) => p.id === portId);
+			append({
+				portTemplateId: portId,
+				quantity: 1,
+				name: portData?.name || 'Unknown Port',
+				meta: portData ? `${portData.category} | ${portData.type}` : '',
+			});
+		}
+		setSearchTerm('');
 	};
 
 	const textFieldStyles = {
@@ -104,6 +133,23 @@ export default function AddEquipmentTemplateDrawer() {
 		},
 	};
 
+	const customSelectProps = {
+		MenuProps: {
+			autoFocus: false,
+			PaperProps: {
+				sx: {
+					bgcolor: 'white',
+					boxShadow: '0px 8px 24px rgba(149, 157, 165, 0.2)',
+					border: '1px solid #E2E8F0',
+				},
+			},
+		},
+	};
+
+	const filteredPorts = portLibrary.filter((port) =>
+		port.name.toLowerCase().includes(searchTerm.toLowerCase())
+	);
+
 	return (
 		<RtmDrawer drawerName="addTemplateDrawer">
 			<Box
@@ -115,37 +161,18 @@ export default function AddEquipmentTemplateDrawer() {
 					bgcolor: 'white',
 				}}
 			>
-				{/* Header */}
-				<Box
-					sx={{
-						p: 3,
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-					}}
-				>
+				{/* HEADER */}
+				<Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 					<Box>
-						<Typography
-							variant="h6"
-							sx={{ fontWeight: 800, color: '#0F172A' }}
-						>
-							New Equipment Template
+						<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
+							New Template
 						</Typography>
-						<Typography
-							variant="caption"
-							sx={{ fontWeight: 600, color: '#64748B' }}
-						>
-							Hardware Blueprint Library
+						<Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
+							Device Specification Library
 						</Typography>
 					</Box>
 					<IconButton
-						onClick={() =>
-							dispatch(
-								closeDrawer({
-									drawerName: 'addTemplateDrawer',
-								})
-							)
-						}
+						onClick={() => dispatch(closeDrawer({ drawerName: 'addTemplateDrawer' }))}
 						sx={{ bgcolor: '#F1F5F9' }}
 					>
 						<Close fontSize="small" />
@@ -154,30 +181,14 @@ export default function AddEquipmentTemplateDrawer() {
 
 				<Divider />
 
-				<Box
-					sx={{
-						p: 4,
-						flexGrow: 1,
-						overflowY: 'auto',
-						bgcolor: '#F8FAFC',
-					}}
-				>
-					<form
-						id="template-form"
-						onSubmit={handleSubmit(handleFormSubmit)}
-					>
+				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: '#F8FAFC' }}>
+					<form id="template-form" onSubmit={handleSubmit(handleFormSubmit)}>
 						<Stack spacing={4}>
-							{/* SECTION 1: IDENTITY */}
+							{/* SECTION 1: CORE IDENTITY */}
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{
-										fontWeight: 700,
-										mb: 2,
-										color: '#475569',
-										letterSpacing:
-											'1px',
-									}}
+									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
 								>
 									CORE IDENTITY
 								</Typography>
@@ -185,65 +196,61 @@ export default function AddEquipmentTemplateDrawer() {
 									<Controller
 										name="modelName"
 										control={control}
-										rules={{
-											required: 'Model Name is required',
-										}}
-										render={({
-											field,
-										}) => (
+										rules={{ required: 'Model Name is required' }}
+										render={({ field }) => (
 											<TextField
 												{...field}
 												label="Model Name"
+												placeholder="e.g. C9200L-24T-4G"
 												fullWidth
-												error={
-													!!errors.modelName
-												}
-												sx={
-													textFieldStyles
-												}
+												error={!!errors.modelName}
+												sx={textFieldStyles}
 												InputProps={{
-													startAdornment:
-														(
-															<InputAdornment position="start">
-																<Memory
-																	sx={{
-																		color: '#3B82F6',
-																	}}
-																/>
-															</InputAdornment>
-														),
+													startAdornment: (
+														<InputAdornment position="start">
+															<Memory sx={{ color: '#3B82F6' }} />
+														</InputAdornment>
+													),
 												}}
 											/>
 										)}
 									/>
-									<Controller
-										name="make"
-										control={control}
-										render={({
-											field,
-										}) => (
-											<TextField
-												{...field}
-												label="Manufacturer"
-												fullWidth
-												sx={
-													textFieldStyles
-												}
-												InputProps={{
-													startAdornment:
-														(
+									<Stack direction="row" spacing={2} alignItems="center">
+										<Controller
+											name="make"
+											control={control}
+											render={({ field }) => (
+												<TextField
+													{...field}
+													label="Manufacturer"
+													placeholder="Cisco"
+													fullWidth
+													sx={textFieldStyles}
+													InputProps={{
+														startAdornment: (
 															<InputAdornment position="start">
-																<Business
-																	sx={{
-																		color: '#64748B',
-																	}}
-																/>
+																<Business sx={{ color: '#64748B' }} />
 															</InputAdornment>
 														),
-												}}
-											/>
-										)}
-									/>
+													}}
+												/>
+											)}
+										/>
+										<Controller
+											name="isModular"
+											control={control}
+											render={({ field }) => (
+												<FormControlLabel
+													control={<Switch checked={field.value} onChange={field.onChange} />}
+													label={
+														<Typography variant="body2" sx={{ fontWeight: 600 }}>
+															Modular
+														</Typography>
+													}
+												/>
+											)}
+										/>
+									</Stack>
 								</Stack>
 							</Box>
 
@@ -251,13 +258,7 @@ export default function AddEquipmentTemplateDrawer() {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{
-										fontWeight: 700,
-										mb: 2,
-										color: '#475569',
-										letterSpacing:
-											'1px',
-									}}
+									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
 								>
 									CLASSIFICATION
 								</Typography>
@@ -265,322 +266,288 @@ export default function AddEquipmentTemplateDrawer() {
 									<Controller
 										name="category"
 										control={control}
-										render={({
-											field,
-										}) => (
+										render={({ field }) => (
 											<TextField
 												select
 												{...field}
 												label="Category"
 												fullWidth
-												SelectProps={
-													customSelectProps
-												}
-												sx={
-													textFieldStyles
-												}
+												SelectProps={customSelectProps}
+												sx={textFieldStyles}
+												InputProps={{
+													startAdornment: (
+														<InputAdornment position="start">
+															<Category sx={{ color: '#3B82F6' }} />
+														</InputAdornment>
+													),
+												}}
 											>
-												{[
-													'NETWORKING',
-													'POWER',
-													'TRANSMISSION',
-													'COMPUTING',
-												].map(
-													(
-														c
-													) => (
-														<MenuItem
-															key={
-																c
-															}
-															value={
-																c
-															}
-														>
-															{
-																c
-															}
-														</MenuItem>
-													)
-												)}
+												{['NETWORKING', 'POWER', 'TRANSMISSION', 'COMPUTING'].map((c) => (
+													<MenuItem key={c} value={c}>
+														{c}
+													</MenuItem>
+												))}
 											</TextField>
 										)}
 									/>
 									<Controller
 										name="subCategory"
 										control={control}
-										render={({
-											field,
-										}) => (
+										render={({ field }) => (
 											<TextField
 												select
 												{...field}
 												label="Sub-Category"
 												fullWidth
-												SelectProps={
-													customSelectProps
-												}
-												sx={
-													textFieldStyles
-												}
+												SelectProps={customSelectProps}
+												sx={textFieldStyles}
 											>
-												{selectedCategory ===
-													'NETWORKING' &&
-													[
-														'L2_SWITCH',
-														'L3_SWITCH',
-														'ROUTER',
-														'FIREWALL',
-													].map(
-														(
-															s
-														) => (
-															<MenuItem
-																key={
-																	s
-																}
-																value={
-																	s
-																}
-															>
-																{
-																	s
-																}
-															</MenuItem>
-														)
-													)}
-												{selectedCategory ===
-													'POWER' &&
-													[
-														'UPS',
-														'BATTERY_SET',
-														'PDU',
-													].map(
-														(
-															s
-														) => (
-															<MenuItem
-																key={
-																	s
-																}
-																value={
-																	s
-																}
-															>
-																{
-																	s
-																}
-															</MenuItem>
-														)
-													)}
+												{selectedCategory === 'NETWORKING' &&
+													['L2_SWITCH', 'L3_SWITCH', 'ROUTER', 'FIREWALL'].map((s) => (
+														<MenuItem key={s} value={s}>
+															{s}
+														</MenuItem>
+													))}
+												{selectedCategory === 'POWER' &&
+													['UPS', 'BATTERY_SET', 'CHARGER', 'PDU'].map((s) => (
+														<MenuItem key={s} value={s}>
+															{s}
+														</MenuItem>
+													))}
 											</TextField>
 										)}
 									/>
 								</Stack>
 							</Box>
 
-							{/* SECTION 3: PORT ASSIGNMENT (THE LIBRARY LINK) */}
-							<Box>
-								<Typography
-									variant="subtitle2"
-									sx={{
-										fontWeight: 700,
-										mb: 2,
-										color: '#475569',
-										letterSpacing:
-											'1px',
-									}}
+							{/* SECTION 3: NETWORKING SPECS (AUTO-LAYER) */}
+							{selectedCategory === 'NETWORKING' && (
+								<Box
+									sx={{ p: 3, bgcolor: '#EFF6FF', borderRadius: 3, border: '1px solid #DBEAFE' }}
 								>
-									INTERFACE BLUEPRINTS
-								</Typography>
-								<Controller
-									name="portTemplateIds"
-									control={control}
-									render={({ field }) => (
-										<TextField
-											select
-											{...field}
-											label="Assign Ports from Library"
-											fullWidth
-											sx={
-												textFieldStyles
-											}
-											SelectProps={{
-												multiple: true,
-												...customSelectProps,
-												renderValue:
-													(
-														selected
-													) => {
-														const names =
-															portLibrary
-																.filter(
-																	(
-																		p
-																	) =>
-																		selected.includes(
-																			p.id
-																		)
-																)
-																.map(
-																	(
-																		p
-																	) =>
-																		p.name
-																);
-														return names.join(
-															', '
-														);
-													},
-											}}
-											InputProps={{
-												startAdornment:
-													(
-														<InputAdornment position="start">
-															<SettingsInputComponent
-																sx={{
-																	color: '#8B5CF6',
-																}}
-															/>
-														</InputAdornment>
-													),
+									<Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+										<Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E40AF' }}>
+											NETWORKING SPECS
+										</Typography>
+										<Typography
+											variant="caption"
+											sx={{
+												bgcolor: '#DBEAFE',
+												px: 1,
+												py: 0.5,
+												borderRadius: 1,
+												fontWeight: 700,
+												color: '#1E40AF',
 											}}
 										>
-											{portLibrary.map(
-												(
-													port
-												) => (
-													<MenuItem
-														key={
-															port.id
-														}
-														value={
-															port.id
-														}
-													>
-														<Checkbox
-															checked={
-																field.value.indexOf(
-																	port.id
-																) >
-																-1
-															}
-														/>
-														<ListItemText
-															primary={
-																port.name
-															}
-															secondary={`${port.category} | ${port.type}`}
-														/>
-													</MenuItem>
-												)
-											)}
-										</TextField>
-									)}
-								/>
-							</Box>
-
-							{/* SECTION 4: PHYSICAL & ELECTRICAL */}
-							<Box>
-								<Typography
-									variant="subtitle2"
-									sx={{
-										fontWeight: 700,
-										mb: 2,
-										color: '#475569',
-										letterSpacing:
-											'1px',
-									}}
-								>
-									LOGISTICS & POWER
-								</Typography>
-								<Stack spacing={2.5}>
-									<Stack
-										direction="row"
-										spacing={2}
-									>
+											{['L3_SWITCH', 'ROUTER', 'FIREWALL'].includes(selectedSubCategory)
+												? 'AUTO: LAYER 3'
+												: 'AUTO: LAYER 2'}
+										</Typography>
+									</Stack>
+									<Stack spacing={2.5}>
 										<Controller
-											name="uHeight"
-											control={
-												control
-											}
-											render={({
-												field,
-											}) => (
+											name="switchingCapacity"
+											control={control}
+											render={({ field }) => (
 												<TextField
 													{...field}
-													label="Height (U)"
+													label="Switching Capacity (Gbps)"
 													type="number"
 													fullWidth
-													sx={
-														textFieldStyles
-													}
+													sx={textFieldStyles}
 													InputProps={{
-														startAdornment:
-															(
-																<InputAdornment position="start">
-																	<Straighten />
-																</InputAdornment>
-															),
+														startAdornment: (
+															<InputAdornment position="start">
+																<Speed sx={{ color: '#1E40AF' }} />
+															</InputAdornment>
+														),
 													}}
 												/>
 											)}
 										/>
-										<Controller
-											name="supply"
-											control={
-												control
-											}
-											render={({
-												field,
-											}) => (
-												<TextField
-													select
-													{...field}
-													label="Power Supply"
-													fullWidth
-													sx={
-														textFieldStyles
-													}
-													SelectProps={
-														customSelectProps
-													}
-												>
-													<MenuItem value="230V AC">
-														230V
-														AC
-													</MenuItem>
-													<MenuItem value="-48V DC">
-														-48V
-														DC
-													</MenuItem>
-												</TextField>
-											)}
-										/>
+										<Stack direction="row" spacing={4}>
+											<Controller
+												name="isPoe"
+												control={control}
+												render={({ field }) => (
+													<FormControlLabel
+														control={
+															<Switch
+																checked={field.value}
+																onChange={field.onChange}
+																color="primary"
+															/>
+														}
+														label={
+															<Typography variant="body2" sx={{ fontWeight: 600 }}>
+																PoE Support
+															</Typography>
+														}
+													/>
+												)}
+											/>
+											<Controller
+												name="isMPLSEnables"
+												control={control}
+												render={({ field }) => (
+													<FormControlLabel
+														control={<Switch checked={field.value} onChange={field.onChange} />}
+														label={
+															<Typography variant="body2" sx={{ fontWeight: 600 }}>
+																MPLS Capable
+															</Typography>
+														}
+													/>
+												)}
+											/>
+										</Stack>
 									</Stack>
+								</Box>
+							)}
+
+							{/* SECTION 4: PORT CONFIGURATION */}
+							<Box>
+								<Typography
+									variant="subtitle2"
+									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+								>
+									PORT CONFIGURATION
+								</Typography>
+								<TextField
+									select
+									fullWidth
+									label="Select Port Type from Library"
+									value=""
+									onChange={(e) => handleAddPortType(e.target.value)}
+									sx={{ ...textFieldStyles, mb: 2 }}
+									SelectProps={customSelectProps}
+									InputProps={{
+										startAdornment: (
+											<InputAdornment position="start">
+												<AddCircleOutline sx={{ color: '#8B5CF6' }} />
+											</InputAdornment>
+										),
+									}}
+								>
+									<ListSubheader disableSticky sx={{ bgcolor: 'white' }}>
+										<TextField
+											size="small"
+											fullWidth
+											placeholder="Search..."
+											value={searchTerm}
+											onChange={(e) => setSearchTerm(e.target.value)}
+											onKeyDown={(e) => e.stopPropagation()}
+											InputProps={{
+												startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
+											}}
+										/>
+									</ListSubheader>
+									{filteredPorts.map((port) => (
+										<MenuItem key={port.id} value={port.id}>
+											<ListItemText
+												primary={port.name}
+												secondary={`${port.category} | ${port.type}`}
+											/>
+										</MenuItem>
+									))}
+								</TextField>
+
+								<Stack spacing={1.5}>
+									{fields.map((field, index) => (
+										<Paper
+											key={field.id}
+											variant="outlined"
+											sx={{ p: 2, borderRadius: 2, bgcolor: 'white', border: '1px solid #E2E8F0' }}
+										>
+											<Stack direction="row" spacing={2} alignItems="center">
+												<Box sx={{ flexGrow: 1 }}>
+													<Typography variant="body2" sx={{ fontWeight: 700 }}>
+														{field.name}
+													</Typography>
+													<Typography variant="caption" sx={{ color: '#64748B' }}>
+														{field.meta}
+													</Typography>
+												</Box>
+												<Controller
+													name={`portConfigs.${index}.quantity`}
+													control={control}
+													render={({ field: qtyField }) => (
+														<TextField
+															{...qtyField}
+															label="Qty"
+															type="number"
+															size="small"
+															sx={{ width: 80 }}
+															InputProps={{
+																startAdornment: (
+																	<InputAdornment position="start">
+																		<Numbers sx={{ fontSize: 16 }} />
+																	</InputAdornment>
+																),
+															}}
+														/>
+													)}
+												/>
+												<IconButton onClick={() => remove(index)} color="error" size="small">
+													<Delete fontSize="small" />
+												</IconButton>
+											</Stack>
+										</Paper>
+									))}
+								</Stack>
+							</Box>
+
+							{/* SECTION 5: LOGISTICS */}
+							<Box>
+								<Typography
+									variant="subtitle2"
+									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+								>
+									LOGISTICS & SUPPLY
+								</Typography>
+								<Stack direction="row" spacing={2}>
 									<Controller
-										name="codalLifeYears"
+										name="uHeight"
 										control={control}
-										render={({
-											field,
-										}) => (
+										render={({ field }) => (
 											<TextField
 												{...field}
-												label="Codal Life (Years)"
+												label="U Height"
 												type="number"
 												fullWidth
-												sx={
-													textFieldStyles
-												}
+												sx={textFieldStyles}
 												InputProps={{
-													startAdornment:
-														(
-															<InputAdornment position="start">
-																<Timer />
-															</InputAdornment>
-														),
+													startAdornment: (
+														<InputAdornment position="start">
+															<Straighten sx={{ color: '#64748B' }} />
+														</InputAdornment>
+													),
 												}}
 											/>
+										)}
+									/>
+									<Controller
+										name="supply"
+										control={control}
+										render={({ field }) => (
+											<TextField
+												select
+												{...field}
+												label="Supply"
+												fullWidth
+												sx={textFieldStyles}
+												InputProps={{
+													startAdornment: (
+														<InputAdornment position="start">
+															<ElectricBolt sx={{ color: '#F59E0B' }} />
+														</InputAdornment>
+													),
+												}}
+											>
+												<MenuItem value="230V AC">230V AC</MenuItem>
+												<MenuItem value="-48V DC">-48V DC</MenuItem>
+											</TextField>
 										)}
 									/>
 								</Stack>
@@ -596,13 +563,7 @@ export default function AddEquipmentTemplateDrawer() {
 						<Button
 							variant="text"
 							fullWidth
-							onClick={() =>
-								dispatch(
-									closeDrawer({
-										drawerName: 'addTemplateDrawer',
-									})
-								)
-							}
+							onClick={() => dispatch(closeDrawer({ drawerName: 'addTemplateDrawer' }))}
 							sx={{ fontWeight: 700, color: '#64748B' }}
 						>
 							Cancel
@@ -613,16 +574,9 @@ export default function AddEquipmentTemplateDrawer() {
 							variant="contained"
 							fullWidth
 							disableElevation
-							sx={{
-								bgcolor: '#3B82F6',
-								py: 1.5,
-								fontWeight: 700,
-								borderRadius: 2,
-							}}
+							sx={{ bgcolor: '#3B82F6', py: 1.5, fontWeight: 700, borderRadius: 2 }}
 						>
-							{isLoading
-								? 'Saving...'
-								: 'Create Template'}
+							{isLoading ? 'Saving...' : 'Create Template'}
 						</Button>
 					</Stack>
 				</Box>
