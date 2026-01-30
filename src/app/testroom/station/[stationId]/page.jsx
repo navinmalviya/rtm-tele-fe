@@ -1,14 +1,16 @@
 'use client';
 
-import { AddLocationAlt, AppRegistration, Hub, Room, Storage } from '@mui/icons-material';
+import { AddLocationAlt, AppRegistration, Devices, Hub, Room, Storage } from '@mui/icons-material';
 import { Box, Button, Divider, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useEquipmentByStation } from '@/hooks/equipment';
 import { useStationLocations } from '@/hooks/locations';
 import { useStationRacks } from '@/hooks/racks';
 import { useStationSummary } from '@/hooks/stations';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import { AddEquipmentDrawer, EquipmentTable } from '@/modules/equipments';
 import { AddLocationForm, LocationTable } from '@/modules/locations';
 import { AddRackForm, RackTable } from '@/modules/racks';
 import { StationInternalTopology } from '@/modules/stations';
@@ -21,6 +23,7 @@ export default function StationDetailPage() {
 	const { data: locations = [], isLoading: locLoading } = useStationLocations(stationId);
 	const { data: station = {} } = useStationSummary(stationId);
 	const { data: racks = [], isLoading: racksLoading } = useStationRacks(stationId);
+	const { data: equipments = [], isLoading: equipmentsLoading } = useEquipmentByStation(stationId);
 
 	const [tabValue, setTabValue] = useState(0);
 
@@ -43,6 +46,11 @@ export default function StationDetailPage() {
 			label: 'Add Rack',
 			icon: <Storage />,
 			drawer: 'addRackDrawer',
+		},
+		3: {
+			label: 'Add Equipment',
+			icon: <Devices />,
+			drawer: 'addEquipmentDrawer',
 		},
 	};
 
@@ -169,6 +177,7 @@ export default function StationDetailPage() {
 						iconPosition="start"
 						label="Racks & Assets"
 					/>
+					<Tab icon={<Devices sx={{ fontSize: 18 }} />} iconPosition="start" label="Equipments" />
 				</Tabs>
 				<Divider sx={{ borderColor: '#F1F5F9' }} />
 			</Box>
@@ -184,6 +193,7 @@ export default function StationDetailPage() {
 			>
 				<AddLocationForm />
 				<AddRackForm locations={locations} isLoading={locLoading} />
+				<AddEquipmentDrawer />
 
 				{tabValue === 0 && (
 					<Box sx={{ width: '100%', height: '100%', bgcolor: '#F1F5F9' }}>
@@ -214,6 +224,22 @@ export default function StationDetailPage() {
 						}}
 					>
 						<RackTable stationId={stationId} racks={racks} isLoading={racksLoading} />
+					</Box>
+				)}
+				{tabValue === 3 && (
+					<Box
+						sx={{
+							bgcolor: 'white',
+							borderRadius: 3,
+							border: '1px solid #E2E8F0',
+							overflow: 'hidden',
+						}}
+					>
+						<EquipmentTable
+							stationId={stationId}
+							equipments={equipments}
+							isLoading={equipmentsLoading}
+						/>
 					</Box>
 				)}
 			</Box>
