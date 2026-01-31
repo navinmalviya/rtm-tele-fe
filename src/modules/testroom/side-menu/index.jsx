@@ -62,7 +62,8 @@ export default function SideMenu() {
 			sx={{
 				width: sidebarWidth,
 				flexShrink: 0,
-				bgcolor: 'background.paper',
+				// FIX: Hardcode the dark color here instead of background.paper
+				bgcolor: '#101214',
 				color: 'white',
 				height: '100vh',
 				display: 'flex',
@@ -70,6 +71,7 @@ export default function SideMenu() {
 				position: 'fixed',
 				left: 0,
 				top: 0,
+				borderRight: '1px solid rgba(255,255,255,0.05)', // Optional: subtle border
 			}}
 		>
 			{/* Logo/Header Area */}
@@ -87,7 +89,7 @@ export default function SideMenu() {
 				>
 					<Hub sx={{ color: 'white' }} />
 				</Box>
-				<Typography variant="h7" sx={{ fontWeight: 800 }}>
+				<Typography variant="h6" sx={{ fontWeight: 800, color: 'white' }}>
 					Telcom Control Desk
 				</Typography>
 			</Box>
@@ -97,7 +99,7 @@ export default function SideMenu() {
 				sx={{
 					px: 3,
 					mt: 2,
-					color: 'rgba(255,255,255,0.4)',
+					color: 'rgba(255,255,255,0.3)', // Slightly dimmed for better contrast
 					fontWeight: 700,
 				}}
 			>
@@ -108,33 +110,21 @@ export default function SideMenu() {
 				{menuItems.map((item) => {
 					const isActive = pathname === item.path;
 					return (
-						<ListItem
-							key={item.text}
-							disablePadding
-							sx={{ mb: 1 }}
-						>
+						<ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
 							<ListItemButton
-								onClick={() =>
-									router.push(item.path)
-								}
+								onClick={() => router.push(item.path)}
 								sx={{
 									borderRadius: 3,
-									bgcolor: isActive
-										? 'primary.main'
-										: 'transparent',
+									bgcolor: isActive ? 'primary.main' : 'transparent',
 									'&:hover': {
-										bgcolor: isActive
-											? 'primary.main'
-											: 'rgba(255,255,255,0.05)',
+										bgcolor: isActive ? 'primary.main' : 'rgba(255,255,255,0.05)',
 									},
 									transition: 'all 0.2s',
 								}}
 							>
 								<ListItemIcon
 									sx={{
-										color: isActive
-											? 'white'
-											: 'rgba(255,255,255,0.5)',
+										color: isActive ? 'white' : 'rgba(255,255,255,0.5)',
 										minWidth: 45,
 									}}
 								>
@@ -143,12 +133,8 @@ export default function SideMenu() {
 								<ListItemText
 									primary={item.text}
 									primaryTypographyProps={{
-										fontWeight: isActive
-											? 700
-											: 500,
-										color: isActive
-											? 'white'
-											: 'rgba(255,255,255,0.7)',
+										fontWeight: isActive ? 700 : 500,
+										color: isActive ? 'white' : 'rgba(255,255,255,0.7)',
 									}}
 								/>
 							</ListItemButton>
@@ -162,25 +148,36 @@ export default function SideMenu() {
 					variant="overline"
 					sx={{
 						px: 2,
-						color: 'rgba(255,255,255,0.4)',
+						color: 'rgba(255,255,255,0.3)',
 						fontWeight: 700,
 					}}
 				>
 					SUPPORT
 				</Typography>
 				<ListItemButton
-					sx={{ borderRadius: 3, color: 'rgba(255,255,255,0.7)' }}
+					sx={{
+						borderRadius: 3,
+						color: 'rgba(255,255,255,0.7)',
+						'&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+					}}
 				>
 					<ListItemIcon sx={{ color: 'inherit', minWidth: 45 }}>
 						<Settings />
 					</ListItemIcon>
 					<ListItemText primary="Settings" />
 				</ListItemButton>
-				<ListItemButton sx={{ borderRadius: 3, color: '#ef4444' }}>
+				<ListItemButton
+					onClick={handleLogout}
+					sx={{
+						borderRadius: 3,
+						color: '#ef4444',
+						'&:hover': { bgcolor: 'rgba(239, 68, 68, 0.05)' },
+					}}
+				>
 					<ListItemIcon sx={{ color: 'inherit', minWidth: 45 }}>
 						<Logout />
 					</ListItemIcon>
-					<ListItemText onClick={handleLogout} primary="Logout" />
+					<ListItemText primary="Logout" />
 				</ListItemButton>
 			</Box>
 		</Box>

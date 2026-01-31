@@ -18,6 +18,8 @@ export const useAddEquipment = () => {
 				...equipmentData,
 				// Ensure uPosition is a number or null
 				uPosition: equipmentData.uPosition ? Number.parseInt(equipmentData.uPosition) : null,
+				mapX: null,
+				mapY: null,
 				// Ensure the date is valid or null
 				installationDate: equipmentData.installationDate || null,
 			};

@@ -1,10 +1,9 @@
 'use client';
 
-import { Delete, Dns, Edit, Memory, Place, Power, Storage, Visibility } from '@mui/icons-material';
+import { Delete, Edit, Memory, Place, Power, Storage, Visibility } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import RtmDataGrid from '@/lib/common/datagrid';
-import RtmPopupMenu from '@/lib/common/rtm-popup-menu';
 
 const STATUS_MAP = {
 	OPERATIONAL: { label: 'Active', color: '#10B981', bg: '#ECFDF5' },

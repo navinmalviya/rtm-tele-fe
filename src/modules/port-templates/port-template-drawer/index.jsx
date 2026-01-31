@@ -20,12 +20,13 @@ import { useAddPortTemplate } from '@/hooks/port-templates';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
-const SPEED_OPTIONS = ['100 Mbps', '1 Gbps', '10 Gbps', '40 Gbps', '100 Gbps'];
+const SPEED_OPTIONS = ['2Mb', '100 Mbps', '1 Gbps', '10 Gbps', '40 Gbps', '100 Gbps'];
 const VOLTAGE_OPTIONS = ['110V DC', '230V AC', '48V DC', '24V DC', '12V DC'];
 
 const NETWORK_TYPES = [
 	{ value: 'RJ45', label: 'RJ45 (Ethernet Copper)' },
 	{ value: 'SFP_SLOT', label: 'SFP/SFP+ (Fiber/Trunk)' },
+	{ value: 'E1', label: 'E1 Port (single E1)' },
 	{ value: 'CONSOLE', label: 'Console (Serial/Management)' },
 ];
 
@@ -136,16 +137,10 @@ export default function AddPortTemplateDrawer() {
 					}}
 				>
 					<Box>
-						<Typography
-							variant="h6"
-							sx={{ fontWeight: 800, color: '#0F172A' }}
-						>
+						<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
 							New Port Blueprint
 						</Typography>
-						<Typography
-							variant="caption"
-							sx={{ fontWeight: 600, color: '#64748B' }}
-						>
+						<Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
 							Physical Interface Library
 						</Typography>
 					</Box>
@@ -166,10 +161,7 @@ export default function AddPortTemplateDrawer() {
 				<Divider />
 
 				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto' }}>
-					<form
-						id="port-template-form"
-						onSubmit={handleSubmit(handleFormSubmit)}
-					>
+					<form id="port-template-form" onSubmit={handleSubmit(handleFormSubmit)}>
 						<Stack spacing={4}>
 							<Box>
 								<Typography
@@ -179,8 +171,7 @@ export default function AddPortTemplateDrawer() {
 										mb: 2,
 										color: '#475569',
 										fontSize: '0.75rem',
-										letterSpacing:
-											'1px',
+										letterSpacing: '1px',
 									}}
 								>
 									CORE IDENTIFICATION
@@ -193,19 +184,13 @@ export default function AddPortTemplateDrawer() {
 										rules={{
 											required: 'Name is required',
 										}}
-										render={({
-											field,
-										}) => (
+										render={({ field }) => (
 											<TextField
 												{...field}
 												label="Blueprint Name"
 												fullWidth
-												error={
-													!!errors.name
-												}
-												sx={
-													textFieldStyles
-												}
+												error={!!errors.name}
+												sx={textFieldStyles}
 												placeholder="e.g. 1G Fiber Uplink"
 											/>
 										)}
@@ -215,67 +200,39 @@ export default function AddPortTemplateDrawer() {
 									<Controller
 										name="category"
 										control={control}
-										render={({
-											field: {
-												value,
-												onChange,
-											},
-										}) => (
+										render={({ field: { value, onChange } }) => (
 											<TextField
 												select
 												label="Category"
 												fullWidth
-												value={
-													value
-												}
-												onChange={(
-													e
-												) =>
-													handleCategoryChange(
-														e,
-														onChange
-													)
-												}
-												SelectProps={
-													customSelectProps
-												}
-												sx={
-													textFieldStyles
-												}
+												value={value}
+												onChange={(e) => handleCategoryChange(e, onChange)}
+												SelectProps={customSelectProps}
+												sx={textFieldStyles}
 												InputProps={{
-													startAdornment:
-														(
-															<InputAdornment position="start">
-																{value ===
-																'NETWORK' ? (
-																	<Lan
-																		fontSize="small"
-																		sx={{
-																			color: '#3B82F6',
-																		}}
-																	/>
-																) : (
-																	<PowerSettingsNew
-																		fontSize="small"
-																		sx={{
-																			color: '#F59E0B',
-																		}}
-																	/>
-																)}
-															</InputAdornment>
-														),
+													startAdornment: (
+														<InputAdornment position="start">
+															{value === 'NETWORK' ? (
+																<Lan
+																	fontSize="small"
+																	sx={{
+																		color: '#3B82F6',
+																	}}
+																/>
+															) : (
+																<PowerSettingsNew
+																	fontSize="small"
+																	sx={{
+																		color: '#F59E0B',
+																	}}
+																/>
+															)}
+														</InputAdornment>
+													),
 												}}
 											>
-												<MenuItem value="NETWORK">
-													Network
-													/
-													Data
-												</MenuItem>
-												<MenuItem value="POWER">
-													Power
-													/
-													Electrical
-												</MenuItem>
+												<MenuItem value="NETWORK">Network / Data</MenuItem>
+												<MenuItem value="POWER">Power / Electrical</MenuItem>
 											</TextField>
 										)}
 									/>
@@ -287,40 +244,19 @@ export default function AddPortTemplateDrawer() {
 										rules={{
 											required: 'Required',
 										}}
-										render={({
-											field,
-										}) => (
+										render={({ field }) => (
 											<TextField
 												{...field}
 												select
 												label="Interface Type"
 												fullWidth
-												SelectProps={
-													customSelectProps
-												}
-												sx={
-													textFieldStyles
-												}
+												SelectProps={customSelectProps}
+												sx={textFieldStyles}
 											>
-												{(selectedCategory ===
-												'NETWORK'
-													? NETWORK_TYPES
-													: POWER_TYPES
-												).map(
-													(
-														opt
-													) => (
-														<MenuItem
-															key={
-																opt.value
-															}
-															value={
-																opt.value
-															}
-														>
-															{
-																opt.label
-															}
+												{(selectedCategory === 'NETWORK' ? NETWORK_TYPES : POWER_TYPES).map(
+													(opt) => (
+														<MenuItem key={opt.value} value={opt.value}>
+															{opt.label}
 														</MenuItem>
 													)
 												)}
@@ -352,156 +288,86 @@ export default function AddPortTemplateDrawer() {
 									</Typography>
 									<Stack spacing={3}>
 										{/* Speed Dropdown */}
-										{selectedCategory ===
-											'NETWORK' &&
-											selectedType !==
-												'CONSOLE' && (
-												<Controller
-													name="speed"
-													control={
-														control
-													}
-													render={({
-														field,
-													}) => (
-														<TextField
-															{...field}
-															select
-															label="Interface Speed"
-															fullWidth
-															SelectProps={
-																customSelectProps
-															}
-															sx={
-																textFieldStyles
-															}
-															InputProps={{
-																startAdornment:
-																	(
-																		<InputAdornment position="start">
-																			<Speed
-																				fontSize="small"
-																				sx={{
-																					color: '#6366F1',
-																				}}
-																			/>
-																		</InputAdornment>
-																	),
-															}}
-														>
-															{SPEED_OPTIONS.map(
-																(
-																	opt
-																) => (
-																	<MenuItem
-																		key={
-																			opt
-																		}
-																		value={
-																			opt
-																		}
-																	>
-																		{
-																			opt
-																		}
-																	</MenuItem>
-																)
-															)}
-														</TextField>
-													)}
-												/>
-											)}
+										{selectedCategory === 'NETWORK' && selectedType !== 'CONSOLE' && (
+											<Controller
+												name="speed"
+												control={control}
+												render={({ field }) => (
+													<TextField
+														{...field}
+														select
+														label="Interface Speed"
+														fullWidth
+														SelectProps={customSelectProps}
+														sx={textFieldStyles}
+														InputProps={{
+															startAdornment: (
+																<InputAdornment position="start">
+																	<Speed
+																		fontSize="small"
+																		sx={{
+																			color: '#6366F1',
+																		}}
+																	/>
+																</InputAdornment>
+															),
+														}}
+													>
+														{SPEED_OPTIONS.map((opt) => (
+															<MenuItem key={opt} value={opt}>
+																{opt}
+															</MenuItem>
+														))}
+													</TextField>
+												)}
+											/>
+										)}
 
 										{/* Voltage Dropdown */}
-										{selectedCategory ===
-											'POWER' && (
+										{selectedCategory === 'POWER' && (
 											<Controller
 												name="voltage"
-												control={
-													control
-												}
-												render={({
-													field,
-												}) => (
+												control={control}
+												render={({ field }) => (
 													<TextField
 														{...field}
 														select
 														label="Nominal Voltage"
 														fullWidth
-														SelectProps={
-															customSelectProps
-														}
-														sx={
-															textFieldStyles
-														}
+														SelectProps={customSelectProps}
+														sx={textFieldStyles}
 														InputProps={{
-															startAdornment:
-																(
-																	<InputAdornment position="start">
-																		<Bolt
-																			fontSize="small"
-																			sx={{
-																				color: '#D97706',
-																			}}
-																		/>
-																	</InputAdornment>
-																),
+															startAdornment: (
+																<InputAdornment position="start">
+																	<Bolt
+																		fontSize="small"
+																		sx={{
+																			color: '#D97706',
+																		}}
+																	/>
+																</InputAdornment>
+															),
 														}}
 													>
-														{VOLTAGE_OPTIONS.map(
-															(
-																opt
-															) => (
-																<MenuItem
-																	key={
-																		opt
-																	}
-																	value={
-																		opt
-																	}
-																>
-																	{
-																		opt
-																	}
-																</MenuItem>
-															)
-														)}
+														{VOLTAGE_OPTIONS.map((opt) => (
+															<MenuItem key={opt} value={opt}>
+																{opt}
+															</MenuItem>
+														))}
 													</TextField>
 												)}
 											/>
 										)}
 
 										{/* SFP Logic with Icons */}
-										{selectedType ===
-											'SFP_SLOT' && (
-											<Stack
-												spacing={
-													2
-												}
-											>
+										{selectedType === 'SFP_SLOT' && (
+											<Stack spacing={2}>
 												<Controller
 													name="isSFPInserted"
-													control={
-														control
-													}
-													render={({
-														field:
-															{
-																value,
-																onChange,
-															},
-													}) => (
+													control={control}
+													render={({ field: { value, onChange } }) => (
 														<FormControlLabel
-															control={
-																<Switch
-																	checked={
-																		value
-																	}
-																	onChange={
-																		onChange
-																	}
-																/>
-															}
+															control={<Switch checked={value} onChange={onChange} />}
 															label={
 																<Typography
 																	variant="body2"
@@ -509,9 +375,7 @@ export default function AddPortTemplateDrawer() {
 																		fontWeight: 600,
 																	}}
 																>
-																	Default
-																	SFP
-																	Included?
+																	Default SFP Included?
 																</Typography>
 															}
 														/>
@@ -520,49 +384,31 @@ export default function AddPortTemplateDrawer() {
 												{isSFPEnabled && (
 													<Controller
 														name="sfpType"
-														control={
-															control
-														}
-														render={({
-															field,
-														}) => (
+														control={control}
+														render={({ field }) => (
 															<TextField
 																{...field}
 																select
 																label="Connector Type"
 																fullWidth
-																SelectProps={
-																	customSelectProps
-																}
-																sx={
-																	textFieldStyles
-																}
+																SelectProps={customSelectProps}
+																sx={textFieldStyles}
 																InputProps={{
-																	startAdornment:
-																		(
-																			<InputAdornment position="start">
-																				<Cable
-																					fontSize="small"
-																					sx={{
-																						color: '#8B5CF6',
-																					}}
-																				/>
-																			</InputAdornment>
-																		),
+																	startAdornment: (
+																		<InputAdornment position="start">
+																			<Cable
+																				fontSize="small"
+																				sx={{
+																					color: '#8B5CF6',
+																				}}
+																			/>
+																		</InputAdornment>
+																	),
 																}}
 															>
-																<MenuItem value="LC_SINGLE_POLE">
-																	LC
-																	Simplex
-																</MenuItem>
-																<MenuItem value="LC_DUAL_POLE">
-																	LC
-																	Duplex
-																</MenuItem>
-																<MenuItem value="SC_SIMPLEX">
-																	SC
-																	Simplex
-																</MenuItem>
+																<MenuItem value="LC_SINGLE_POLE">LC Simplex</MenuItem>
+																<MenuItem value="LC_DUAL_POLE">LC Duplex</MenuItem>
+																<MenuItem value="SC_SIMPLEX">SC Simplex</MenuItem>
 															</TextField>
 														)}
 													/>

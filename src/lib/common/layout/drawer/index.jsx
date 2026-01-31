@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
-export default function RtmDrawer({ children, drawerName, onCancel }) {
+export default function RtmDrawer({ children, drawerName, onCancel, ...rest }) {
 	const dispatch = useDispatch();
 	const isOpen = useSelector((state) => state.drawers[drawerName]);
 	return (
@@ -18,6 +18,7 @@ export default function RtmDrawer({ children, drawerName, onCancel }) {
 					onCancel();
 				}
 			}}
+			{...rest}
 		>
 			{children}
 		</Drawer>

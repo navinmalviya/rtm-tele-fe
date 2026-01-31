@@ -13,7 +13,7 @@ import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import { AddEquipmentDrawer, EquipmentTable } from '@/modules/equipments';
 import { AddLocationForm, LocationTable } from '@/modules/locations';
 import { AddRackForm, RackTable } from '@/modules/racks';
-import { StationInternalTopology } from '@/modules/stations';
+import { AddStationEquipmentDrawer, StationInternalTopology } from '@/modules/stations';
 
 export default function StationDetailPage() {
 	const params = useParams();
@@ -33,9 +33,9 @@ export default function StationDetailPage() {
 	// Context-aware actions with uniform styling
 	const tabActions = {
 		0: {
-			label: 'Add Asset',
+			label: 'Add Station Equipment',
 			icon: <Hub />,
-			drawer: 'addAssetDrawer',
+			drawer: 'stationEquipmentDrawer',
 		},
 		1: {
 			label: 'Add Location',
@@ -194,6 +194,7 @@ export default function StationDetailPage() {
 				<AddLocationForm />
 				<AddRackForm locations={locations} isLoading={locLoading} />
 				<AddEquipmentDrawer />
+				<AddStationEquipmentDrawer equipments={equipments} />
 
 				{tabValue === 0 && (
 					<Box sx={{ width: '100%', height: '100%', bgcolor: '#F1F5F9' }}>
