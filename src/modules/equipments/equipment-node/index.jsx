@@ -6,11 +6,14 @@ import { Handle, Position } from '@xyflow/react';
 import { memo, useMemo } from 'react';
 
 const PORT_COLORS = {
-	RJ45: '#10B981', // Emerald Green for Ethernet
-	SFP: '#3B82F6', // Blue for Fiber/SFP
-	CONSOLE: '#64748B', // Slate Gray
+	RJ45: '#10B981',
+	SFP: '#3B82F6',
+	SFP_PLUS: '#8B5CF6',
+	CONSOLE: '#64748B',
 	DEFAULT: '#CBD5E1',
 };
+
+const PORT_PRIORITY = { CONSOLE: 1, RJ45: 2, SFP: 3, SFP_PLUS: 4, DEFAULT: 5 };
 
 const ICON_MAP = {
 	NETWORKING: <Router sx={{ fontSize: 10 }} />,
@@ -20,7 +23,6 @@ const ICON_MAP = {
 const EquipmentNode = ({ data, selected }) => {
 	const icon = ICON_MAP[data.template?.category] || ICON_MAP.DEFAULT;
 
-	// Helper to detect port type from the 'name' field provided in your JSON
 	const getPortType = (name = '') => {
 		const lowerName = name.toLowerCase();
 		if (lowerName.includes('ethernet')) return 'RJ45';
@@ -31,11 +33,9 @@ const EquipmentNode = ({ data, selected }) => {
 
 	const sortedPorts = useMemo(() => {
 		return [...(data.ports || [])].sort((a, b) => {
-			// Sort by type (Ethernet first, then SFP)
 			const typeA = getPortType(a.name);
 			const typeB = getPortType(b.name);
 			if (typeA !== typeB) return typeA.localeCompare(typeB);
-			// Then sort numerically by the name
 			return a.name.localeCompare(b.name, undefined, { numeric: true });
 		});
 	}, [data.ports]);
@@ -52,7 +52,6 @@ const EquipmentNode = ({ data, selected }) => {
 					transition: 'border 0.1s ease',
 				}}
 			>
-				{/* Header */}
 				<Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.8 }}>
 					<Box sx={{ color: '#3B82F6', display: 'flex' }}>{icon}</Box>
 					<Typography
@@ -69,7 +68,6 @@ const EquipmentNode = ({ data, selected }) => {
 					</Typography>
 				</Stack>
 
-				{/* Symmetrical Port Grid - No Background */}
 				<Box
 					sx={{
 						display: 'grid',
@@ -88,29 +86,44 @@ const EquipmentNode = ({ data, selected }) => {
 									sx={{
 										width: 6,
 										height: 6,
-										bgcolor: portColor,
+										bgcolor: port.isOccupied ? '#E2E8F0' : portColor,
 										borderRadius: '1px',
 										position: 'relative',
 										border: '0.5px solid rgba(0,0,0,0.05)',
 										'&:hover': {
-											transform: 'scale(2)',
+											transform: 'scale(2.5)',
 											zIndex: 50,
 											boxShadow: `0 0 4px ${portColor}`,
 										},
 									}}
 								>
+									{/* STACKED HANDLES: Allows port to be both Start and End of a cable */}
 									<Handle
 										type="source"
 										position={Position.Bottom}
-										id={port.id}
+										id={`${port.id}`}
+										isConnectable={!port.isOccupied}
 										style={{
-											background: 'transparent',
-											border: 'none',
+											opacity: 0,
 											width: '100%',
 											height: '100%',
+											transform: 'none',
 											top: 0,
 											left: 0,
+										}}
+									/>
+									<Handle
+										type="target"
+										position={Position.Bottom}
+										id={`${port.id}`}
+										isConnectable={!port.isOccupied}
+										style={{
+											opacity: 0,
+											width: '100%',
+											height: '100%',
 											transform: 'none',
+											top: 0,
+											left: 0,
 										}}
 									/>
 								</Box>
