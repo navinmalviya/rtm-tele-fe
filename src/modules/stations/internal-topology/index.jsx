@@ -13,18 +13,38 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Box } from '@mui/material';
 import { useCallback, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { useEquipmentByStation, useUpdateEquipment } from '@/hooks/equipment';
 import { useCreatePortLink, useDeletePortLink, usePortLinks } from '@/hooks/port-links';
+import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import { EquipmentNode } from '@/modules/equipments';
+import { LinkDetailDrawer } from '@/modules/port-link';
 
 const nodeTypes = {
 	equipmentNode: EquipmentNode,
+};
+
+// Dark color palette for professional networking
+const EDGE_COLORS = {
+	SFP: '#1E293B', // Dark Slate (Fiber)
+	RJ45: '#0F172A', // Deep Navy (Copper)
+	DEFAULT: '#334155', // Slate 700
+};
+
+const defaultEdgeOptions = {
+	type: 'smoothstep',
+	animated: true,
+	zIndex: 1000,
+	style: {
+		strokeWidth: 2,
+	},
 };
 
 function TopologyCanvas({ stationId }) {
 	const { screenToFlowPosition } = useReactFlow();
 	const [nodes, setNodes, onNodesChange] = useNodesState([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+	const dispatch = useDispatch();
 
 	const { data: equipmentData = [] } = useEquipmentByStation(stationId);
 	const { data: linkData = [] } = usePortLinks(stationId);
@@ -40,49 +60,52 @@ function TopologyCanvas({ stationId }) {
 				target: link.target.equipmentId,
 				sourceHandle: link.sourcePortId,
 				targetHandle: link.targetPortId,
-				animated: true,
 				style: {
-					stroke: link.mediaType === 'SFP' ? '#3B82F6' : '#10B981',
-					strokeWidth: 1.5,
+					// Using dark colors based on media type
+					stroke: link.mediaType === 'SFP' ? EDGE_COLORS.SFP : EDGE_COLORS.RJ45,
 				},
 			}));
 			setEdges(initialEdges);
 		}
 	}, [linkData, setEdges]);
 
-	// Validation: Prevent self-connections or connections within same device
-	const isValidConnection = useCallback((connection) => {
-		return connection.source !== connection.target;
-	}, []);
-
 	const onConnect = useCallback(
 		(params) => {
-			// 1. Optimistically update UI (XYFlow needs the suffixed IDs to draw the line)
-			setEdges((eds) => addEdge({ ...params, animated: true }, eds));
+			const isFiber = params.sourceHandle.includes('sfp');
 
-			// 2. STRIP SUFFIXES: Be aggressive with the cleaning
-			// This ensures only the pure UUID reaches the Prisma create call
-			const cleanSourceId = params.sourceHandle;
-			const cleanTargetId = params.targetHandle;
+			setEdges((eds) =>
+				addEdge(
+					{
+						...params,
+						style: {
+							stroke: isFiber ? EDGE_COLORS.SFP : EDGE_COLORS.RJ45,
+							strokeWidth: 2,
+						},
+					},
+					eds
+				)
+			);
 
-			// 3. Persist to DB
 			createLink({
-				sourcePortId: cleanSourceId,
-				targetPortId: cleanTargetId,
-				mediaType: params.sourceHandle.includes('sfp') ? 'SFP' : 'RJ45',
-				cableColor: 'Blue',
+				sourcePortId: params.sourceHandle,
+				targetPortId: params.targetHandle,
+				mediaType: isFiber ? 'SFP' : 'RJ45',
+				cableColor: isFiber ? 'DarkSlate' : 'DeepNavy',
 			});
 		},
 		[createLink, setEdges]
 	);
 
-	const onEdgesDelete = useCallback(
-		(deletedEdges) => {
-			for (const edge of deletedEdges) {
-				deleteLink(edge.id);
-			}
+	const onEdgeClick = useCallback(
+		(_, edge) => {
+			dispatch(
+				openDrawer({
+					drawerName: 'linkDetailDrawer',
+					id: edge.id,
+				})
+			);
 		},
-		[deleteLink]
+		[dispatch]
 	);
 
 	useEffect(() => {
@@ -103,68 +126,42 @@ function TopologyCanvas({ stationId }) {
 		}
 	}, [equipmentData, setNodes]);
 
-	const onDragOver = useCallback((event) => {
-		event.preventDefault();
-		event.dataTransfer.dropEffect = 'move';
-	}, []);
-
-	const onDrop = useCallback(
-		(event) => {
-			event.preventDefault();
-			const dataStr = event.dataTransfer.getData('application/rtm-equipment');
-			if (!dataStr) return;
-
-			const equipment = JSON.parse(dataStr);
-			const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-
-			setNodes((nds) => {
-				const filtered = nds.filter((n) => n.id !== equipment.id);
-				return filtered.concat({
-					id: equipment.id,
-					type: 'equipmentNode',
-					position,
-					data: {
-						label: equipment.name,
-						ports: equipment.ports,
-						template: equipment.template,
-					},
-				});
-			});
-
-			updatePosition({
-				id: equipment.id,
-				data: { mapX: position.x, mapY: position.y },
-			});
-		},
-		[screenToFlowPosition, setNodes, updatePosition]
-	);
-
-	const onNodesDelete = useCallback(
-		(deletedNodes) => {
-			for (const node of deletedNodes) {
-				updatePosition({ id: node.id, data: { mapX: null, mapY: null } });
-			}
-		},
-		[updatePosition]
-	);
-
 	return (
-		<Box sx={{ width: '100%', height: '100%' }}>
+		<Box
+			sx={{
+				width: '100%',
+				height: '100%',
+				// Force Edge layer above Node layer
+				'& .react-flow__edgelayer': {
+					zIndex: '10 !important',
+				},
+				// Ensure nodes are below but still interactive
+				'& .react-flow__node': {
+					zIndex: '5 !important',
+				},
+				// Darken the animated dots for better visibility on light background
+				'& .react-flow__edge-animation': {
+					stroke: '#94A3B8',
+					strokeOpacity: 0.8,
+				},
+			}}
+		>
+			<LinkDetailDrawer stationId={stationId} />
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}
+				onEdgeClick={onEdgeClick}
 				nodeTypes={nodeTypes}
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
 				onConnect={onConnect}
-				onEdgesDelete={onEdgesDelete}
-				isValidConnection={isValidConnection}
-				onDragOver={onDragOver}
-				onDrop={onDrop}
+				// biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
+				onEdgesDelete={(deleted) => deleted.forEach((e) => deleteLink(e.id))}
+				defaultEdgeOptions={defaultEdgeOptions}
 				fitView
 				colorMode="light"
 			>
-				<Background color="#CBD5E1" gap={20} variant="dots" />
+				<Background color="#E2E8F0" gap={20} variant="dots" />
 				<Controls />
 			</ReactFlow>
 		</Box>

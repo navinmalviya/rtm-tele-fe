@@ -1,6 +1,6 @@
 'use client';
 
-import { Memory, Router, Storage } from '@mui/icons-material';
+import { Memory, Router } from '@mui/icons-material';
 import { Box, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { Handle, Position } from '@xyflow/react';
 import { memo, useMemo } from 'react';
@@ -43,13 +43,14 @@ const EquipmentNode = ({ data, selected }) => {
 	return (
 		<Box sx={{ width: 130 }}>
 			<Paper
-				elevation={selected ? 2 : 0}
+				elevation={0} // HIGH elevation creates a new stacking context that blocks edges
 				sx={{
 					p: '6px 8px',
-					borderRadius: 1.5,
 					bgcolor: 'white',
 					border: selected ? '1.5px solid #3B82F6' : '1px solid #E2E8F0',
-					transition: 'border 0.1s ease',
+					position: 'relative',
+					zIndex: 1, // Keep this low!
+					// ...
 				}}
 			>
 				<Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.8 }}>

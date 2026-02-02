@@ -64,7 +64,7 @@ export default function LoginPage() {
 					xs={false}
 					lg={6}
 					sx={{
-						bgcolor: 'background.paper', // #101214
+						bgcolor: 'black', // #101214
 						display: 'flex',
 						flexDirection: 'column',
 						justifyContent: 'center',
@@ -75,16 +75,9 @@ export default function LoginPage() {
 					}}
 				>
 					<Box sx={{ position: 'relative', zIndex: 2 }}>
-						<Typography
-							variant="h2"
-							component="h1"
-							sx={{ fontWeight: 800, mb: 2 }}
-						>
+						<Typography variant="h2" component="h1" sx={{ fontWeight: 800, mb: 2 }}>
 							Railway Telecom <br />
-							<Box
-								component="span"
-								sx={{ color: 'primary.main' }}
-							>
+							<Box component="span" sx={{ color: 'primary.main' }}>
 								Control Desk
 							</Box>
 						</Typography>
@@ -96,8 +89,7 @@ export default function LoginPage() {
 								maxWidth: 480,
 							}}
 						>
-							Infrastructure monitoring and maintenance
-							management for Western Railway.
+							Infrastructure monitoring and maintenance management for Western Railway.
 						</Typography>
 					</Box>
 
@@ -110,7 +102,8 @@ export default function LoginPage() {
 							width: 300,
 							height: 300,
 							borderRadius: '50%',
-							background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(16, 18, 20, 0) 70%)',
+							background:
+								'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(16, 18, 20, 0) 70%)',
 						}}
 					/>
 				</Grid>
@@ -141,16 +134,11 @@ export default function LoginPage() {
 							Sign In
 						</Typography>
 						<Typography variant="body1" color="text.secondary">
-							Please enter your credentials to access your
-							dashboard.
+							Please enter your credentials to access your dashboard.
 						</Typography>
 					</Stack>
 
-					<Box
-						component="form"
-						noValidate
-						onSubmit={handleSubmit(onSubmit)}
-					>
+					<Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
 						{loading ? (
 							<Box
 								sx={{
@@ -176,14 +164,8 @@ export default function LoginPage() {
 											label="Username"
 											variant="outlined"
 											autoFocus
-											error={
-												!!errors.username
-											}
-											helperText={
-												errors
-													.username
-													?.message
-											}
+											error={!!errors.username}
+											helperText={errors.username?.message}
 											sx={{
 												bgcolor: 'white',
 											}}
@@ -208,14 +190,8 @@ export default function LoginPage() {
 											label="Password"
 											type="password"
 											variant="outlined"
-											error={
-												!!errors.password
-											}
-											helperText={
-												errors
-													.password
-													?.message
-											}
+											error={!!errors.password}
+											helperText={errors.password?.message}
 											sx={{
 												bgcolor: 'white',
 											}}
@@ -226,33 +202,17 @@ export default function LoginPage() {
 								<Box
 									sx={{
 										display: 'flex',
-										justifyContent:
-											'space-between',
+										justifyContent: 'space-between',
 										alignItems: 'center',
 									}}
 								>
 									<Controller
 										name="remember"
 										control={control}
-										render={({
-											field,
-										}) => (
+										render={({ field }) => (
 											<FormControlLabel
-												control={
-													<Checkbox
-														{...field}
-														checked={
-															field.value
-														}
-														color="primary"
-													/>
-												}
-												label={
-													<Typography variant="body2">
-														Remember
-														me
-													</Typography>
-												}
+												control={<Checkbox {...field} checked={field.value} color="primary" />}
+												label={<Typography variant="body2">Remember me</Typography>}
 											/>
 										)}
 									/>
@@ -262,8 +222,7 @@ export default function LoginPage() {
 										sx={{
 											fontWeight: 600,
 											color: 'primary.main',
-											textDecoration:
-												'none',
+											textDecoration: 'none',
 										}}
 									>
 										Forgot password?
@@ -279,8 +238,7 @@ export default function LoginPage() {
 										py: 1.8,
 										fontWeight: 800,
 										fontSize: '1rem',
-										textTransform:
-											'none',
+										textTransform: 'none',
 										boxShadow: 'none',
 										'&:hover': {
 											boxShadow: 'none',
@@ -293,12 +251,7 @@ export default function LoginPage() {
 						)}
 					</Box>
 
-					<Typography
-						variant="body2"
-						color="text.secondary"
-						align="center"
-						sx={{ mt: 6 }}
-					>
+					<Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 6 }}>
 						&copy; 2026 Indian Railways S&T Department
 					</Typography>
 				</Box>

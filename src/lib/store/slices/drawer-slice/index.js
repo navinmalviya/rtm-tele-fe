@@ -7,8 +7,11 @@ const drawerSlice = createSlice({
 	initialState,
 	reducers: {
 		openDrawer: (state, action) => {
-			const { drawerName } = action.payload;
-			state[drawerName] = true;
+			const { drawerName, ...payload } = action.payload;
+			state[drawerName] = {
+				isOpen: true,
+				...payload,
+			};
 		},
 		closeDrawer: (state, action) => {
 			const { drawerName } = action.payload;

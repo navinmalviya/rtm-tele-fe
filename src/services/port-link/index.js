@@ -15,8 +15,18 @@ const deleteLink = (linkId) => {
 	return http.delete(`/port-link/${linkId}`);
 };
 
+const getLinkDetails = (linkId) => http.get(`/port-link/${linkId}`);
+const updateLink = (linkId) => http.patch(`/port-link/${linkId}`);
+
+const getAvailablePortsByStation = (stationId) => {
+	return http.get(`/port-link/station/${stationId}/available-ports`);
+};
+
 export const PortLinkService = {
 	createLink,
 	getStationLinks,
 	deleteLink,
+	getLinkDetails,
+	updateLink,
+	getAvailablePortsByStation,
 };
