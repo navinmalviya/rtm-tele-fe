@@ -47,7 +47,6 @@ export default function AddSectionForm() {
 
 	return (
 		<RtmDrawer drawerName="addSectionDrawer">
-			{/* Same width wrapper as Sub-section */}
 			<Box
 				sx={{
 					width: { xs: '100vw', sm: 500 },
@@ -66,29 +65,15 @@ export default function AddSectionForm() {
 					}}
 				>
 					<Box>
-						<Typography
-							variant="h5"
-							sx={{ fontWeight: 800, color: '#1E293B' }}
-						>
+						<Typography variant="h5" sx={{ fontWeight: 800, color: '#1E293B' }}>
 							Create Main Section
 						</Typography>
-						<Typography
-							variant="caption"
-							color="text.secondary"
-							sx={{ fontWeight: 600 }}
-						>
-							Division: **
-							{session?.user?.divisionCode || '...'}**
+						<Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+							Division: **{session?.user?.divisionCode || '...'}**
 						</Typography>
 					</Box>
 					<IconButton
-						onClick={() =>
-							dispatch(
-								closeDrawer({
-									drawerName: 'addSectionDrawer',
-								})
-							)
-						}
+						onClick={() => dispatch(closeDrawer({ drawerName: 'addSectionDrawer' }))}
 						sx={{ bgcolor: '#F1F5F9' }}
 					>
 						<Close fontSize="small" />
@@ -97,68 +82,33 @@ export default function AddSectionForm() {
 
 				<Divider sx={{ borderColor: '#F1F5F9' }} />
 
-				<Box
-					sx={{
-						p: 4,
-						flexGrow: 1,
-						overflowY: 'auto',
-						bgcolor: 'white',
-					}}
-				>
-					<form
-						id="section-form"
-						onSubmit={handleSubmit(handleFormSubmit)}
-					>
+				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: 'white' }}>
+					<form id="section-form" onSubmit={handleSubmit(handleFormSubmit)}>
 						<Stack spacing={4}>
 							<Box>
-								<Typography
-									variant="subtitle2"
-									sx={{
-										fontWeight: 700,
-										mb: 2,
-										color: '#64748B',
-									}}
-								>
+								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: '#64748B' }}>
 									IDENTIFICATION
 								</Typography>
 								<Stack spacing={3}>
 									<Controller
 										name="code"
 										control={control}
-										rules={{
-											required: 'Section code is required',
-										}}
-										render={({
-											field,
-										}) => (
+										rules={{ required: 'Section code is required' }}
+										render={({ field }) => (
 											<TextField
 												{...field}
 												label="Section Code"
 												placeholder="e.g. RTM-THDR"
 												fullWidth
-												error={
-													!!errors.code
-												}
-												helperText={
-													errors
-														.code
-														?.message
-												}
+												error={!!errors.code}
+												helperText={errors.code?.message}
 												InputProps={{
-													sx: {
-														borderRadius: 2,
-													},
-													startAdornment:
-														(
-															<InputAdornment position="start">
-																<Hub
-																	sx={{
-																		color: 'primary.main',
-																		fontSize: 20,
-																	}}
-																/>
-															</InputAdornment>
-														),
+													sx: { borderRadius: 2 },
+													startAdornment: (
+														<InputAdornment position="start">
+															<Hub sx={{ color: 'primary.main', fontSize: 20 }} />
+														</InputAdornment>
+													),
 												}}
 											/>
 										)}
@@ -166,30 +116,16 @@ export default function AddSectionForm() {
 									<Controller
 										name="name"
 										control={control}
-										rules={{
-											required: 'Section name is required',
-										}}
-										render={({
-											field,
-										}) => (
+										rules={{ required: 'Section name is required' }}
+										render={({ field }) => (
 											<TextField
 												{...field}
 												label="Section Name"
 												placeholder="e.g. Ratlam - Thandla Road"
 												fullWidth
-												error={
-													!!errors.name
-												}
-												helperText={
-													errors
-														.name
-														?.message
-												}
-												InputProps={{
-													sx: {
-														borderRadius: 2,
-													},
-												}}
+												error={!!errors.name}
+												helperText={errors.name?.message}
+												InputProps={{ sx: { borderRadius: 2 } }}
 											/>
 										)}
 									/>
@@ -197,85 +133,45 @@ export default function AddSectionForm() {
 							</Box>
 
 							<Box>
-								<Typography
-									variant="subtitle2"
-									sx={{
-										fontWeight: 700,
-										mb: 2,
-										color: '#64748B',
-									}}
-								>
+								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: '#64748B' }}>
 									CONSTITUENT BLOCKS
 								</Typography>
 								<Controller
 									name="subsectionIds"
 									control={control}
-									rules={{
-										required: 'Select at least one',
-									}}
+									rules={{ required: 'Select at least one' }}
 									render={({ field }) => (
 										<TextField
 											{...field}
 											select
 											label="Select Sub-sections"
 											fullWidth
+											error={!!errors.subsectionIds}
+											helperText={errors.subsectionIds?.message}
 											SelectProps={{
 												multiple: true,
-												renderValue:
-													(
-														selected
-													) => (
-														<Box
-															sx={{
-																display: 'flex',
-																flexWrap: 'wrap',
-																gap: 0.5,
-															}}
-														>
-															{selected.map(
-																(
-																	id
-																) => (
-																	<Chip
-																		key={
-																			id
-																		}
-																		label={
-																			subsections?.find(
-																				(
-																					s
-																				) =>
-																					s.id ===
-																					id
-																			)
-																				?.code
-																		}
-																		size="small"
-																	/>
-																)
-															)}
-														</Box>
-													),
+												renderValue: (selected) => (
+													<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+														{selected.map((id) => (
+															<Chip
+																key={id}
+																label={subsections?.find((s) => s.id === id)?.code || id}
+																size="small"
+															/>
+														))}
+													</Box>
+												),
 											}}
-											InputProps={{
-												sx: {
-													borderRadius: 2,
-												},
-											}}
-										/>
-									)}
-								>
-									{subsections?.map((sub) => (
-										<MenuItem
-											key={sub.id}
-											value={
-												sub.id
-											}
+											InputProps={{ sx: { borderRadius: 2 } }}
 										>
-											{sub.name}
-										</MenuItem>
-									))}
-								</Controller>
+											{subsections?.map((sub) => (
+												<MenuItem key={sub.id} value={sub.id}>
+													{sub.name} ({sub.code})
+												</MenuItem>
+											))}
+										</TextField>
+									)}
+								/>
 							</Box>
 						</Stack>
 					</form>
@@ -283,19 +179,12 @@ export default function AddSectionForm() {
 
 				<Divider />
 
-				{/* Footer matching the Station UI exactly */}
 				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
-							onClick={() =>
-								dispatch(
-									closeDrawer({
-										drawerName: 'addSectionDrawer',
-									})
-								)
-							}
+							onClick={() => dispatch(closeDrawer({ drawerName: 'addSectionDrawer' }))}
 							sx={{ color: '#64748B', fontWeight: 700 }}
 						>
 							Cancel

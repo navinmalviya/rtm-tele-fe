@@ -104,20 +104,38 @@ export default function TopLayerTopology() {
 
 	useEffect(() => {
 		if (linkData.length > 0 && nodes.length > 0) {
+			// Track how many links exist between station pairs to distribute them
+			const pairCountMap = {};
+
 			const interStationEdges = linkData
 				.filter((link) => {
-					// Access nested station IDs
 					const sourceStation = link.source.equipment?.stationId;
 					const targetStation = link.target.equipment?.stationId;
 					return sourceStation && targetStation && sourceStation !== targetStation;
 				})
-				.map((link) => ({
-					id: link.id,
-					// Map to the nested equipment.stationId
-					source: link.source.equipment.stationId,
-					target: link.target.equipment.stationId,
-					...EDGE_STYLE,
-				}));
+				.map((link) => {
+					const sId = link.source.equipment.stationId;
+					const tId = link.target.equipment.stationId;
+
+					// Create a stable key regardless of direction (A-B is the same as B-A)
+					const pairKey = [sId, tId].sort().join('-');
+
+					// Increment count and get current index (0 to 4 for our 5 handles)
+					const index = pairCountMap[pairKey] || 0;
+					pairCountMap[pairKey] = index + 1;
+					const handleIndex = index % 5;
+
+					return {
+						id: link.id,
+						source: sId,
+						target: tId,
+						// These IDs must match the 'id' props in your StationNode handles
+						sourceHandle: `source-${handleIndex}`,
+						targetHandle: `target-${handleIndex}`,
+						...EDGE_STYLE,
+					};
+				});
+
 			setEdges(interStationEdges);
 		}
 	}, [linkData, nodes, setEdges]);
