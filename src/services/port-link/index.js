@@ -16,6 +16,7 @@ const deleteLink = (linkId) => {
 };
 
 const getLinkDetails = (linkId) => http.get(`/port-link/${linkId}`);
+const getAllLinks = () => http.get(`/port-link/all`);
 const updateLink = (linkId) => http.patch(`/port-link/${linkId}`);
 
 const getAvailablePortsByStation = (stationId) => {
@@ -29,4 +30,5 @@ export const PortLinkService = {
 	getLinkDetails,
 	updateLink,
 	getAvailablePortsByStation,
+	getAllLinks,
 };

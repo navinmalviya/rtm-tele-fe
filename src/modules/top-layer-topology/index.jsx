@@ -43,7 +43,7 @@ import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 
 // Hooks & State
-import { useAvailablePorts, useCreatePortLink } from '@/hooks/port-links';
+import { useAvailablePorts, useCreatePortLink, usePortLinks } from '@/hooks/port-links';
 import { useBulkUpdateStations, useStations } from '@/hooks/stations';
 import { StationNode } from '@/lib/common/nodes';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
@@ -57,7 +57,6 @@ const nodeTypes = {
 	station: StationNode,
 };
 
-// Global Edge Style for the Topology
 const EDGE_STYLE = {
 	type: 'smoothstep',
 	animated: true,
@@ -70,6 +69,7 @@ export default function TopLayerTopology() {
 	const router = useRouter();
 
 	const { data: stationNodes } = useStations();
+	const { data: linkData = [] } = usePortLinks(); // Fetch existing links
 	const { mutate: bulkUpdateStations } = useBulkUpdateStations();
 	const { mutate: createLink } = useCreatePortLink();
 
@@ -78,17 +78,14 @@ export default function TopLayerTopology() {
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [movedNodes, setMovedNodes] = useState({});
 
-	// Connection Flow State
 	const [portMenuAnchor, setPortMenuAnchor] = useState(null);
 	const [pendingConnection, setPendingConnection] = useState(null);
 	const [activeStationId, setActiveStationId] = useState(null);
-
-	// Using the dedicated hook for port fetching
-	const { data: stationPorts = [], isLoading: loadingPorts } = useAvailablePorts(activeStationId);
-
 	const [assetMenuAnchor, setAssetMenuAnchor] = useState(null);
 
-	// Synchronize nodes from API
+	const { data: stationPorts = [], isLoading: loadingPorts } = useAvailablePorts(activeStationId);
+
+	// Sync Station Nodes
 	useEffect(() => {
 		if (stationNodes) {
 			const formattedNodes = stationNodes.map((node) => ({
@@ -105,14 +102,30 @@ export default function TopLayerTopology() {
 		}
 	}, [stationNodes, setNodes, router]);
 
+	useEffect(() => {
+		if (linkData.length > 0 && nodes.length > 0) {
+			const interStationEdges = linkData
+				.filter((link) => {
+					// Access nested station IDs
+					const sourceStation = link.source.equipment?.stationId;
+					const targetStation = link.target.equipment?.stationId;
+					return sourceStation && targetStation && sourceStation !== targetStation;
+				})
+				.map((link) => ({
+					id: link.id,
+					// Map to the nested equipment.stationId
+					source: link.source.equipment.stationId,
+					target: link.target.equipment.stationId,
+					...EDGE_STYLE,
+				}));
+			setEdges(interStationEdges);
+		}
+	}, [linkData, nodes, setEdges]);
+
 	const onNodeClick = useCallback(
 		(event, node) => {
 			if (!isEditMode) return;
-
-			// Prevent connecting a station back to itself
 			if (pendingConnection && pendingConnection.stationId === node.id) return;
-
-			// Trigger the useAvailablePorts hook by setting the ID
 			setActiveStationId(node.id);
 			setPortMenuAnchor(event.currentTarget);
 		},
@@ -121,7 +134,6 @@ export default function TopLayerTopology() {
 
 	const handlePortSelect = (port) => {
 		if (!pendingConnection) {
-			// Step 1: Initialize pending connection
 			setPendingConnection({
 				stationId: activeStationId,
 				portId: port.id,
@@ -129,7 +141,6 @@ export default function TopLayerTopology() {
 				equipmentName: port.equipment?.name,
 			});
 		} else {
-			// Step 2: Finalize and create the link
 			const newEdge = {
 				id: `inter-station-${Date.now()}`,
 				source: pendingConnection.stationId,
@@ -138,7 +149,6 @@ export default function TopLayerTopology() {
 			};
 
 			setEdges((eds) => addEdge(newEdge, eds));
-
 			createLink({
 				sourcePortId: pendingConnection.portId,
 				targetPortId: port.id,
@@ -197,7 +207,6 @@ export default function TopLayerTopology() {
 			>
 				<Background variant="dots" gap={24} size={1} color="#cbd5e1" />
 
-				{/* Connection Wizard: Port Selection Menu */}
 				<Menu
 					anchorEl={portMenuAnchor}
 					open={Boolean(portMenuAnchor)}
@@ -241,7 +250,6 @@ export default function TopLayerTopology() {
 					)}
 				</Menu>
 
-				{/* Progress Visualizer for Cabling */}
 				{pendingConnection && (
 					<Panel position="bottom-center">
 						<Paper
@@ -251,7 +259,6 @@ export default function TopLayerTopology() {
 								borderRadius: 4,
 								border: '2px solid #3B82F6',
 								bgcolor: 'rgba(255, 255, 255, 0.95)',
-								backdropFilter: 'blur(4px)',
 							}}
 						>
 							<Stack direction="row" spacing={3} alignItems="center">
@@ -281,7 +288,6 @@ export default function TopLayerTopology() {
 					</Panel>
 				)}
 
-				{/* Top Action Panel */}
 				<Panel position="top-right" style={{ top: '20px', right: '20px' }}>
 					<Paper
 						elevation={0}
@@ -290,7 +296,6 @@ export default function TopLayerTopology() {
 							borderRadius: '16px',
 							border: '1px solid #E2E8F0',
 							bgcolor: 'rgba(255,255,255,0.9)',
-							backdropFilter: 'blur(8px)',
 						}}
 					>
 						<Stack direction="row" spacing={1} alignItems="center">
@@ -299,11 +304,7 @@ export default function TopLayerTopology() {
 									<Tooltip title="Add Asset">
 										<IconButton
 											onClick={(e) => setAssetMenuAnchor(e.currentTarget)}
-											sx={{
-												bgcolor: 'primary.main',
-												color: 'white',
-												'&:hover': { bgcolor: 'primary.dark' },
-											}}
+											sx={{ bgcolor: 'primary.main', color: 'white' }}
 										>
 											<AddIcon fontSize="small" />
 										</IconButton>
@@ -325,13 +326,13 @@ export default function TopLayerTopology() {
 									</Typography>
 									<IconButton
 										onClick={handleSavePositions}
-										sx={{ bgcolor: '#4caf50', color: 'white', '&:hover': { bgcolor: '#388e3c' } }}
+										sx={{ bgcolor: '#4caf50', color: 'white' }}
 									>
 										<SaveIcon fontSize="small" />
 									</IconButton>
 									<IconButton
 										onClick={() => setIsEditMode(false)}
-										sx={{ bgcolor: '#ef5350', color: 'white', '&:hover': { bgcolor: '#d32f2f' } }}
+										sx={{ bgcolor: '#ef5350', color: 'white' }}
 									>
 										<CancelIcon fontSize="small" />
 									</IconButton>
@@ -341,7 +342,6 @@ export default function TopLayerTopology() {
 					</Paper>
 				</Panel>
 
-				{/* Asset Management Menu */}
 				<Menu
 					anchorEl={assetMenuAnchor}
 					open={Boolean(assetMenuAnchor)}
