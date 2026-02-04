@@ -1,3 +1,4 @@
 import AddSectionForm from './add-section';
+import { SectionTable } from './section-table';
 
-export { AddSectionForm };
+export { AddSectionForm, SectionTable };

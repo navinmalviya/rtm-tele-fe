@@ -32,7 +32,11 @@ const menuItems = [
 	{ text: 'Asset Management', icon: <Inventory />, path: '/testroom/assets' },
 	{ text: 'Equipment Library', icon: <LibraryBooks />, path: '/testroom/equipment-library' },
 	{ text: 'Projects & Tasks', icon: <AssignmentTurnedIn />, path: '/testroom/equipment-library' },
-	{ text: 'Sections & Sub-sections', icon: <AccountTree />, path: '/testroom/equipment-library' },
+	{
+		text: 'Sections & Sub-sections',
+		icon: <AccountTree />,
+		path: '/testroom/sections-subsections',
+	},
 ];
 
 export default function SideMenu() {

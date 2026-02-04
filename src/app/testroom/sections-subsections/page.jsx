@@ -1,0 +1,106 @@
+'use client';
+
+import { AccountTree, LinearScale, Place, SettingsSuggest } from '@mui/icons-material';
+import { Box, Button, Divider, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import { AddSectionForm, SectionTable } from '@/modules/sections';
+// Sub-components
+import { AddStationForm, StationTable } from '@/modules/stations';
+import { AddSubSectionForm, SubSectionTable } from '@/modules/sub-sections';
+
+export default function HierarchyManagementPage() {
+	const dispatch = useDispatch();
+	const [tabValue, setTabValue] = useState(0);
+
+	const THEME_COLOR = '#3B82F6';
+
+	const tabActions = {
+		0: { label: 'Add Station', icon: <Place />, drawer: 'addStationDrawer' },
+		1: { label: 'Add Sub-section', icon: <LinearScale />, drawer: 'addSubSectionDrawer' },
+		2: { label: 'Add Main Section', icon: <AccountTree />, drawer: 'addSectionDrawer' },
+	};
+
+	const currentAction = tabActions[tabValue];
+
+	return (
+		<Box
+			sx={{
+				display: 'flex',
+				flexDirection: 'column',
+				height: '100%',
+				width: '100%',
+				bgcolor: '#F8FAFC',
+			}}
+		>
+			{/* Header */}
+			<Box
+				sx={{
+					px: 3,
+					pt: 3,
+					pb: 2,
+					display: 'flex',
+					justifyContent: 'space-between',
+					bgcolor: 'white',
+				}}
+			>
+				<Stack direction="row" spacing={1.5} alignItems="center">
+					<Box sx={{ p: 1, bgcolor: '#F1F5F9', borderRadius: 2, display: 'flex' }}>
+						<SettingsSuggest sx={{ color: '#64748B' }} />
+					</Box>
+					<Box>
+						<Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A' }}>
+							Division Hierarchy
+						</Typography>
+						<Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>
+							Ratlam Division • Asset Mapping
+						</Typography>
+					</Box>
+				</Stack>
+				<Button
+					variant="contained"
+					startIcon={currentAction.icon}
+					onClick={() => dispatch(openDrawer({ drawerName: currentAction.drawer }))}
+					sx={{ bgcolor: THEME_COLOR, borderRadius: 2.5, fontWeight: 800, textTransform: 'none' }}
+				>
+					{currentAction.label}
+				</Button>
+			</Box>
+
+			{/* Tabs */}
+			<Box sx={{ px: 3, bgcolor: 'white' }}>
+				<Tabs
+					value={tabValue}
+					onChange={(_, val) => setTabValue(val)}
+					sx={{ '& .MuiTab-root': { fontWeight: 700 } }}
+				>
+					<Tab label="Stations" />
+					<Tab label="Sub-sections" />
+					<Tab label="Sections" />
+				</Tabs>
+				<Divider />
+			</Box>
+
+			{/* Tables Area */}
+			<Box sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
+				<AddStationForm />
+				<AddSubSectionForm />
+				<AddSectionForm />
+
+				<Box
+					sx={{
+						bgcolor: 'white',
+						borderRadius: 3,
+						border: '1px solid #E2E8F0',
+						overflow: 'hidden',
+					}}
+				>
+					{tabValue === 0 && <StationTable />}
+					{tabValue === 1 && <SubSectionTable />}
+					{tabValue === 2 && <SectionTable />}
+				</Box>
+			</Box>
+		</Box>
+	);
+}
