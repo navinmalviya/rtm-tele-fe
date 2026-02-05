@@ -75,9 +75,13 @@ export default function HierarchyManagementPage() {
 					onChange={(_, val) => setTabValue(val)}
 					sx={{ '& .MuiTab-root': { fontWeight: 700 } }}
 				>
-					<Tab label="Stations" />
-					<Tab label="Sub-sections" />
-					<Tab label="Sections" />
+					<Tab icon={<Place sx={{ fontSize: 18 }} />} iconPosition="start" label="Stations" />
+					<Tab
+						icon={<LinearScale sx={{ fontSize: 18 }} />}
+						iconPosition="start"
+						label="Sub-sections"
+					/>
+					<Tab icon={<AccountTree sx={{ fontSize: 18 }} />} iconPosition="start" label="Sections" />
 				</Tabs>
 				<Divider />
 			</Box>

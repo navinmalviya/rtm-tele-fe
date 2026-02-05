@@ -31,7 +31,7 @@ const menuItems = [
 	{ text: 'Reports', icon: <Assessment />, path: '/testroom/reports' },
 	{ text: 'Asset Management', icon: <Inventory />, path: '/testroom/assets' },
 	{ text: 'Equipment Library', icon: <LibraryBooks />, path: '/testroom/equipment-library' },
-	{ text: 'Projects & Tasks', icon: <AssignmentTurnedIn />, path: '/testroom/equipment-library' },
+	{ text: 'Projects & Tasks', icon: <AssignmentTurnedIn />, path: '/testroom/projects-tasks' },
 	{
 		text: 'Sections & Sub-sections',
 		icon: <AccountTree />,
