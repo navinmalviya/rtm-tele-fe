@@ -15,23 +15,32 @@ export function StationTable() {
 			field: 'code',
 			headerName: 'STATION IDENTITY',
 			flex: 1.5,
-			renderCell: (params) => (
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%' }}>
-					<Box
-						sx={{ p: 1, bgcolor: '#EFF6FF', borderRadius: 1.5, display: 'flex', color: '#3B82F6' }}
-					>
-						<Place fontSize="small" />
+			renderCell: (params) => {
+				console.log('oar-<', params);
+				return (
+					<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%' }}>
+						<Box
+							sx={{
+								p: 1,
+								bgcolor: '#EFF6FF',
+								borderRadius: 1.5,
+								display: 'flex',
+								color: '#3B82F6',
+							}}
+						>
+							<Place fontSize="small" />
+						</Box>
+						<Box>
+							<Typography sx={{ fontWeight: 800, color: '#0F172A', fontSize: '0.85rem' }}>
+								{params.row.data.code}
+							</Typography>
+							<Typography sx={{ color: '#64748B', fontSize: '0.75rem' }}>
+								{params.row.data.label}
+							</Typography>
+						</Box>
 					</Box>
-					<Box>
-						<Typography sx={{ fontWeight: 800, color: '#0F172A', fontSize: '0.85rem' }}>
-							{params.value}
-						</Typography>
-						<Typography sx={{ color: '#64748B', fontSize: '0.75rem' }}>
-							{params.row.name}
-						</Typography>
-					</Box>
-				</Box>
-			),
+				);
+			},
 		},
 		{
 			field: 'subsection',
