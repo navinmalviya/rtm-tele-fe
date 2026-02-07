@@ -3,25 +3,16 @@
 import { BugReport, Construction, Warning } from '@mui/icons-material';
 import { Box, Button, Grid, Stack, Typography } from '@mui/material';
 import StatCard from '@/lib/common/stat-card';
-import TicketBoard from '@/lib/common/ticket-board';
+import TaskBoard from '@/lib/common/task-board';
 
 export default function DashboardPage() {
 	return (
 		<Box sx={{ bgcolor: 'transparent', p: 4 }}>
-			<Stack
-				direction="row"
-				justifyContent="space-between"
-				alignItems="center"
-				sx={{ mb: 4 }}
-			>
+			<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
 				<Typography variant="h4" sx={{ fontWeight: 800 }}>
 					Overview
 				</Typography>
-				<Button
-					variant="contained"
-					disableElevation
-					sx={{ borderRadius: 2 }}
-				>
+				<Button variant="contained" disableElevation sx={{ borderRadius: 2 }}>
 					+ Create Ticket
 				</Button>
 			</Stack>
@@ -60,7 +51,7 @@ export default function DashboardPage() {
 				<Typography variant="h6" sx={{ fontWeight: 800, color: '#172B4D' }}>
 					Active Faults
 				</Typography>
-				<TicketBoard />
+				<TaskBoard />
 			</Box>
 		</Box>
 	);

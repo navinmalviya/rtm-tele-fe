@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import { AddProjectDrawer, ProjectTable } from '@/modules/projects';
+import { AddTaskDrawer, TaskTab } from '@/modules/tasks';
 
 // Sub-components (Assuming these locations based on your pattern)
 
@@ -164,19 +165,18 @@ export default function ProjectTasksPage() {
 			>
 				{/* Modals/Drawers */}
 				<AddProjectDrawer />
-				{/* <AddTaskForm /> */}
+				<AddTaskDrawer />
 
 				<Box
-					sx={{
-						bgcolor: 'white',
-						borderRadius: 3,
-						border: '1px solid #E2E8F0',
-						overflow: 'hidden',
-					}}
+				// sx={{
+				// 	bgcolor: 'white',
+				// 	borderRadius: 3,
+				// 	border: '1px solid #E2E8F0',
+				// 	overflow: 'hidden',
+				// }}
 				>
 					{tabValue === 0 && <ProjectTable />}
-					{/* {tabValue === 1 && <TaskTable />} */}
-					{tabValue === 1 && <div>tasks</div>}
+					{tabValue === 1 && <TaskTab />}
 				</Box>
 			</Box>
 		</Box>
