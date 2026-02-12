@@ -64,11 +64,11 @@ const AddTaskDrawer = () => {
 		const payload = { ...formData };
 
 		// If not a Project task, we clear project-specific progress data
-		if (payload.type !== 'Project') {
+		if (payload.type !== 'PROJECT') {
 			payload.projectId = null;
 			payload.weight = 0;
 		}
-
+		console.log('taskPayload', payload);
 		addTask(payload);
 		reset();
 	};

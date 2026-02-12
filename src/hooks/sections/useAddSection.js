@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { SectionService } from '@/services/sections';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useAddSection = () => {
 	const queryClient = useQueryClient();
@@ -27,9 +27,7 @@ export const useAddSection = () => {
 
 		onError: (error) => {
 			const errorMessage =
-				error?.response?.data?.message ||
-				error?.response?.data?.error ||
-				'Failed to add section';
+				error?.response?.data?.message || error?.response?.data?.error || 'Failed to add section';
 
 			showToast(errorMessage, 'error');
 		},

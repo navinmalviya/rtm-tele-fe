@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { EquipmentService } from '@/services/equipment';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 /**
  * Fetches all equipment instances for a station.

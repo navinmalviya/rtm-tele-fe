@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { EquipmentTemplateService } from '@/services/equipment-template';
 
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useEquipmentTemplates = (filters = {}) => {
 	const showToast = useToast();
@@ -13,10 +13,7 @@ export const useEquipmentTemplates = (filters = {}) => {
 		select: (response) => response.data,
 		placeholderData: (previousData) => previousData,
 		onError: (error) => {
-			showToast(
-				error.response?.data?.error || 'Failed to fetch templates',
-				'error'
-			);
+			showToast(error.response?.data?.error || 'Failed to fetch templates', 'error');
 		},
 	});
 };

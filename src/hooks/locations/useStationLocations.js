@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { LocationService } from '@/services/locations';
 
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useStationLocations = (stationId) => {
 	const showToast = useToast();

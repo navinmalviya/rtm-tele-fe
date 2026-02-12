@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PortLinkService } from '@/services/port-link';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useDeletePortLink = (stationId) => {
 	const queryClient = useQueryClient();

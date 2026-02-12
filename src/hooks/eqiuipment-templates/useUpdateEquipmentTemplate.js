@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { EquipmentTemplateService } from '@/services/equipment-template';
 
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useUpdateEquipmentTemplate = () => {
 	const queryClient = useQueryClient();
@@ -25,10 +25,7 @@ export const useUpdateEquipmentTemplate = () => {
 		},
 
 		onError: (error) => {
-			showToast(
-				error?.response?.data?.error || 'Failed to update template',
-				'error'
-			);
+			showToast(error?.response?.data?.error || 'Failed to update template', 'error');
 		},
 	});
 };

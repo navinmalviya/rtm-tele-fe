@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { StationService } from '@/services/stations';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useBulkUpdateStations = () => {
 	const queryClient = useQueryClient();
@@ -22,10 +22,7 @@ export const useBulkUpdateStations = () => {
 
 		onError: (error) => {
 			console.log('error', error);
-			showToast(
-				error?.response?.data?.message || 'Failed to update stations',
-				'error'
-			);
+			showToast(error?.response?.data?.message || 'Failed to update stations', 'error');
 		},
 	});
 };

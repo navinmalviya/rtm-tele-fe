@@ -170,19 +170,20 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 																{task.priority}
 															</Typography>
 
-															{/* Tooltip added here for assignee name hover */}
 															<Tooltip title={task.assignedTo?.name || 'Unassigned'} arrow>
-																<Avatar
-																	sx={{
-																		width: 24,
-																		height: 24,
-																		fontSize: '0.65rem',
-																		bgcolor: '#3B82F6',
-																		cursor: 'pointer',
-																	}}
-																>
-																	{task.assignedTo?.name?.substring(0, 2).toUpperCase() || '??'}
-																</Avatar>
+																<Box component="span">
+																	<Avatar
+																		sx={{
+																			width: 24,
+																			height: 24,
+																			fontSize: '0.65rem',
+																			bgcolor: '#3B82F6',
+																			cursor: 'pointer',
+																		}}
+																	>
+																		{task.assignedTo?.name?.substring(0, 2).toUpperCase() || '??'}
+																	</Avatar>
+																</Box>
 															</Tooltip>
 														</Stack>
 													</Stack>

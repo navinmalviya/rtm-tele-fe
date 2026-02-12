@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { StationService } from '@/services/stations';
 
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useStations = () => {
 	const showToast = useToast();

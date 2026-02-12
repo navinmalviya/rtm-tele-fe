@@ -1,37 +1,54 @@
 'use client';
 
 import { Assignment, Construction, PlaylistAddCheck, RocketLaunch } from '@mui/icons-material';
-import { Box, Button, Divider, Stack, Tab, Tabs, Typography } from '@mui/material';
-import { useState } from 'react';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { useDispatch } from 'react-redux';
+import { useTabs } from '@/hooks/common';
+import RtmTabs from '@/lib/common/tabs';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import { AddProjectDrawer, ProjectTable } from '@/modules/projects';
 import { AddTaskDrawer, TaskTab } from '@/modules/tasks';
 
-// Sub-components (Assuming these locations based on your pattern)
+const THEME_COLOR = '#3B82F6';
 
-// import { AddTaskForm, TaskTable } from '../tasks';
+const PROJECT_TABS = [
+	{
+		label: 'Active Projects',
+		step: 'projects',
+		icon: <PlaylistAddCheck sx={{ fontSize: 18 }} />,
+	},
+	{
+		label: 'All Operational Tasks',
+		step: 'tasks',
+		icon: <Assignment sx={{ fontSize: 18 }} />,
+	},
+];
 
-export default function ProjectTasksPage() {
+const ProjectTasksPage = () => {
 	const dispatch = useDispatch();
-	const [tabValue, setTabValue] = useState(0);
 
-	const THEME_COLOR = '#3B82F6'; // Ratlam Blue
+	// Access the current tab state from Redux (managed by RtmTabs internally)
+	const { currentTab } = useTabs('operationsHub', { currentTab: 'projects' });
 
+	// Configuration for dynamic header action
 	const tabActions = {
-		0: {
+		projects: {
 			label: 'Initiate Project',
 			icon: <RocketLaunch />,
 			drawer: 'addProjectDrawer',
 		},
-		1: {
-			label: 'Create New Task',
+		tasks: {
+			label: 'Dispatch Work',
 			icon: <Assignment />,
 			drawer: 'addTaskDrawer',
 		},
 	};
 
-	const currentAction = tabActions[tabValue];
+	const currentAction = tabActions[currentTab] || tabActions.projects;
+
+	const handleActionClick = () => {
+		dispatch(openDrawer({ drawerName: currentAction.drawer }));
+	};
 
 	return (
 		<Box
@@ -94,7 +111,7 @@ export default function ProjectTasksPage() {
 					variant="contained"
 					disableElevation
 					startIcon={currentAction.icon}
-					onClick={() => dispatch(openDrawer({ drawerName: currentAction.drawer }))}
+					onClick={handleActionClick}
 					sx={{
 						bgcolor: THEME_COLOR,
 						borderRadius: 2.5,
@@ -115,70 +132,27 @@ export default function ProjectTasksPage() {
 				</Button>
 			</Box>
 
-			{/* 2. Navigation Tabs */}
+			{/* 2. URL-Synced Navigation Tabs */}
 			<Box sx={{ px: 3, bgcolor: 'white' }}>
-				<Tabs
-					value={tabValue}
-					onChange={(_, val) => setTabValue(val)}
-					sx={{
-						minHeight: 48,
-						'& .MuiTabs-indicator': {
-							height: 3,
-							borderRadius: '3px 3px 0 0',
-							bgcolor: THEME_COLOR,
-						},
-						'& .MuiTab-root': {
-							fontWeight: 700,
-							fontSize: '0.8rem',
-							minWidth: 160,
-							textTransform: 'uppercase',
-							color: '#94A3B8',
-							transition: 'color 0.2s ease',
-							'&.Mui-selected': {
-								color: THEME_COLOR,
-							},
-						},
-					}}
-				>
-					<Tab
-						icon={<PlaylistAddCheck sx={{ fontSize: 18 }} />}
-						iconPosition="start"
-						label="Active Projects"
-					/>
-					<Tab
-						icon={<Assignment sx={{ fontSize: 18 }} />}
-						iconPosition="start"
-						label="All Operational Tasks"
-					/>
-				</Tabs>
-				<Divider sx={{ borderColor: '#F1F5F9' }} />
+				<RtmTabs
+					tabs={PROJECT_TABS}
+					tabsName="operationsHub"
+					initialState={{ currentTab: 'projects' }}
+				/>
 			</Box>
 
 			{/* 3. Content Area */}
-			<Box
-				sx={{
-					flex: 1,
-					minHeight: 0,
-					overflowY: 'auto',
-					p: 3,
-				}}
-			>
-				{/* Modals/Drawers */}
+			<Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 3 }}>
+				{/* Global Drawers */}
 				<AddProjectDrawer />
 				<AddTaskDrawer />
 
-				<Box
-				// sx={{
-				// 	bgcolor: 'white',
-				// 	borderRadius: 3,
-				// 	border: '1px solid #E2E8F0',
-				// 	overflow: 'hidden',
-				// }}
-				>
-					{tabValue === 0 && <ProjectTable />}
-					{tabValue === 1 && <TaskTab />}
-				</Box>
+				{/* Conditional Rendering based on Redux/URL state */}
+				{currentTab === 'projects' && <ProjectTable />}
+				{currentTab === 'tasks' && <TaskTab />}
 			</Box>
 		</Box>
 	);
-}
+};
+
+export default ProjectTasksPage;

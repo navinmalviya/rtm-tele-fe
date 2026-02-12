@@ -4,7 +4,7 @@ import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import { useCallback, useState } from 'react';
 
-import { ToastContext } from '@/hooks/commom/useToast';
+import { ToastContext } from '@/hooks/common/useToast';
 
 export const ToastProvider = ({ children }) => {
 	const [open, setOpen] = useState(false);

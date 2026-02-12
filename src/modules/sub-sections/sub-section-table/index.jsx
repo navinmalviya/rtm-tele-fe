@@ -2,11 +2,22 @@
 
 import { Delete, East, Edit, LinearScale } from '@mui/icons-material';
 import { Box, IconButton, Stack, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation'; // Added for navigation
 import { useSubsections } from '@/hooks/sub-sections';
 import RtmDataGrid from '@/lib/common/datagrid';
 
 export function SubSectionTable() {
+	const router = useRouter(); // Initialize the router
 	const { data: subsections = [], isLoading } = useSubsections();
+
+	/**
+	 * Navigates to the Subsection Details page on double click.
+	 * Redirects to: /testroom/sub-section/[id]
+	 */
+	const handleRowDoubleClick = (params) => {
+		const subsectionId = params.row.id;
+		router.push(`/testroom/sub-section/${subsectionId}`);
+	};
 
 	const columns = [
 		{
@@ -53,7 +64,7 @@ export function SubSectionTable() {
 			width: 100,
 			sortable: false,
 			renderCell: () => (
-				<Box sx={{ display: 'flex', gap: 0.5 }}>
+				<Box sx={{ display: 'flex', gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
 					<IconButton size="small" sx={{ color: '#94A3B8' }}>
 						<Edit fontSize="small" />
 					</IconButton>
@@ -73,6 +84,12 @@ export function SubSectionTable() {
 				loading={isLoading}
 				getRowId={(row) => row.id}
 				rowHeight={70}
+				// Added double-click event listener
+				onRowDoubleClick={handleRowDoubleClick}
+				sx={{
+					'& .MuiDataGrid-row': { cursor: 'pointer' },
+					'& .MuiDataGrid-row:hover': { bgcolor: '#F8FAFC' },
+				}}
 			/>
 		</Box>
 	);

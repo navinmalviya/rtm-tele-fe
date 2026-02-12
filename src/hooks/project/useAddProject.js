@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { ProjectService } from '@/services/project';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useAddProject = () => {
 	const queryClient = useQueryClient();

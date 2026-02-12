@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { SubSectionService } from '@/services/sub-sections';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useSubsections = () => {
 	const showToast = useToast();
@@ -30,8 +30,7 @@ export const useSubsections = () => {
 			// Optional: Actions on successful fetch
 		},
 		onError: (error) => {
-			const message =
-				error?.response?.data?.message || 'Failed to fetch sub-sections';
+			const message = error?.response?.data?.message || 'Failed to fetch sub-sections';
 			showToast(message, 'error');
 		},
 	});

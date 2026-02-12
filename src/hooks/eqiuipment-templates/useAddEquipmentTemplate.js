@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { EquipmentTemplateService } from '@/services/equipment-template';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useAddEquipmentTemplate = () => {
 	const queryClient = useQueryClient();

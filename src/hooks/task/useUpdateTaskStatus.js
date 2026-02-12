@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { TaskService } from '@/services/task';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useUpdateTaskStatus = () => {
 	const queryClient = useQueryClient();

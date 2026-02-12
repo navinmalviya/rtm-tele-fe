@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ProjectService } from '@/services/project';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useProjectDetails = (projectId) => {
 	const showToast = useToast();

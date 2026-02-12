@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { PortTemplateService } from '@/services/port-template';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const usePortTemplatesByEquipment = (equipmentTemplateId) => {
 	const showToast = useToast();
@@ -11,10 +11,7 @@ export const usePortTemplatesByEquipment = (equipmentTemplateId) => {
 		enabled: !!equipmentTemplateId, // Only run if ID exists
 		select: (response) => response.data,
 		onError: (error) => {
-			showToast(
-				error.response?.data?.message || 'Failed to fetch equipment ports',
-				'error'
-			);
+			showToast(error.response?.data?.message || 'Failed to fetch equipment ports', 'error');
 		},
 	});
 };

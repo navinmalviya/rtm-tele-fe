@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { StationService } from '@/services/stations';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useAddStation = () => {
 	const queryClient = useQueryClient();
@@ -29,9 +29,7 @@ export const useAddStation = () => {
 		onError: (error) => {
 			// Improved error parsing for Express/Prisma errors
 			const errorMessage =
-				error?.response?.data?.message ||
-				error?.response?.data?.error ||
-				'Failed to add station';
+				error?.response?.data?.message || error?.response?.data?.error || 'Failed to add station';
 
 			showToast(errorMessage, 'error');
 		},

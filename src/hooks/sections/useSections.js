@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { SectionService } from '@/services/sections';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useSections = () => {
 	const showToast = useToast();

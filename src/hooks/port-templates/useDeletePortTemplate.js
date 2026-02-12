@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PortTemplateService } from '@/services/port-template';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useDeletePortTemplate = () => {
 	const queryClient = useQueryClient();
@@ -17,10 +17,7 @@ export const useDeletePortTemplate = () => {
 			showToast('Port template deleted successfully', 'success');
 		},
 		onError: (error) => {
-			showToast(
-				error?.response?.data?.error || 'Failed to delete port template',
-				'error'
-			);
+			showToast(error?.response?.data?.error || 'Failed to delete port template', 'error');
 		},
 	});
 };

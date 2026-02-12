@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { PortLinkService } from '@/services/port-link';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 /**
  * Hook to fetch all ports within a station that are currently available for cabling.

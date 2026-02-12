@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EquipmentTemplateService } from '@/services/equipment-template';
 
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const useDeleteEquipmentTemplate = () => {
 	const queryClient = useQueryClient();
@@ -21,10 +21,7 @@ export const useDeleteEquipmentTemplate = () => {
 		},
 
 		onError: (error) => {
-			showToast(
-				error?.response?.data?.error || 'Failed to delete template',
-				'error'
-			);
+			showToast(error?.response?.data?.error || 'Failed to delete template', 'error');
 		},
 	});
 };

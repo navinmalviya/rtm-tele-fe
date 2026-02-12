@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { PortLinkService } from '@/services/port-link';
-import { useToast } from '../commom';
+import { useToast } from '../common';
 
 export const usePortLinks = (stationId = null) => {
 	const showToast = useToast();
