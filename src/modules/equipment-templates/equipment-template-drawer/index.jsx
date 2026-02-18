@@ -47,6 +47,7 @@ export default function AddEquipmentTemplateDrawer() {
 		control,
 		handleSubmit,
 		watch,
+		setValue,
 		formState: { errors },
 	} = useForm({
 		defaultValues: {
@@ -81,21 +82,32 @@ export default function AddEquipmentTemplateDrawer() {
 	const selectedSubCategory = watch('subCategory');
 	const currentConfigs = watch('portConfigs');
 
+	const handleCategoryChange = (e, onChange) => {
+		const newCat = e.target.value;
+		onChange(e);
+		// Reset subcategory when category changes
+		if (newCat === 'SIGNALLING') {
+			setValue('subCategory', 'BPAC');
+			setValue('uHeight', 0);
+		} else if (newCat === 'NETWORKING') {
+			setValue('subCategory', 'L2_SWITCH');
+			setValue('uHeight', 1);
+		}
+	};
+
 	const handleFormSubmit = (formData) => {
-		// Logic: Automatic Layer Assignment based on Sub-Category
 		let autoLayer = null;
 		if (formData.category === 'NETWORKING') {
 			const layer3Types = ['L3_SWITCH', 'ROUTER', 'FIREWALL'];
 			const layer2Types = ['L2_SWITCH', 'ACCESS_POINT'];
-
 			if (layer3Types.includes(formData.subCategory)) autoLayer = 3;
 			else if (layer2Types.includes(formData.subCategory)) autoLayer = 2;
 		}
 
 		const payload = {
 			...formData,
-			layer: autoLayer, // Automatically calculated
-			uHeight: Number.parseInt(formData.uHeight),
+			layer: autoLayer,
+			uHeight: formData.category === 'SIGNALLING' ? null : Number.parseInt(formData.uHeight),
 			codalLifeYears: Number.parseInt(formData.codalLifeYears),
 			switchingCapacity: formData.switchingCapacity
 				? Number.parseFloat(formData.switchingCapacity)
@@ -162,24 +174,26 @@ export default function AddEquipmentTemplateDrawer() {
 				}}
 			>
 				{/* HEADER */}
-				<Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-					<Box>
-						<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
-							New Template
-						</Typography>
-						<Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
-							Device Specification Library
-						</Typography>
-					</Box>
-					<IconButton
-						onClick={() => dispatch(closeDrawer({ drawerName: 'addTemplateDrawer' }))}
-						sx={{ bgcolor: '#F1F5F9' }}
-					>
-						<Close fontSize="small" />
-					</IconButton>
+				<Box sx={{ p: 4, pb: 2 }}>
+					<Stack direction="row" justifyContent="space-between" alignItems="center">
+						<Box>
+							<Typography variant="h5" sx={{ fontWeight: 800, color: '#1E293B' }}>
+								New Template
+							</Typography>
+							<Typography variant="body2" sx={{ fontWeight: 600, color: '#64748B', mt: 0.5 }}>
+								Standard IR-Telecom Asset Blueprints
+							</Typography>
+						</Box>
+						<IconButton
+							onClick={() => dispatch(closeDrawer({ drawerName: 'addTemplateDrawer' }))}
+							sx={{ bgcolor: '#F1F5F9' }}
+						>
+							<Close fontSize="small" />
+						</IconButton>
+					</Stack>
 				</Box>
 
-				<Divider />
+				<Divider sx={{ mx: 4, borderColor: '#F1F5F9' }} />
 
 				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: '#F8FAFC' }}>
 					<form id="template-form" onSubmit={handleSubmit(handleFormSubmit)}>
@@ -188,7 +202,13 @@ export default function AddEquipmentTemplateDrawer() {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{
+										fontWeight: 800,
+										mb: 2,
+										color: '#475569',
+										fontSize: '0.7rem',
+										letterSpacing: '0.1em',
+									}}
 								>
 									CORE IDENTITY
 								</Typography>
@@ -243,7 +263,7 @@ export default function AddEquipmentTemplateDrawer() {
 												<FormControlLabel
 													control={<Switch checked={field.value} onChange={field.onChange} />}
 													label={
-														<Typography variant="body2" sx={{ fontWeight: 600 }}>
+														<Typography variant="body2" sx={{ fontWeight: 700 }}>
 															Modular
 														</Typography>
 													}
@@ -258,7 +278,13 @@ export default function AddEquipmentTemplateDrawer() {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{
+										fontWeight: 800,
+										mb: 2,
+										color: '#475569',
+										fontSize: '0.7rem',
+										letterSpacing: '0.1em',
+									}}
 								>
 									CLASSIFICATION
 								</Typography>
@@ -266,12 +292,13 @@ export default function AddEquipmentTemplateDrawer() {
 									<Controller
 										name="category"
 										control={control}
-										render={({ field }) => (
+										render={({ field: { value, onChange } }) => (
 											<TextField
 												select
-												{...field}
 												label="Category"
 												fullWidth
+												value={value}
+												onChange={(e) => handleCategoryChange(e, onChange)}
 												SelectProps={customSelectProps}
 												sx={textFieldStyles}
 												InputProps={{
@@ -282,11 +309,13 @@ export default function AddEquipmentTemplateDrawer() {
 													),
 												}}
 											>
-												{['NETWORKING', 'POWER', 'TRANSMISSION', 'COMPUTING'].map((c) => (
-													<MenuItem key={c} value={c}>
-														{c}
-													</MenuItem>
-												))}
+												{['NETWORKING', 'POWER', 'TRANSMISSION', 'SIGNALLING', 'COMPUTING'].map(
+													(c) => (
+														<MenuItem key={c} value={c}>
+															{c}
+														</MenuItem>
+													)
+												)}
 											</TextField>
 										)}
 									/>
@@ -314,16 +343,22 @@ export default function AddEquipmentTemplateDrawer() {
 															{s}
 														</MenuItem>
 													))}
+												{selectedCategory === 'SIGNALLING' &&
+													['BPAC', 'BLOCK_INSTRUMENT', 'HASSDAC', 'UFSBI'].map((s) => (
+														<MenuItem key={s} value={s}>
+															{s.replace('_', ' ')}
+														</MenuItem>
+													))}
 											</TextField>
 										)}
 									/>
 								</Stack>
 							</Box>
 
-							{/* SECTION 3: NETWORKING SPECS (AUTO-LAYER) */}
+							{/* SECTION 3: NETWORKING SPECS */}
 							{selectedCategory === 'NETWORKING' && (
 								<Box
-									sx={{ p: 3, bgcolor: '#EFF6FF', borderRadius: 3, border: '1px solid #DBEAFE' }}
+									sx={{ p: 3, bgcolor: '#EFF6FF', borderRadius: 4, border: '1px solid #DBEAFE' }}
 								>
 									<Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
 										<Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E40AF' }}>
@@ -380,7 +415,7 @@ export default function AddEquipmentTemplateDrawer() {
 															/>
 														}
 														label={
-															<Typography variant="body2" sx={{ fontWeight: 600 }}>
+															<Typography variant="body2" sx={{ fontWeight: 700 }}>
 																PoE Support
 															</Typography>
 														}
@@ -394,7 +429,7 @@ export default function AddEquipmentTemplateDrawer() {
 													<FormControlLabel
 														control={<Switch checked={field.value} onChange={field.onChange} />}
 														label={
-															<Typography variant="body2" sx={{ fontWeight: 600 }}>
+															<Typography variant="body2" sx={{ fontWeight: 700 }}>
 																MPLS Capable
 															</Typography>
 														}
@@ -410,14 +445,20 @@ export default function AddEquipmentTemplateDrawer() {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{
+										fontWeight: 800,
+										mb: 2,
+										color: '#475569',
+										fontSize: '0.7rem',
+										letterSpacing: '0.1em',
+									}}
 								>
 									PORT CONFIGURATION
 								</Typography>
 								<TextField
 									select
 									fullWidth
-									label="Select Port Type from Library"
+									label="Add Port from Library"
 									value=""
 									onChange={(e) => handleAddPortType(e.target.value)}
 									sx={{ ...textFieldStyles, mb: 2 }}
@@ -458,14 +499,14 @@ export default function AddEquipmentTemplateDrawer() {
 										<Paper
 											key={field.id}
 											variant="outlined"
-											sx={{ p: 2, borderRadius: 2, bgcolor: 'white', border: '1px solid #E2E8F0' }}
+											sx={{ p: 2, borderRadius: 3, bgcolor: 'white', border: '1px solid #E2E8F0' }}
 										>
 											<Stack direction="row" spacing={2} alignItems="center">
 												<Box sx={{ flexGrow: 1 }}>
-													<Typography variant="body2" sx={{ fontWeight: 700 }}>
+													<Typography variant="body2" sx={{ fontWeight: 800 }}>
 														{field.name}
 													</Typography>
-													<Typography variant="caption" sx={{ color: '#64748B' }}>
+													<Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
 														{field.meta}
 													</Typography>
 												</Box>
@@ -498,35 +539,43 @@ export default function AddEquipmentTemplateDrawer() {
 								</Stack>
 							</Box>
 
-							{/* SECTION 5: LOGISTICS */}
+							{/* SECTION 5: LOGISTICS & SUPPLY (Conditional) */}
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{
+										fontWeight: 800,
+										mb: 2,
+										color: '#475569',
+										fontSize: '0.7rem',
+										letterSpacing: '0.1em',
+									}}
 								>
 									LOGISTICS & SUPPLY
 								</Typography>
 								<Stack direction="row" spacing={2}>
-									<Controller
-										name="uHeight"
-										control={control}
-										render={({ field }) => (
-											<TextField
-												{...field}
-												label="U Height"
-												type="number"
-												fullWidth
-												sx={textFieldStyles}
-												InputProps={{
-													startAdornment: (
-														<InputAdornment position="start">
-															<Straighten sx={{ color: '#64748B' }} />
-														</InputAdornment>
-													),
-												}}
-											/>
-										)}
-									/>
+									{selectedCategory !== 'SIGNALLING' && (
+										<Controller
+											name="uHeight"
+											control={control}
+											render={({ field }) => (
+												<TextField
+													{...field}
+													label="U Height"
+													type="number"
+													fullWidth
+													sx={textFieldStyles}
+													InputProps={{
+														startAdornment: (
+															<InputAdornment position="start">
+																<Straighten sx={{ color: '#64748B' }} />
+															</InputAdornment>
+														),
+													}}
+												/>
+											)}
+										/>
+									)}
 									<Controller
 										name="supply"
 										control={control}
@@ -534,7 +583,7 @@ export default function AddEquipmentTemplateDrawer() {
 											<TextField
 												select
 												{...field}
-												label="Supply"
+												label="Power Supply"
 												fullWidth
 												sx={textFieldStyles}
 												InputProps={{
@@ -546,7 +595,9 @@ export default function AddEquipmentTemplateDrawer() {
 												}}
 											>
 												<MenuItem value="230V AC">230V AC</MenuItem>
+												<MenuItem value="110V AC">110V AC</MenuItem>
 												<MenuItem value="-48V DC">-48V DC</MenuItem>
+												<MenuItem value="24V DC">24V DC</MenuItem>
 											</TextField>
 										)}
 									/>
@@ -556,15 +607,15 @@ export default function AddEquipmentTemplateDrawer() {
 					</form>
 				</Box>
 
-				<Divider />
+				<Divider sx={{ borderColor: '#F1F5F9' }} />
 
-				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 4, bgcolor: 'white' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addTemplateDrawer' }))}
-							sx={{ fontWeight: 700, color: '#64748B' }}
+							sx={{ fontWeight: 800, color: '#64748B', textTransform: 'none' }}
 						>
 							Cancel
 						</Button>
@@ -574,7 +625,13 @@ export default function AddEquipmentTemplateDrawer() {
 							variant="contained"
 							fullWidth
 							disableElevation
-							sx={{ bgcolor: '#3B82F6', py: 1.5, fontWeight: 700, borderRadius: 2 }}
+							sx={{
+								bgcolor: '#3B82F6',
+								py: 2,
+								fontWeight: 800,
+								borderRadius: '16px',
+								textTransform: 'none',
+							}}
 						>
 							{isLoading ? 'Saving...' : 'Create Template'}
 						</Button>

@@ -1,5 +1,7 @@
 import { Cable } from '@mui/icons-material';
 import { Box, ButtonBase, Paper, Stack, Typography } from '@mui/material';
+import { useDispatch } from 'react-redux';
+import { openDrawer } from '@/lib/store/slices/drawer-slice';
 
 export const TrackLayout = ({ upCables, downCables, selectedId, onCableSelect }) => {
 	return (
@@ -46,49 +48,55 @@ export const TrackLayout = ({ upCables, downCables, selectedId, onCableSelect })
 	);
 };
 
-const TrackSide = ({ label, cables, selectedId, onSelect, position }) => (
-	<Box
-		sx={{
-			minHeight: 150,
-			display: 'flex',
-			flexDirection: 'column',
-			alignItems: 'center',
-			gap: 2,
-			justifyContent: position === 'top' ? 'flex-end' : 'flex-start',
-		}}
-	>
-		{position === 'bottom' && <SideLabel label={label} />}
-		{cables.map((c) => (
-			<ButtonBase
-				key={c.id}
-				onClick={() => onSelect(c.id)}
-				sx={{ width: Math.min(Number(c.length) / 4, 800), minWidth: 200 }}
-			>
-				<Paper
-					elevation={selectedId === c.id ? 4 : 0}
-					sx={{
-						width: '100%',
-						p: 1,
-						borderRadius: 3,
-						display: 'flex',
-						alignItems: 'center',
-						gap: 1.5,
-						bgcolor: selectedId === c.id ? (c.type === 'OFC' ? '#F59E0B' : '#2563EB') : 'white',
-						color: selectedId === c.id ? 'white' : 'inherit',
-						border: '1px solid #E2E8F0',
+const TrackSide = ({ label, cables, selectedId, onSelect, position }) => {
+	const dispatch = useDispatch();
+	return (
+		<Box
+			sx={{
+				minHeight: 150,
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				gap: 2,
+				justifyContent: position === 'top' ? 'flex-end' : 'flex-start',
+			}}
+		>
+			{position === 'bottom' && <SideLabel label={label} />}
+			{cables.map((c) => (
+				<ButtonBase
+					key={c.id}
+					onClick={() => {
+						dispatch(openDrawer({ drawerName: 'cableDetailPanel' }));
+						onSelect(c.id);
 					}}
+					sx={{ width: Math.min(Number(c.length) / 4, 800), minWidth: 200 }}
 				>
-					<Cable sx={{ fontSize: 16 }} />
-					<Box sx={{ textAlign: 'left' }}>
-						<Typography sx={{ fontSize: '0.7rem', fontWeight: 800 }}>{c.subType}</Typography>
-						<Typography sx={{ fontSize: '0.6rem', fontWeight: 600 }}>{c.length}m</Typography>
-					</Box>
-				</Paper>
-			</ButtonBase>
-		))}
-		{position === 'top' && <SideLabel label={label} />}
-	</Box>
-);
+					<Paper
+						elevation={selectedId === c.id ? 4 : 0}
+						sx={{
+							width: '100%',
+							p: 1,
+							borderRadius: 3,
+							display: 'flex',
+							alignItems: 'center',
+							gap: 1.5,
+							bgcolor: selectedId === c.id ? (c.type === 'OFC' ? '#F59E0B' : '#2563EB') : 'white',
+							color: selectedId === c.id ? 'white' : 'inherit',
+							border: '1px solid #E2E8F0',
+						}}
+					>
+						<Cable sx={{ fontSize: 16 }} />
+						<Box sx={{ textAlign: 'left' }}>
+							<Typography sx={{ fontSize: '0.7rem', fontWeight: 800 }}>{c.subType}</Typography>
+							<Typography sx={{ fontSize: '0.6rem', fontWeight: 600 }}>{c.length}m</Typography>
+						</Box>
+					</Paper>
+				</ButtonBase>
+			))}
+			{position === 'top' && <SideLabel label={label} />}
+		</Box>
+	);
+};
 
 const SideLabel = ({ label }) => (
 	<Typography

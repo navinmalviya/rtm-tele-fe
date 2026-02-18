@@ -1,19 +1,16 @@
 'use client';
 
 import {
-	Cable,
 	CalendarMonth,
 	Category,
 	Close,
 	Engineering,
 	Public,
-	Settings,
 	Straighten,
 } from '@mui/icons-material';
 import {
 	Box,
 	Button,
-	Divider,
 	Grid,
 	IconButton,
 	InputAdornment,
@@ -22,9 +19,9 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
-import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useAddCable } from '@/hooks/cable';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
@@ -56,8 +53,7 @@ const INPUT_STYLES = {
 
 export default function AddCableDrawer() {
 	const dispatch = useDispatch();
-	const { data: session } = useSession();
-	const { data: drawerData } = useSelector((state) => state.drawer?.drawers?.addCableDrawer || {});
+	const params = useParams();
 	const { mutate: addCable, isLoading } = useAddCable();
 
 	const {
@@ -121,9 +117,9 @@ export default function AddCableDrawer() {
 				<Box sx={{ px: 4, flexGrow: 1, overflowY: 'auto' }}>
 					<form
 						id="cable-asset-form"
-						onSubmit={handleSubmit((data) =>
-							addCable({ ...data, subsectionId: drawerData?.subsectionId })
-						)}
+						onSubmit={handleSubmit((data) => {
+							addCable({ ...data, subsectionId: params.subsectionId });
+						})}
 					>
 						<Stack spacing={4}>
 							{/* 1. Classification */}

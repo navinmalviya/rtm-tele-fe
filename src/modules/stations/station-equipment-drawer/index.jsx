@@ -24,8 +24,11 @@ export default function AddStationEquipmentDrawer({
 	const [searchTerm, setSearchTerm] = useState('');
 
 	const onDragStart = (event, equipment) => {
+		// Store the full equipment object so the canvas has the data it needs immediately
 		event.dataTransfer.setData('application/rtm-equipment', JSON.stringify(equipment));
 		event.dataTransfer.effectAllowed = 'move';
+
+		// Visual feedback for the drag start
 		event.currentTarget.style.opacity = '0.4';
 	};
 
@@ -37,6 +40,7 @@ export default function AddStationEquipmentDrawer({
 		dispatch(closeDrawer({ drawerName: 'stationEquipmentDrawer' }));
 	};
 
+	// Filter assets that don't have coordinates yet
 	const unplacedEquipment = equipments.filter(
 		(eq) =>
 			(eq.mapX === null || eq.mapY === null) &&
@@ -53,19 +57,28 @@ export default function AddStationEquipmentDrawer({
 				'& .MuiDrawer-paper': {
 					pointerEvents: 'auto',
 					boxShadow: '10px 0 20px rgba(0,0,0,0.05)',
+					borderLeft: '1px solid #E2E8F0',
 				},
 			}}
 		>
-			<Box sx={{ width: 380, height: '100%', display: 'flex', flexDirection: 'column' }}>
-				{/* Header with Close Button */}
-				<Box sx={{ p: 3, bgcolor: 'white' }}>
+			<Box
+				sx={{
+					width: 380,
+					height: '100%',
+					display: 'flex',
+					flexDirection: 'column',
+					bgcolor: 'white',
+				}}
+			>
+				{/* Header */}
+				<Box sx={{ p: 3 }}>
 					<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
 						<Box>
 							<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
-								Station Equipment
+								Station Assets
 							</Typography>
 							<Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
-								Drag assets to position them
+								Drag assets to the canvas to position them
 							</Typography>
 						</Box>
 						<IconButton
@@ -83,7 +96,7 @@ export default function AddStationEquipmentDrawer({
 						placeholder="Search unplaced assets..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						sx={{ mt: 2, bgcolor: '#F8FAFC' }}
+						sx={{ mt: 2, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#F8FAFC' } }}
 						InputProps={{
 							startAdornment: (
 								<InputAdornment position="start">
@@ -94,7 +107,7 @@ export default function AddStationEquipmentDrawer({
 					/>
 				</Box>
 
-				{/* Equipment List */}
+				{/* List Section */}
 				<Box sx={{ flex: 1, overflowY: 'auto', p: 2, bgcolor: '#F8FAFC' }}>
 					<Stack spacing={1.5}>
 						{unplacedEquipment.map((eq) => (
@@ -110,10 +123,11 @@ export default function AddStationEquipmentDrawer({
 									borderRadius: 3,
 									cursor: 'grab',
 									userSelect: 'none',
+									transition: 'all 0.2s',
 									'&:hover': {
 										borderColor: '#3B82F6',
 										bgcolor: 'white',
-										boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+										boxShadow: '0 4px 12px rgba(59, 130, 246, 0.1)',
 									},
 								}}
 							>
@@ -143,7 +157,15 @@ export default function AddStationEquipmentDrawer({
 						))}
 
 						{unplacedEquipment.length === 0 && !isLoading && (
-							<Typography sx={{ textAlign: 'center', py: 4, color: '#94A3B8', fontSize: '0.8rem' }}>
+							<Typography
+								sx={{
+									textAlign: 'center',
+									py: 8,
+									color: '#94A3B8',
+									fontSize: '0.85rem',
+									fontWeight: 600,
+								}}
+							>
 								All assets have been placed.
 							</Typography>
 						)}

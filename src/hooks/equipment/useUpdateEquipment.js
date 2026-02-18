@@ -9,11 +9,15 @@ export const useUpdateEquipment = () => {
 	const showToast = useToast();
 
 	return useMutation({
-		mutationFn: ({ id, data }) => EquipmentService.updateEquipment(id, data),
+		// Destructure the incoming object and wrap coordinates in a 'data' key for the service
+		mutationFn: async ({ id, ...updateData }) => {
+			return await EquipmentService.updateEquipment(id, updateData);
+		},
 
 		onSuccess: () => {
+			// Invalidate specific equipment queries to trigger the "poof" effect in the drawer
 			queryClient.invalidateQueries({ queryKey: ['equipment'] });
-			showToast('Asset updated successfully', 'success');
+			showToast('Asset position updated', 'success');
 		},
 
 		onError: (error) => {

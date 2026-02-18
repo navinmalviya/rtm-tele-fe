@@ -18,9 +18,9 @@ export default function EquipmentTemplateTable() {
 					<Box
 						sx={{
 							p: 1,
-							bgcolor: '#F8FAFC',
-							borderRadius: 1.5,
-							border: '1px solid #E2E8F0',
+							// bgcolor: '#F8FAFC',
+							// borderRadius: 1.5,
+							// border: '1px solid #E2E8F0',
 							color: '#64748B',
 						}}
 					>

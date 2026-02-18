@@ -24,20 +24,17 @@ const nodeTypes = {
 	equipmentNode: EquipmentNode,
 };
 
-// Dark color palette for professional networking
 const EDGE_COLORS = {
-	SFP: '#1E293B', // Dark Slate (Fiber)
-	RJ45: '#0F172A', // Deep Navy (Copper)
-	DEFAULT: '#334155', // Slate 700
+	SFP: '#1E293B',
+	RJ45: '#0F172A',
+	DEFAULT: '#334155',
 };
 
 const defaultEdgeOptions = {
 	type: 'smoothstep',
 	animated: true,
 	zIndex: 1000,
-	style: {
-		strokeWidth: 2,
-	},
+	style: { strokeWidth: 2 },
 };
 
 function TopologyCanvas({ stationId }) {
@@ -52,6 +49,66 @@ function TopologyCanvas({ stationId }) {
 	const { mutate: createLink } = useCreatePortLink(stationId);
 	const { mutate: deleteLink } = useDeletePortLink(stationId);
 
+	// --- Drag & Drop Handlers ---
+
+	const onDragOver = useCallback((event) => {
+		event.preventDefault();
+		event.dataTransfer.dropEffect = 'move';
+	}, []);
+
+	const onDrop = useCallback(
+		(event) => {
+			event.preventDefault();
+
+			const rawData = event.dataTransfer.getData('application/rtm-equipment');
+			if (!rawData) return;
+
+			const draggedEquipment = JSON.parse(rawData);
+
+			// Transform screen pixels to relative Flow coordinates
+			const position = screenToFlowPosition({
+				x: event.clientX,
+				y: event.clientY,
+			});
+
+			// OPTIMISTIC UPDATE: Add the node locally so it appears instantly
+			const newNode = {
+				id: draggedEquipment.id,
+				type: 'equipmentNode',
+				position,
+				data: {
+					label: draggedEquipment.name,
+					ports: draggedEquipment.ports || [],
+					template: draggedEquipment.template,
+				},
+			};
+
+			setNodes((nds) => nds.concat(newNode));
+
+			// TRIGGER API: Save coordinates to DB
+			updatePosition({
+				id: draggedEquipment.id,
+				mapX: position.x,
+				mapY: position.y,
+			});
+		},
+		[screenToFlowPosition, updatePosition, setNodes]
+	);
+
+	const onNodeDragStop = useCallback(
+		(_, node) => {
+			// Update coordinates when a node is moved within the canvas
+			updatePosition({
+				id: node.id,
+				mapX: node.position.x,
+				mapY: node.position.y,
+			});
+		},
+		[updatePosition]
+	);
+
+	// --- Existing Edge & Node Sync Logic ---
+
 	useEffect(() => {
 		if (linkData.length > 0) {
 			const initialEdges = linkData.map((link) => ({
@@ -61,7 +118,6 @@ function TopologyCanvas({ stationId }) {
 				sourceHandle: link.sourcePortId,
 				targetHandle: link.targetPortId,
 				style: {
-					// Using dark colors based on media type
 					stroke: link.mediaType === 'SFP' ? EDGE_COLORS.SFP : EDGE_COLORS.RJ45,
 				},
 			}));
@@ -72,15 +128,11 @@ function TopologyCanvas({ stationId }) {
 	const onConnect = useCallback(
 		(params) => {
 			const isFiber = params.sourceHandle.includes('sfp');
-
 			setEdges((eds) =>
 				addEdge(
 					{
 						...params,
-						style: {
-							stroke: isFiber ? EDGE_COLORS.SFP : EDGE_COLORS.RJ45,
-							strokeWidth: 2,
-						},
+						style: { stroke: isFiber ? EDGE_COLORS.SFP : EDGE_COLORS.RJ45, strokeWidth: 2 },
 					},
 					eds
 				)
@@ -98,12 +150,7 @@ function TopologyCanvas({ stationId }) {
 
 	const onEdgeClick = useCallback(
 		(_, edge) => {
-			dispatch(
-				openDrawer({
-					drawerName: 'linkDetailDrawer',
-					id: edge.id,
-				})
-			);
+			dispatch(openDrawer({ drawerName: 'linkDetailDrawer', id: edge.id }));
 		},
 		[dispatch]
 	);
@@ -116,11 +163,7 @@ function TopologyCanvas({ stationId }) {
 					id: eq.id,
 					type: 'equipmentNode',
 					position: { x: eq.mapX, y: eq.mapY },
-					data: {
-						label: eq.name,
-						ports: eq.ports,
-						template: eq.template,
-					},
+					data: { label: eq.name, ports: eq.ports, template: eq.template },
 				}));
 			setNodes(placedNodes);
 		}
@@ -128,22 +171,14 @@ function TopologyCanvas({ stationId }) {
 
 	return (
 		<Box
+			onDragOver={onDragOver}
+			onDrop={onDrop}
 			sx={{
 				width: '100%',
 				height: '100%',
-				// Force Edge layer above Node layer
-				'& .react-flow__edgelayer': {
-					zIndex: '10 !important',
-				},
-				// Ensure nodes are below but still interactive
-				'& .react-flow__node': {
-					zIndex: '5 !important',
-				},
-				// Darken the animated dots for better visibility on light background
-				'& .react-flow__edge-animation': {
-					stroke: '#94A3B8',
-					strokeOpacity: 0.8,
-				},
+				'& .react-flow__edgelayer': { zIndex: '10 !important' },
+				'& .react-flow__node': { zIndex: '5 !important' },
+				'& .react-flow__edge-animation': { stroke: '#94A3B8', strokeOpacity: 0.8 },
 			}}
 		>
 			<LinkDetailDrawer stationId={stationId} />
@@ -155,8 +190,8 @@ function TopologyCanvas({ stationId }) {
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
 				onConnect={onConnect}
-				// biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
-				onEdgesDelete={(deleted) => deleted.forEach((e) => deleteLink(e.id))}
+				onNodeDragStop={onNodeDragStop}
+				onEdgesDelete={(deleted) => (deleted || []).forEach((e) => deleteLink(e.id))}
 				defaultEdgeOptions={defaultEdgeOptions}
 				fitView
 				colorMode="light"

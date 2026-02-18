@@ -13,13 +13,13 @@ import { TrackLayout } from './TrackLayout';
 export default function SubSectionDetails({ subsectionId }) {
 	const dispatch = useDispatch();
 	const [selectedCableId, setSelectedCableId] = useState(null);
+	console.log('selectedCableId', selectedCableId);
 	const { data: cables, isLoading } = useCablesBySubsection(subsectionId);
 
 	const handleAddCable = () => {
 		dispatch(
 			openDrawer({
 				drawerName: 'addCableDrawer',
-				data: { subsectionId }, // Passing subsectionId to pre-fill the form
 			})
 		);
 	};
