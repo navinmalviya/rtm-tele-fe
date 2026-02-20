@@ -2,17 +2,35 @@
 
 import { Delete, Edit, Memory, Place, Power, Storage, Visibility } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import RtmDataGrid from '@/lib/common/datagrid';
 
-const STATUS_MAP = {
-	OPERATIONAL: { label: 'Active', color: '#10B981', bg: '#ECFDF5' },
-	FAULTY: { label: 'Faulty', color: '#EF4444', bg: '#FEF2F2' },
-	MAINTENANCE: { label: 'Service', color: '#F59E0B', bg: '#FFFBEB' },
-	DECOMMISSIONED: { label: 'Retired', color: '#64748B', bg: '#F1F5F9' },
-};
-
 export default function EquipmentTable({ equipments = [], isLoading }) {
+	const theme = useTheme();
+	const STATUS_MAP = {
+		OPERATIONAL: {
+			label: 'Active',
+			color: theme.palette.success.main,
+			bg: alpha(theme.palette.success.main, 0.12),
+		},
+		FAULTY: {
+			label: 'Faulty',
+			color: theme.palette.error.main,
+			bg: alpha(theme.palette.error.main, 0.12),
+		},
+		MAINTENANCE: {
+			label: 'Service',
+			color: theme.palette.warning.main,
+			bg: alpha(theme.palette.warning.main, 0.12),
+		},
+		DECOMMISSIONED: {
+			label: 'Retired',
+			color: theme.palette.text.secondary,
+			bg: theme.palette.action.hover,
+		},
+	};
+
 	const columns = useMemo(
 		() => [
 			{
@@ -22,14 +40,15 @@ export default function EquipmentTable({ equipments = [], isLoading }) {
 				renderCell: (params) => (
 					<Stack direction="row" spacing={2} alignItems="center">
 						<Box
-							sx={{
+							sx={(theme) => ({
 								p: 1,
-								bgcolor: '#F8FAFC',
+								bgcolor: alpha(theme.palette.text.primary, 0.04),
 								borderRadius: 1.5,
-								border: '1px solid #E2E8F0',
-								color: '#3B82F6',
+								border: '1px solid',
+								borderColor: 'divider',
+								color: theme.palette.primary.main,
 								display: 'flex',
-							}}
+							})}
 						>
 							<Memory fontSize="small" />
 						</Box>
@@ -37,7 +56,7 @@ export default function EquipmentTable({ equipments = [], isLoading }) {
 							<Typography
 								sx={{
 									fontWeight: 800,
-									color: '#0F172A',
+									color: 'text.primary',
 									fontSize: '0.85rem',
 									lineHeight: 1,
 									mb: 0.5,
@@ -45,7 +64,7 @@ export default function EquipmentTable({ equipments = [], isLoading }) {
 							>
 								{params.value}
 							</Typography>
-							<Typography sx={{ color: '#64748B', fontSize: '0.72rem', fontWeight: 600 }}>
+							<Typography sx={{ color: 'text.secondary', fontSize: '0.72rem', fontWeight: 600 }}>
 								{params.row.template?.make} {params.row.template?.modelName}
 							</Typography>
 						</Box>
@@ -59,14 +78,14 @@ export default function EquipmentTable({ equipments = [], isLoading }) {
 				renderCell: (params) => (
 					<Stack spacing={0.5}>
 						<Stack direction="row" spacing={0.5} alignItems="center">
-							<Storage sx={{ fontSize: 12, color: '#64748B' }} />
-							<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>
+							<Storage sx={{ fontSize: 12, color: 'text.secondary' }} />
+							<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary' }}>
 								{params.row.rack?.name || 'Unracked'}
 							</Typography>
 						</Stack>
 						<Stack direction="row" spacing={0.5} alignItems="center">
-							<Place sx={{ fontSize: 12, color: '#94A3B8' }} />
-							<Typography sx={{ fontSize: '0.65rem', fontWeight: 600, color: '#94A3B8' }}>
+							<Place sx={{ fontSize: 12, color: 'text.disabled' }} />
+							<Typography sx={{ fontSize: '0.65rem', fontWeight: 600, color: 'text.disabled' }}>
 								Slot: {params.row.uPosition ? `U${params.row.uPosition}` : 'N/A'} •{' '}
 								{params.row.rack?.location?.name || 'No Room'}
 							</Typography>
@@ -88,19 +107,19 @@ export default function EquipmentTable({ equipments = [], isLoading }) {
 									height: 20,
 									fontSize: '0.65rem',
 									fontWeight: 800,
-									bgcolor: '#F1F5F9',
+									bgcolor: 'action.hover',
 									borderRadius: 1,
 								}}
 							/>
 						</Tooltip>
-						{params.row.template?.isPoe && <Power sx={{ fontSize: 16, color: '#F59E0B' }} />}
+						{params.row.template?.isPoe && <Power sx={{ fontSize: 16, color: 'warning.main' }} />}
 						{params.row.template?.layer && (
 							<Typography
 								sx={{
 									fontSize: '0.7rem',
 									fontWeight: 900,
-									color: '#3B82F6',
-									bgcolor: '#EFF6FF',
+									color: 'primary.main',
+									bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
 									px: 0.5,
 									borderRadius: 0.5,
 								}}
@@ -162,12 +181,12 @@ export default function EquipmentTable({ equipments = [], isLoading }) {
 					return (
 						<Stack direction="row" spacing={0.5} alignItems="center" sx={{ height: '100%' }}>
 							<Tooltip title="Edit Blueprint">
-								<IconButton size="small" sx={{ color: '#94A3B8' }}>
+								<IconButton size="small" sx={{ color: 'text.secondary' }}>
 									<Edit fontSize="small" />
 								</IconButton>
 							</Tooltip>
 							<Tooltip title="Delete">
-								<IconButton size="small" sx={{ color: '#FDA4AF' }}>
+								<IconButton size="small" sx={{ color: 'error.light' }}>
 									<Delete fontSize="small" />
 								</IconButton>
 							</Tooltip>
@@ -176,11 +195,11 @@ export default function EquipmentTable({ equipments = [], isLoading }) {
 				},
 			},
 		],
-		[]
+		[theme]
 	);
 
 	return (
-		<Box sx={{ width: '100%', bgcolor: 'white', borderRadius: 2 }}>
+		<Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 2 }}>
 			<RtmDataGrid
 				rows={equipments}
 				columns={columns}

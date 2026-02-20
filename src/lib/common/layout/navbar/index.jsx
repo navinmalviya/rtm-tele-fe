@@ -2,6 +2,7 @@
 
 import MenuIcon from '@mui/icons-material/Menu';
 import { Box, IconButton, Menu, MenuItem, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -9,6 +10,7 @@ import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import { getNavbarTitle } from '@/lib/util';
 
 export default function CompactNavbar() {
+	const theme = useTheme();
 	const [anchorEl, setAnchorEl] = useState(null);
 	const params = useParams(); // Get stationId from URL
 	const pathname = usePathname();
@@ -42,7 +44,7 @@ export default function CompactNavbar() {
 					sx={{
 						fontWeight: 800,
 						lineHeight: 1,
-						color: '#333',
+						color: 'text.primary',
 						fontSize: '1.7rem',
 					}}
 				>
@@ -55,34 +57,35 @@ export default function CompactNavbar() {
 				sx={{
 					display: 'flex',
 					alignItems: 'center',
-					bgcolor: '#1565c0',
+					bgcolor: 'primary.main',
 					borderRadius: '50px',
 					pl: 0.8,
 					pr: 3,
 					py: 0.6,
-					boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
+					boxShadow: `0px 2px 8px ${alpha(theme.palette.common.black, 0.08)}`,
 					flexShrink: 0, // Prevents the pill from shrinking
 				}}
 			>
 				<IconButton
 					onClick={handleClick}
 					sx={{
-						bgcolor: '#fff',
-						border: '1.5px solid #2196f3',
+						bgcolor: 'background.paper',
+						border: '1.5px solid',
+						borderColor: 'primary.light',
 						mr: 1.5,
 						width: 42,
 						height: 42,
-						'&:hover': { bgcolor: '#fff' },
+						'&:hover': { bgcolor: 'background.paper' },
 					}}
 				>
-					<MenuIcon sx={{ color: '#333', fontSize: '1.3rem' }} />
+					<MenuIcon sx={{ color: 'text.primary', fontSize: '1.3rem' }} />
 				</IconButton>
 
 				<Typography
 					variant="body1"
 					sx={{
 						fontWeight: 700,
-						color: '#FFF',
+						color: 'primary.contrastText',
 						whiteSpace: 'nowrap',
 					}}
 				>
@@ -97,7 +100,7 @@ export default function CompactNavbar() {
 						sx: {
 							mt: 1,
 							borderRadius: '12px',
-							bgcolor: '#FFF',
+							bgcolor: 'background.paper',
 							minWidth: 160,
 						},
 					}}
@@ -147,9 +150,10 @@ export default function CompactNavbar() {
 								<MenuItem
 									key="topo"
 									sx={{
-										borderTop: '1px solid #eee',
+										borderTop: '1px solid',
+										borderColor: 'divider',
 										mt: 1,
-										color: '#1565c0',
+										color: 'primary.main',
 									}}
 									onClick={() =>
 										router.push(

@@ -2,8 +2,12 @@
 
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { Avatar, Box, Card, Chip, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useEffect, useMemo, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useUpdateTaskStatus } from '@/hooks/task/useUpdateTaskStatus';
+import { TaskDetailDrawer } from '@/modules/tasks';
+import { openDrawer } from '@/lib/store/slices/drawer-slice';
 
 const COLUMNS = [
 	{ id: 'OPEN', title: 'To Do' },
@@ -14,6 +18,8 @@ const COLUMNS = [
 
 const TaskBoard = ({ tasks = [], isLoading }) => {
 	const { mutate: updateStatus } = useUpdateTaskStatus();
+	const theme = useTheme();
+	const dispatch = useDispatch();
 
 	const initialBoardData = useMemo(() => {
 		const columns = {
@@ -83,7 +89,7 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 						sx={{
 							flex: 1,
 							minWidth: 320,
-							bgcolor: '#F1F5F9',
+							bgcolor: 'background.default',
 							borderRadius: 4,
 							p: 2,
 							display: 'flex',
@@ -96,16 +102,16 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 							alignItems="center"
 							sx={{ mb: 2, px: 1 }}
 						>
-							<Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#475569' }}>
+							<Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>
 								{column.title.toUpperCase()}
 							</Typography>
 							<Chip
 								label={boardData[column.id]?.length || 0}
 								size="small"
 								sx={{
-									bgcolor: 'white',
+									bgcolor: 'background.paper',
 									fontWeight: 900,
-									color: '#64748B',
+									color: 'text.secondary',
 									fontSize: '0.7rem',
 								}}
 							/>
@@ -125,18 +131,27 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 													ref={provided.innerRef}
 													{...provided.draggableProps}
 													{...provided.dragHandleProps}
+													onClick={() => {
+														if (!task?.id) return;
+														dispatch(
+															openDrawer({
+																drawerName: 'taskDetailDrawer',
+																taskId: task.id,
+															})
+														);
+													}}
 													sx={{
 														mb: 2,
 														p: 2,
 														borderRadius: 3,
-														bgcolor: 'white',
-														boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+														bgcolor: 'background.paper',
+														boxShadow: 1,
 														borderLeft:
 															task.priority === 'HIGH' || task.priority === 'CRITICAL'
-																? '5px solid #EF4444'
+																? `5px solid ${theme.palette.error.main}`
 																: '1px solid transparent',
 														'&:hover': {
-															boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+															boxShadow: 3,
 														},
 													}}
 												>
@@ -145,7 +160,7 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 														sx={{
 															fontWeight: 700,
 															mb: 1.5,
-															color: '#1E293B',
+															color: 'text.primary',
 														}}
 													>
 														{task.title}
@@ -159,13 +174,13 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 																fontWeight: 800,
 																fontSize: '0.6rem',
 																height: 20,
-																bgcolor: '#F8FAFC',
+																bgcolor: 'action.hover',
 															}}
 														/>
 														<Stack direction="row" spacing={1} alignItems="center">
 															<Typography
 																variant="caption"
-																sx={{ fontWeight: 800, color: '#94A3B8' }}
+																sx={{ fontWeight: 800, color: 'text.disabled' }}
 															>
 																{task.priority}
 															</Typography>
@@ -177,7 +192,7 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 																			width: 24,
 																			height: 24,
 																			fontSize: '0.65rem',
-																			bgcolor: '#3B82F6',
+																			bgcolor: 'primary.main',
 																			cursor: 'pointer',
 																		}}
 																	>
@@ -198,6 +213,7 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 					</Box>
 				))}
 			</Box>
+			<TaskDetailDrawer />
 		</DragDropContext>
 	);
 };

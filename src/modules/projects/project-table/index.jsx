@@ -2,6 +2,7 @@
 
 import { CalendarMonth, Delete, Edit, Person, RocketLaunch, Timer } from '@mui/icons-material';
 import { Box, Chip, CircularProgress, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import { useProjects } from '@/hooks/project';
 import RtmDataGrid from '@/lib/common/datagrid';
@@ -9,12 +10,22 @@ import RtmDataGrid from '@/lib/common/datagrid';
 export default function ProjectTable() {
 	// Calling the hook internally to fetch project data
 	const { data: projects = [], isLoading } = useProjects();
+	const theme = useTheme();
 
 	const getStatusColor = (status) => {
 		const colors = {
-			PLANNED: { bg: '#F1F5F9', text: '#475569' },
-			ONGOING: { bg: '#EFF6FF', text: '#2563EB' },
-			COMPLETED: { bg: '#F0FDF4', text: '#16A34A' },
+			PLANNED: {
+				bg: alpha(theme.palette.text.primary, 0.06),
+				text: theme.palette.text.secondary,
+			},
+			ONGOING: {
+				bg: alpha(theme.palette.primary.main, 0.12),
+				text: theme.palette.primary.main,
+			},
+			COMPLETED: {
+				bg: alpha(theme.palette.success.main, 0.12),
+				text: theme.palette.success.main,
+			},
 		};
 		return colors[status] || colors.PLANNED;
 	};
@@ -30,10 +41,11 @@ export default function ProjectTable() {
 						<Box
 							sx={{
 								p: 1,
-								bgcolor: '#F0F9FF',
+								bgcolor: alpha(theme.palette.primary.main, 0.1),
 								borderRadius: 1.5,
-								border: '1px solid #E0F2FE',
-								color: '#0369A1',
+								border: '1px solid',
+								borderColor: alpha(theme.palette.primary.main, 0.2),
+								color: theme.palette.primary.main,
 								display: 'flex',
 							}}
 						>
@@ -43,7 +55,7 @@ export default function ProjectTable() {
 							<Typography
 								sx={{
 									fontWeight: 800,
-									color: '#0F172A',
+									color: 'text.primary',
 									fontSize: '0.85rem',
 									lineHeight: 1,
 									mb: 0.5,
@@ -52,10 +64,10 @@ export default function ProjectTable() {
 								{params.value}
 							</Typography>
 							<Stack direction="row" spacing={0.5} alignItems="center">
-								<Person sx={{ fontSize: 12, color: '#94A3B8' }} />
+								<Person sx={{ fontSize: 12, color: 'text.disabled' }} />
 								<Typography
 									sx={{
-										color: '#94A3B8',
+										color: 'text.disabled',
 										fontSize: '0.72rem',
 										fontWeight: 600,
 										lineHeight: 1,
@@ -102,7 +114,7 @@ export default function ProjectTable() {
 								value={100}
 								size={40}
 								thickness={4}
-								sx={{ color: '#F1F5F9' }}
+								sx={{ color: 'action.hover' }}
 							/>
 							{/* Progress Circle */}
 							<CircularProgress
@@ -111,7 +123,10 @@ export default function ProjectTable() {
 								size={40}
 								thickness={4}
 								sx={{
-									color: (params.value || 0) >= 100 ? '#10B981' : '#3B82F6',
+									color:
+										(params.value || 0) >= 100
+											? theme.palette.success.main
+											: theme.palette.primary.main,
 									position: 'absolute',
 									left: 0,
 								}}
@@ -131,13 +146,13 @@ export default function ProjectTable() {
 								<Typography
 									variant="caption"
 									component="div"
-									sx={{ fontSize: '0.65rem', fontWeight: 900, color: '#1E293B' }}
+									sx={{ fontSize: '0.65rem', fontWeight: 900, color: 'text.primary' }}
 								>
 									{`${Math.round(params.value || 0)}%`}
 								</Typography>
 							</Box>
 						</Box>
-						<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>
+						<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary' }}>
 							{params.row._count?.tasks || 0} Tasks
 						</Typography>
 					</Stack>
@@ -150,8 +165,8 @@ export default function ProjectTable() {
 				renderCell: (params) => (
 					<Stack spacing={0.5}>
 						<Stack direction="row" spacing={1} alignItems="center">
-							<CalendarMonth sx={{ fontSize: 14, color: '#94A3B8' }} />
-							<Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>
+							<CalendarMonth sx={{ fontSize: 14, color: 'text.disabled' }} />
+							<Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary' }}>
 								{new Date(params.value).toLocaleDateString('en-IN', {
 									day: '2-digit',
 									month: 'short',
@@ -159,8 +174,8 @@ export default function ProjectTable() {
 							</Typography>
 						</Stack>
 						<Stack direction="row" spacing={1} alignItems="center">
-							<Timer sx={{ fontSize: 14, color: '#CBD5E1' }} />
-							<Typography sx={{ fontSize: '0.7rem', fontWeight: 500, color: '#94A3B8' }}>
+							<Timer sx={{ fontSize: 14, color: 'text.disabled' }} />
+							<Typography sx={{ fontSize: '0.7rem', fontWeight: 500, color: 'text.disabled' }}>
 								Target:{' '}
 								{params.row.endDate
 									? new Date(params.row.endDate).toLocaleDateString('en-IN', {
@@ -182,12 +197,12 @@ export default function ProjectTable() {
 				renderCell: () => (
 					<Stack direction="row" spacing={0.5} alignItems="center" sx={{ height: '100%' }}>
 						<Tooltip title="Edit Project">
-							<IconButton size="small" sx={{ color: '#94A3B8' }}>
+							<IconButton size="small" sx={{ color: 'text.secondary' }}>
 								<Edit fontSize="small" />
 							</IconButton>
 						</Tooltip>
 						<Tooltip title="Delete">
-							<IconButton size="small" sx={{ color: '#FDA4AF' }}>
+							<IconButton size="small" sx={{ color: 'error.light' }}>
 								<Delete fontSize="small" />
 							</IconButton>
 						</Tooltip>
@@ -199,7 +214,7 @@ export default function ProjectTable() {
 	);
 
 	return (
-		<Box sx={{ width: '100%', bgcolor: 'white' }}>
+		<Box sx={{ width: '100%', bgcolor: 'background.paper' }}>
 			<RtmDataGrid
 				rows={projects}
 				columns={columns}

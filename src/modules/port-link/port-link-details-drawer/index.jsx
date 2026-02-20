@@ -21,6 +21,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,15 +36,16 @@ const MEDIA_TYPES = [
 	{ value: 'TWINAX', label: 'Twinax (DAC)' },
 ];
 
-const CABLE_COLORS = [
-	{ value: '#3B82F6', label: 'Blue (Data)' },
-	{ value: '#10B981', label: 'Green (Management)' },
-	{ value: '#F59E0B', label: 'Yellow (Fiber)' },
-	{ value: '#EF4444', label: 'Red (Critical)' },
-	{ value: '#64748B', label: 'Gray (Standard)' },
-];
-
 export default function LinkDetailDrawer({ stationId }) {
+	const theme = useTheme();
+	const CABLE_COLORS = [
+		{ value: theme.palette.primary.main, label: 'Blue (Data)' },
+		{ value: theme.palette.success.main, label: 'Green (Management)' },
+		{ value: theme.palette.warning.main, label: 'Yellow (Fiber)' },
+		{ value: theme.palette.error.main, label: 'Red (Critical)' },
+		{ value: theme.palette.text.secondary, label: 'Gray (Standard)' },
+	];
+
 	const dispatch = useDispatch();
 	const { data: shallowData } = useSelector((state) => state.drawers?.linkDetailDrawer || {});
 	console.log('shd', shallowData);
@@ -69,11 +71,11 @@ export default function LinkDetailDrawer({ stationId }) {
 		if (link) {
 			reset({
 				mediaType: link.mediaType || 'CAT6',
-				cableColor: link.cableColor || '#3B82F6',
+				cableColor: link.cableColor || theme.palette.primary.main,
 				length: link.length || '',
 			});
 		}
-	}, [link, reset]);
+	}, [link, reset, theme]);
 
 	const handleClose = () => {
 		dispatch(closeDrawer({ drawerName: 'linkDetailDrawer' }));
@@ -99,12 +101,12 @@ export default function LinkDetailDrawer({ stationId }) {
 	};
 
 	const textFieldStyles = {
-		bgcolor: 'white',
+		bgcolor: 'background.paper',
 		'& .MuiOutlinedInput-root': {
 			borderRadius: 2,
-			'& fieldset': { borderColor: '#E2E8F0' },
-			'&:hover fieldset': { borderColor: '#CBD5E1' },
-			'&.Mui-focused fieldset': { borderColor: '#3B82F6' },
+			'& fieldset': { borderColor: 'divider' },
+			'&:hover fieldset': { borderColor: 'text.disabled' },
+			'&.Mui-focused fieldset': { borderColor: 'primary.main' },
 		},
 	};
 
@@ -116,7 +118,7 @@ export default function LinkDetailDrawer({ stationId }) {
 					display: 'flex',
 					flexDirection: 'column',
 					height: '100%',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				<Box
@@ -128,14 +130,14 @@ export default function LinkDetailDrawer({ stationId }) {
 					}}
 				>
 					<Box>
-						<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
+						<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>
 							Link Parameters
 						</Typography>
-						<Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
+						<Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
 							Physical Cable Configuration
 						</Typography>
 					</Box>
-					<IconButton onClick={handleClose} sx={{ bgcolor: '#F1F5F9' }}>
+					<IconButton onClick={handleClose} sx={{ bgcolor: 'action.hover' }}>
 						<Close fontSize="small" />
 					</IconButton>
 				</Box>
@@ -156,7 +158,7 @@ export default function LinkDetailDrawer({ stationId }) {
 										sx={{
 											fontWeight: 700,
 											mb: 2,
-											color: '#475569',
+											color: 'text.secondary',
 											fontSize: '0.75rem',
 											letterSpacing: '1px',
 										}}
@@ -167,13 +169,14 @@ export default function LinkDetailDrawer({ stationId }) {
 										spacing={2}
 										sx={{
 											p: 2,
-											bgcolor: '#F8FAFC',
+											bgcolor: 'background.default',
 											borderRadius: 3,
-											border: '1px solid #E2E8F0',
+											border: '1px solid',
+											borderColor: 'divider',
 										}}
 									>
 										<Stack direction="row" spacing={2} alignItems="center">
-											<Router sx={{ color: '#3B82F6' }} />
+											<Router sx={{ color: 'primary.main' }} />
 											<Box>
 												<Typography variant="caption" color="text.secondary">
 													Source Equipment
@@ -185,7 +188,7 @@ export default function LinkDetailDrawer({ stationId }) {
 										</Stack>
 										<Divider sx={{ borderStyle: 'dashed' }} />
 										<Stack direction="row" spacing={2} alignItems="center">
-											<SettingsInputComponent sx={{ color: '#10B981' }} />
+											<SettingsInputComponent sx={{ color: 'success.main' }} />
 											<Box>
 												<Typography variant="caption" color="text.secondary">
 													Target Equipment
@@ -204,7 +207,7 @@ export default function LinkDetailDrawer({ stationId }) {
 										sx={{
 											fontWeight: 700,
 											mb: 2,
-											color: '#475569',
+											color: 'text.secondary',
 											fontSize: '0.75rem',
 											letterSpacing: '1px',
 										}}
@@ -225,7 +228,7 @@ export default function LinkDetailDrawer({ stationId }) {
 													InputProps={{
 														startAdornment: (
 															<InputAdornment position="start">
-																<Cable fontSize="small" sx={{ color: '#6366F1' }} />
+																<Cable fontSize="small" sx={{ color: 'info.main' }} />
 															</InputAdornment>
 														),
 													}}
@@ -289,7 +292,7 @@ export default function LinkDetailDrawer({ stationId }) {
 													InputProps={{
 														startAdornment: (
 															<InputAdornment position="start">
-																<Straighten fontSize="small" sx={{ color: '#64748B' }} />
+																<Straighten fontSize="small" sx={{ color: 'text.secondary' }} />
 															</InputAdornment>
 														),
 													}}
@@ -305,14 +308,14 @@ export default function LinkDetailDrawer({ stationId }) {
 
 				<Divider />
 
-				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 3, bgcolor: 'background.default' }}>
 					<Stack spacing={2}>
 						<Stack direction="row" spacing={2}>
 							<Button
 								variant="text"
 								fullWidth
 								onClick={handleClose}
-								sx={{ fontWeight: 700, color: '#64748B' }}
+								sx={{ fontWeight: 700, color: 'text.secondary' }}
 							>
 								Cancel
 							</Button>
@@ -323,7 +326,13 @@ export default function LinkDetailDrawer({ stationId }) {
 								fullWidth
 								disableElevation
 								disabled={!isDirty}
-								sx={{ bgcolor: '#3B82F6', py: 1.5, fontWeight: 700, borderRadius: 2 }}
+								sx={{
+									bgcolor: 'primary.main',
+									py: 1.5,
+									fontWeight: 700,
+									borderRadius: 2,
+									'&:hover': { bgcolor: 'primary.dark' },
+								}}
 							>
 								Update Link
 							</Button>

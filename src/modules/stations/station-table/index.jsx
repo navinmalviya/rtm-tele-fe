@@ -2,6 +2,7 @@
 
 import { CalendarMonth, Edit, Place, Visibility } from '@mui/icons-material';
 import { Box, Chip, IconButton, Tooltip, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
 import { useStations } from '@/hooks/stations';
 import RtmDataGrid from '@/lib/common/datagrid';
@@ -20,21 +21,21 @@ export function StationTable() {
 				return (
 					<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%' }}>
 						<Box
-							sx={{
+							sx={(theme) => ({
 								p: 1,
-								bgcolor: '#EFF6FF',
+								bgcolor: alpha(theme.palette.primary.main, 0.12),
 								borderRadius: 1.5,
 								display: 'flex',
-								color: '#3B82F6',
-							}}
+								color: theme.palette.primary.main,
+							})}
 						>
 							<Place fontSize="small" />
 						</Box>
 						<Box>
-							<Typography sx={{ fontWeight: 800, color: '#0F172A', fontSize: '0.85rem' }}>
+							<Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '0.85rem' }}>
 								{params.row.data.code}
 							</Typography>
-							<Typography sx={{ color: '#64748B', fontSize: '0.75rem' }}>
+							<Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
 								{params.row.data.label}
 							</Typography>
 						</Box>
@@ -51,8 +52,8 @@ export function StationTable() {
 					label={params.value?.code || 'MAIN LINE'}
 					size="small"
 					sx={{
-						bgcolor: '#F1F5F9',
-						color: '#475569',
+						bgcolor: 'action.hover',
+						color: 'text.secondary',
 						fontWeight: 700,
 						fontSize: '0.7rem',
 						borderRadius: 1,
@@ -66,8 +67,8 @@ export function StationTable() {
 			flex: 1,
 			renderCell: (params) => (
 				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-					<CalendarMonth sx={{ fontSize: '16px', color: '#94A3B8' }} />
-					<Typography sx={{ color: '#64748B', fontSize: '0.8rem', fontWeight: 500 }}>
+					<CalendarMonth sx={{ fontSize: '16px', color: 'text.disabled' }} />
+					<Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', fontWeight: 500 }}>
 						{new Date(params.value).toLocaleDateString()}
 					</Typography>
 				</Box>
@@ -83,14 +84,14 @@ export function StationTable() {
 					<Tooltip title="View Dashboard">
 						<IconButton
 							size="small"
-							sx={{ color: '#94A3B8' }}
+							sx={{ color: 'text.secondary' }}
 							onClick={() => router.push(`/testroom/station/${params.row.id}`)}
 						>
 							<Visibility fontSize="small" />
 						</IconButton>
 					</Tooltip>
 					<Tooltip title="Edit">
-						<IconButton size="small" sx={{ color: '#94A3B8' }}>
+						<IconButton size="small" sx={{ color: 'text.secondary' }}>
 							<Edit fontSize="small" />
 						</IconButton>
 					</Tooltip>

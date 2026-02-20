@@ -2,16 +2,9 @@
 
 import { Memory, Router } from '@mui/icons-material';
 import { Box, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { Handle, Position } from '@xyflow/react';
 import { memo, useMemo } from 'react';
-
-const PORT_COLORS = {
-	RJ45: '#10B981',
-	SFP: '#3B82F6',
-	SFP_PLUS: '#8B5CF6',
-	CONSOLE: '#64748B',
-	DEFAULT: '#CBD5E1',
-};
 
 const PORT_PRIORITY = { CONSOLE: 1, RJ45: 2, SFP: 3, SFP_PLUS: 4, DEFAULT: 5 };
 
@@ -21,7 +14,15 @@ const ICON_MAP = {
 };
 
 const EquipmentNode = ({ data, selected }) => {
+	const theme = useTheme();
 	const icon = ICON_MAP[data.template?.category] || ICON_MAP.DEFAULT;
+	const PORT_COLORS = {
+		RJ45: theme.palette.success.main,
+		SFP: theme.palette.primary.main,
+		SFP_PLUS: theme.palette.secondary.main,
+		CONSOLE: theme.palette.text.secondary,
+		DEFAULT: theme.palette.divider,
+	};
 
 	const getPortType = (name = '') => {
 		const lowerName = name.toLowerCase();
@@ -46,21 +47,22 @@ const EquipmentNode = ({ data, selected }) => {
 				elevation={0} // HIGH elevation creates a new stacking context that blocks edges
 				sx={{
 					p: '6px 8px',
-					bgcolor: 'white',
-					border: selected ? '1.5px solid #3B82F6' : '1px solid #E2E8F0',
+					bgcolor: 'background.paper',
+					border: selected ? `1.5px solid ${theme.palette.primary.main}` : '1px solid',
+					borderColor: selected ? theme.palette.primary.main : 'divider',
 					position: 'relative',
 					zIndex: 1, // Keep this low!
 					// ...
 				}}
 			>
 				<Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.8 }}>
-					<Box sx={{ color: '#3B82F6', display: 'flex' }}>{icon}</Box>
+					<Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
 					<Typography
 						noWrap
 						sx={{
 							fontWeight: 900,
 							fontSize: '0.55rem',
-							color: '#1E293B',
+							color: 'text.primary',
 							letterSpacing: '-0.2px',
 							flex: 1,
 						}}
@@ -87,10 +89,10 @@ const EquipmentNode = ({ data, selected }) => {
 									sx={{
 										width: 6,
 										height: 6,
-										bgcolor: port.isOccupied ? '#E2E8F0' : portColor,
+										bgcolor: port.isOccupied ? 'action.disabledBackground' : portColor,
 										borderRadius: '1px',
 										position: 'relative',
-										border: '0.5px solid rgba(0,0,0,0.05)',
+										border: `0.5px solid ${alpha(theme.palette.common.black, 0.08)}`,
 										'&:hover': {
 											transform: 'scale(2.5)',
 											zIndex: 50,

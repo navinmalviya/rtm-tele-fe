@@ -21,6 +21,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useAddPortTemplate } from '@/hooks/port-templates';
@@ -101,14 +102,14 @@ export default function AddPortTemplateDrawer() {
 	};
 
 	const textFieldStyles = {
-		bgcolor: 'white',
+		bgcolor: 'background.paper',
 		'& .MuiOutlinedInput-root': {
 			borderRadius: 2,
-			'& fieldset': { borderColor: '#E2E8F0' },
-			'&:hover fieldset': { borderColor: '#CBD5E1' },
-			'&.Mui-focused fieldset': { borderColor: '#3B82F6' },
+			'& fieldset': { borderColor: 'divider' },
+			'&:hover fieldset': { borderColor: 'text.disabled' },
+			'&.Mui-focused fieldset': { borderColor: 'primary.main' },
 		},
-		'& .MuiInputLabel-root': { color: '#64748B', fontWeight: 600 },
+		'& .MuiInputLabel-root': { color: 'text.secondary', fontWeight: 600 },
 	};
 
 	return (
@@ -119,30 +120,30 @@ export default function AddPortTemplateDrawer() {
 					display: 'flex',
 					flexDirection: 'column',
 					height: '100%',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				{/* Header Section */}
 				<Box sx={{ p: 4, pb: 2 }}>
 					<Stack direction="row" justifyContent="space-between" alignItems="center">
 						<Box>
-							<Typography variant="h5" sx={{ fontWeight: 800, color: '#1E293B' }}>
+							<Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
 								New Port Blueprint
 							</Typography>
-							<Typography variant="body2" sx={{ fontWeight: 600, color: '#64748B', mt: 0.5 }}>
+							<Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mt: 0.5 }}>
 								Physical Interface Library
 							</Typography>
 						</Box>
 						<IconButton
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addPortTemplateDrawer' }))}
-							sx={{ bgcolor: '#F1F5F9' }}
+							sx={{ bgcolor: 'action.hover' }}
 						>
 							<Close fontSize="small" />
 						</IconButton>
 					</Stack>
 				</Box>
 
-				<Divider sx={{ mx: 4, borderColor: '#F1F5F9' }} />
+				<Divider sx={{ mx: 4, borderColor: 'divider' }} />
 
 				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto' }}>
 					<form id="port-template-form" onSubmit={handleSubmit(handleFormSubmit)}>
@@ -154,7 +155,7 @@ export default function AddPortTemplateDrawer() {
 									sx={{
 										fontWeight: 800,
 										mb: 3,
-										color: '#1E293B',
+										color: 'text.primary',
 										fontSize: '0.75rem',
 										letterSpacing: '0.1em',
 									}}
@@ -193,18 +194,18 @@ export default function AddPortTemplateDrawer() {
 													startAdornment: (
 														<InputAdornment position="start">
 															{value === 'NETWORK' && (
-																<Lan fontSize="small" sx={{ color: '#3B82F6', mr: 1 }} />
+																<Lan fontSize="small" sx={{ color: 'primary.main', mr: 1 }} />
 															)}
 															{value === 'POWER' && (
 																<PowerSettingsNew
 																	fontSize="small"
-																	sx={{ color: '#F59E0B', mr: 1 }}
+																	sx={{ color: 'warning.main', mr: 1 }}
 																/>
 															)}
 															{value === 'SERIAL' && (
 																<SettingsInputComponent
 																	fontSize="small"
-																	sx={{ color: '#8B5CF6', mr: 1 }}
+																	sx={{ color: 'secondary.main', mr: 1 }}
 																/>
 															)}
 														</InputAdornment>
@@ -257,12 +258,13 @@ export default function AddPortTemplateDrawer() {
 							{/* Section 2: Technical Specs (Containerized) */}
 							{selectedType && (
 								<Box
-									sx={{
+									sx={(theme) => ({
 										p: 3.5,
-										bgcolor: '#F0F9FF',
+										bgcolor: alpha(theme.palette.primary.main, 0.08),
 										borderRadius: '24px',
-										border: '1px solid #BAE6FD',
-									}}
+										border: '1px solid',
+										borderColor: alpha(theme.palette.primary.main, 0.2),
+									})}
 								>
 									<Stack
 										direction="row"
@@ -274,15 +276,22 @@ export default function AddPortTemplateDrawer() {
 											variant="subtitle2"
 											sx={{
 												fontWeight: 800,
-												color: '#0369A1',
+												color: 'primary.dark',
 												fontSize: '0.75rem',
 												letterSpacing: '0.05em',
 											}}
 										>
 											{selectedCategory} SPECIFICATIONS
 										</Typography>
-										<Box sx={{ bgcolor: '#DBEAFE', px: 1.5, py: 0.5, borderRadius: '8px' }}>
-											<Typography sx={{ fontSize: '0.65rem', fontWeight: 900, color: '#2563EB' }}>
+										<Box
+											sx={(theme) => ({
+												bgcolor: alpha(theme.palette.primary.main, 0.16),
+												px: 1.5,
+												py: 0.5,
+												borderRadius: '8px',
+											})}
+										>
+											<Typography sx={{ fontSize: '0.65rem', fontWeight: 900, color: 'primary.main' }}>
 												PHY: {selectedType}
 											</Typography>
 										</Box>
@@ -303,7 +312,7 @@ export default function AddPortTemplateDrawer() {
 														InputProps={{
 															startAdornment: (
 																<InputAdornment position="start">
-																	<Speed fontSize="small" sx={{ color: '#6366F1', mr: 1 }} />
+																	<Speed fontSize="small" sx={{ color: 'info.main', mr: 1 }} />
 																</InputAdornment>
 															),
 														}}
@@ -332,7 +341,7 @@ export default function AddPortTemplateDrawer() {
 														InputProps={{
 															startAdornment: (
 																<InputAdornment position="start">
-																	<Bolt fontSize="small" sx={{ color: '#D97706', mr: 1 }} />
+																	<Bolt fontSize="small" sx={{ color: 'warning.dark', mr: 1 }} />
 																</InputAdornment>
 															),
 														}}
@@ -350,10 +359,11 @@ export default function AddPortTemplateDrawer() {
 										{selectedType === 'SFP_SLOT' && (
 											<Box
 												sx={{
-													bgcolor: 'white',
+													bgcolor: 'background.paper',
 													p: 2,
 													borderRadius: 2,
-													border: '1px solid #E2E8F0',
+													border: '1px solid',
+													borderColor: 'divider',
 												}}
 											>
 												<Controller
@@ -381,16 +391,16 @@ export default function AddPortTemplateDrawer() {
 					</form>
 				</Box>
 
-				<Divider sx={{ borderColor: '#F1F5F9' }} />
+				<Divider sx={{ borderColor: 'divider' }} />
 
 				{/* Footer Actions */}
-				<Box sx={{ p: 4, bgcolor: 'white' }}>
+				<Box sx={{ p: 4, bgcolor: 'background.paper' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addPortTemplateDrawer' }))}
-							sx={{ fontWeight: 800, color: '#64748B', textTransform: 'none' }}
+							sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'none' }}
 						>
 							Cancel
 						</Button>
@@ -401,12 +411,13 @@ export default function AddPortTemplateDrawer() {
 							fullWidth
 							disableElevation
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								py: 2,
 								fontWeight: 800,
 								borderRadius: '16px',
 								textTransform: 'none',
 								fontSize: '1rem',
+								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
 							Save Blueprint

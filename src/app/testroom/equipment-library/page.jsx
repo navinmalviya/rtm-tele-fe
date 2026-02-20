@@ -31,7 +31,7 @@ export default function EquipmentLibraryPage() {
 				display: 'flex',
 				flexDirection: 'column',
 				height: '100%',
-				bgcolor: '#F8FAFC',
+				bgcolor: 'background.default',
 			}}
 		>
 			{/* Header Area */}
@@ -39,8 +39,9 @@ export default function EquipmentLibraryPage() {
 				sx={{
 					px: 4,
 					pt: 3,
-					bgcolor: 'white',
-					borderBottom: '1px solid #F1F5F9',
+					bgcolor: 'background.paper',
+					borderBottom: '1px solid',
+					borderColor: 'divider',
 				}}
 			>
 				<Stack
@@ -57,7 +58,7 @@ export default function EquipmentLibraryPage() {
 						>
 							<SettingsInputComponent
 								sx={{
-									color: '#3B82F6',
+									color: 'primary.main',
 									fontSize: 28,
 								}}
 							/>
@@ -65,7 +66,7 @@ export default function EquipmentLibraryPage() {
 								variant="h4"
 								sx={{
 									fontWeight: 800,
-									color: '#1E293B',
+									color: 'text.primary',
 									letterSpacing: '-0.02em',
 								}}
 							>
@@ -75,7 +76,7 @@ export default function EquipmentLibraryPage() {
 						<Typography
 							variant="body2"
 							sx={{
-								color: '#64748B',
+								color: 'text.secondary',
 								mt: 0.5,
 								fontWeight: 500,
 							}}
@@ -100,13 +101,13 @@ export default function EquipmentLibraryPage() {
 							)
 						}
 						sx={{
-							bgcolor: '#3B82F6',
+							bgcolor: 'primary.main',
 							borderRadius: 2,
 							textTransform: 'none',
 							fontWeight: 700,
 							px: 3,
 							py: 1,
-							'&:hover': { bgcolor: '#2563EB' },
+							'&:hover': { bgcolor: 'primary.dark' },
 						}}
 					>
 						{activeTab === 0
@@ -125,15 +126,15 @@ export default function EquipmentLibraryPage() {
 							fontWeight: 700,
 							fontSize: '0.95rem',
 							minWidth: 160,
-							color: '#64748B',
+							color: 'text.secondary',
 						},
 						'& .Mui-selected': {
-							color: '#3B82F6 !important',
+							color: 'primary.main',
 						},
 						'& .MuiTabs-indicator': {
 							height: 3,
 							borderRadius: '3px 3px 0 0',
-							bgcolor: '#3B82F6',
+							bgcolor: 'primary.main',
 						},
 					}}
 				>
@@ -153,7 +154,7 @@ export default function EquipmentLibraryPage() {
 					size="small"
 					sx={{
 						width: 320,
-						bgcolor: 'white',
+						bgcolor: 'background.paper',
 						'& .MuiOutlinedInput-root': { borderRadius: 2 },
 					}}
 					InputProps={{
@@ -161,7 +162,7 @@ export default function EquipmentLibraryPage() {
 							<InputAdornment position="start">
 								<Search
 									sx={{
-										color: '#94A3B8',
+										color: 'text.disabled',
 										fontSize: 20,
 									}}
 								/>
@@ -174,13 +175,13 @@ export default function EquipmentLibraryPage() {
 					startIcon={<FilterList />}
 					sx={{
 						borderRadius: 2,
-						color: '#64748B',
-						borderColor: '#E2E8F0',
+						color: 'text.secondary',
+						borderColor: 'divider',
 						textTransform: 'none',
 						fontWeight: 600,
 						'&:hover': {
-							borderColor: '#CBD5E1',
-							bgcolor: 'white',
+							borderColor: 'text.disabled',
+							bgcolor: 'background.paper',
 						},
 					}}
 				>
@@ -192,10 +193,11 @@ export default function EquipmentLibraryPage() {
 			<Box sx={{ flex: 1, px: 4, pb: 4 }}>
 				<Box
 					sx={{
-						bgcolor: 'white',
+						bgcolor: 'background.paper',
 						borderRadius: 4,
-						boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-						border: '1px solid #F1F5F9',
+						boxShadow: 1,
+						border: '1px solid',
+						borderColor: 'divider',
 						overflow: 'hidden',
 						height: '100%',
 					}}

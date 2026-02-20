@@ -12,6 +12,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useCallback, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useEquipmentByStation, useUpdateEquipment } from '@/hooks/equipment';
@@ -24,12 +25,6 @@ const nodeTypes = {
 	equipmentNode: EquipmentNode,
 };
 
-const EDGE_COLORS = {
-	SFP: '#1E293B',
-	RJ45: '#0F172A',
-	DEFAULT: '#334155',
-};
-
 const defaultEdgeOptions = {
 	type: 'smoothstep',
 	animated: true,
@@ -38,6 +33,13 @@ const defaultEdgeOptions = {
 };
 
 function TopologyCanvas({ stationId }) {
+	const theme = useTheme();
+	const EDGE_COLORS = {
+		SFP: theme.palette.text.primary,
+		RJ45: theme.palette.text.primary,
+		DEFAULT: theme.palette.text.secondary,
+	};
+
 	const { screenToFlowPosition } = useReactFlow();
 	const [nodes, setNodes, onNodesChange] = useNodesState([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -178,7 +180,10 @@ function TopologyCanvas({ stationId }) {
 				height: '100%',
 				'& .react-flow__edgelayer': { zIndex: '10 !important' },
 				'& .react-flow__node': { zIndex: '5 !important' },
-				'& .react-flow__edge-animation': { stroke: '#94A3B8', strokeOpacity: 0.8 },
+				'& .react-flow__edge-animation': {
+					stroke: theme.palette.text.disabled,
+					strokeOpacity: 0.8,
+				},
 			}}
 		>
 			<LinkDetailDrawer stationId={stationId} />
@@ -194,9 +199,9 @@ function TopologyCanvas({ stationId }) {
 				onEdgesDelete={(deleted) => (deleted || []).forEach((e) => deleteLink(e.id))}
 				defaultEdgeOptions={defaultEdgeOptions}
 				fitView
-				colorMode="light"
+				colorMode={theme.palette.mode}
 			>
-				<Background color="#E2E8F0" gap={20} variant="dots" />
+				<Background color={theme.palette.divider} gap={20} variant="dots" />
 				<Controls />
 			</ReactFlow>
 		</Box>

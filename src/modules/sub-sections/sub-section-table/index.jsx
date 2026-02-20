@@ -2,6 +2,7 @@
 
 import { Delete, East, Edit, LinearScale } from '@mui/icons-material';
 import { Box, IconButton, Stack, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/navigation'; // Added for navigation
 import { useSubsections } from '@/hooks/sub-sections';
 import RtmDataGrid from '@/lib/common/datagrid';
@@ -27,15 +28,21 @@ export function SubSectionTable() {
 			renderCell: (params) => (
 				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%' }}>
 					<Box
-						sx={{ p: 1, bgcolor: '#F5F3FF', borderRadius: 1.5, display: 'flex', color: '#7C3AED' }}
+						sx={(theme) => ({
+							p: 1,
+							bgcolor: alpha(theme.palette.secondary.main, 0.12),
+							borderRadius: 1.5,
+							display: 'flex',
+							color: theme.palette.secondary.main,
+						})}
 					>
 						<LinearScale fontSize="small" />
 					</Box>
 					<Box>
-						<Typography sx={{ fontWeight: 800, color: '#1E293B', fontSize: '0.85rem' }}>
+						<Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '0.85rem' }}>
 							{params.value}
 						</Typography>
-						<Typography sx={{ color: '#64748B', fontSize: '0.75rem' }}>
+						<Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
 							{params.row.name}
 						</Typography>
 					</Box>
@@ -48,11 +55,11 @@ export function SubSectionTable() {
 			flex: 1.2,
 			renderCell: (params) => (
 				<Stack direction="row" spacing={1} alignItems="center" sx={{ height: '100%' }}>
-					<Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#334155' }}>
+					<Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: 'text.primary' }}>
 						{params.row.fromStation?.code}
 					</Typography>
-					<East sx={{ fontSize: 14, color: '#94A3B8' }} />
-					<Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#334155' }}>
+					<East sx={{ fontSize: 14, color: 'text.disabled' }} />
+					<Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: 'text.primary' }}>
 						{params.row.toStation?.code}
 					</Typography>
 				</Stack>
@@ -65,10 +72,10 @@ export function SubSectionTable() {
 			sortable: false,
 			renderCell: () => (
 				<Box sx={{ display: 'flex', gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
-					<IconButton size="small" sx={{ color: '#94A3B8' }}>
+					<IconButton size="small" sx={{ color: 'text.secondary' }}>
 						<Edit fontSize="small" />
 					</IconButton>
-					<IconButton size="small" sx={{ color: '#FDA4AF' }}>
+					<IconButton size="small" sx={{ color: 'error.light' }}>
 						<Delete fontSize="small" />
 					</IconButton>
 				</Box>
@@ -88,7 +95,7 @@ export function SubSectionTable() {
 				onRowDoubleClick={handleRowDoubleClick}
 				sx={{
 					'& .MuiDataGrid-row': { cursor: 'pointer' },
-					'& .MuiDataGrid-row:hover': { bgcolor: '#F8FAFC' },
+					'& .MuiDataGrid-row:hover': { bgcolor: 'action.hover' },
 				}}
 			/>
 		</Box>

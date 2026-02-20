@@ -2,6 +2,7 @@
 
 import { Bolt, Cable, Delete, Edit, Lan, Speed } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useDeletePortTemplate, usePortTemplates } from '@/hooks/port-templates';
 import RtmDataGrid from '@/lib/common/datagrid';
 
@@ -24,19 +25,19 @@ export default function PortTemplateTable() {
 					}}
 				>
 					<Box
-						sx={{
+						sx={(theme) => ({
 							p: 1,
 							bgcolor:
 								params.row.type === 'TERMINAL_BLOCK'
-									? '#FFFBEB'
-									: '#F0FDF4',
+									? alpha(theme.palette.warning.main, 0.12)
+									: alpha(theme.palette.success.main, 0.12),
 							borderRadius: 1.5,
 							display: 'flex',
 							color:
 								params.row.type === 'TERMINAL_BLOCK'
-									? '#D97706'
-									: '#16A34A',
-						}}
+									? theme.palette.warning.dark
+									: theme.palette.success.main,
+						})}
 					>
 						{params.row.type === 'TERMINAL_BLOCK' ? (
 							<Bolt fontSize="small" />
@@ -48,7 +49,7 @@ export default function PortTemplateTable() {
 						<Typography
 							sx={{
 								fontWeight: 700,
-								color: '#1E293B',
+								color: 'text.primary',
 								fontSize: '0.85rem',
 							}}
 						>
@@ -56,7 +57,7 @@ export default function PortTemplateTable() {
 						</Typography>
 						<Typography
 							sx={{
-								color: '#64748B',
+								color: 'text.secondary',
 								fontSize: '0.75rem',
 							}}
 						>
@@ -75,13 +76,13 @@ export default function PortTemplateTable() {
 					<Typography
 						sx={{
 							fontWeight: 600,
-							color: '#334155',
+							color: 'text.primary',
 							fontSize: '0.85rem',
 						}}
 					>
 						{params.value?.modelName || 'Standard'}
 					</Typography>
-					<Typography sx={{ color: '#94A3B8', fontSize: '0.7rem' }}>
+					<Typography sx={{ color: 'text.disabled', fontSize: '0.7rem' }}>
 						{params.value?.make}
 					</Typography>
 				</Box>
@@ -106,7 +107,7 @@ export default function PortTemplateTable() {
 							label={params.row.speed}
 							size="small"
 							sx={{
-								bgcolor: '#F1F5F9',
+								bgcolor: 'action.hover',
 								fontWeight: 600,
 								fontSize: '0.65rem',
 							}}
@@ -125,8 +126,8 @@ export default function PortTemplateTable() {
 							label={params.row.voltage}
 							size="small"
 							sx={{
-								bgcolor: '#FEF3C7',
-								color: '#92400E',
+								bgcolor: (theme) => alpha(theme.palette.warning.main, 0.16),
+								color: 'warning.dark',
 								fontWeight: 600,
 								fontSize: '0.65rem',
 							}}
@@ -145,8 +146,8 @@ export default function PortTemplateTable() {
 							label={params.row.sfpType}
 							size="small"
 							sx={{
-								bgcolor: '#F5F3FF',
-								color: '#5B21B6',
+								bgcolor: (theme) => alpha(theme.palette.secondary.main, 0.16),
+								color: 'secondary.dark',
 								fontWeight: 600,
 								fontSize: '0.65rem',
 							}}
@@ -163,14 +164,14 @@ export default function PortTemplateTable() {
 			renderCell: (params) => (
 				<Box sx={{ display: 'flex', gap: 0.5 }}>
 					<Tooltip title="Edit Port Blueprint">
-						<IconButton size="small" sx={{ color: '#94A3B8' }}>
+						<IconButton size="small" sx={{ color: 'text.secondary' }}>
 							<Edit fontSize="small" />
 						</IconButton>
 					</Tooltip>
 					<Tooltip title="Delete">
 						<IconButton
 							size="small"
-							sx={{ color: '#FDA4AF' }}
+							sx={{ color: 'error.light' }}
 							onClick={() => deletePort(params.row.id)}
 						>
 							<Delete fontSize="small" />

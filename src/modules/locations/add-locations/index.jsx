@@ -11,6 +11,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useParams } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
@@ -48,12 +49,12 @@ export default function AddLocationForm() {
 	};
 
 	const textFieldStyles = {
-		bgcolor: 'white',
+		bgcolor: 'background.paper',
 		'& .MuiOutlinedInput-root': {
 			borderRadius: 2,
-			'& fieldset': { borderColor: '#E2E8F0' },
-			'&:hover fieldset': { borderColor: '#CBD5E1' },
-			'&.Mui-focused fieldset': { borderColor: '#3B82F6' },
+			'& fieldset': { borderColor: 'divider' },
+			'&:hover fieldset': { borderColor: 'text.disabled' },
+			'&.Mui-focused fieldset': { borderColor: 'primary.main' },
 		},
 	};
 
@@ -65,7 +66,7 @@ export default function AddLocationForm() {
 					display: 'flex',
 					flexDirection: 'column',
 					height: '100%',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				{/* Header Section */}
@@ -78,16 +79,16 @@ export default function AddLocationForm() {
 					}}
 				>
 					<Box>
-						<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
+						<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>
 							New Location
 						</Typography>
-						<Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
+						<Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
 							Define a physical room or area
 						</Typography>
 					</Box>
 					<IconButton
 						onClick={() => dispatch(closeDrawer({ drawerName: 'addLocationDrawer' }))}
-						sx={{ bgcolor: '#F1F5F9' }}
+						sx={{ bgcolor: 'action.hover' }}
 					>
 						<Close fontSize="small" />
 					</IconButton>
@@ -96,7 +97,7 @@ export default function AddLocationForm() {
 				<Divider />
 
 				{/* Form Body */}
-				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: 'background.default' }}>
 					<form id="location-form" onSubmit={handleSubmit(handleLocationSubmit)}>
 						<Stack spacing={4}>
 							<Box>
@@ -105,7 +106,7 @@ export default function AddLocationForm() {
 									sx={{
 										fontWeight: 700,
 										mb: 2,
-										color: '#475569',
+										color: 'text.secondary',
 										letterSpacing: '1px',
 									}}
 								>
@@ -130,7 +131,7 @@ export default function AddLocationForm() {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<MapsHomeWork sx={{ color: '#3B82F6' }} />
+															<MapsHomeWork sx={{ color: 'primary.main' }} />
 														</InputAdornment>
 													),
 												}}
@@ -156,7 +157,7 @@ export default function AddLocationForm() {
 															position="start"
 															sx={{ alignSelf: 'flex-start', mt: 1.5 }}
 														>
-															<Description sx={{ color: '#64748B' }} />
+															<Description sx={{ color: 'text.secondary' }} />
 														</InputAdornment>
 													),
 												}}
@@ -168,17 +169,18 @@ export default function AddLocationForm() {
 
 							{/* Info Callout */}
 							<Box
-								sx={{
+								sx={(theme) => ({
 									p: 2,
-									bgcolor: '#EFF6FF',
+									bgcolor: alpha(theme.palette.primary.main, 0.08),
 									borderRadius: 2,
-									border: '1px solid #DBEAFE',
+									border: '1px solid',
+									borderColor: alpha(theme.palette.primary.main, 0.2),
 									display: 'flex',
 									gap: 2,
-								}}
+								})}
 							>
-								<PushPin sx={{ color: '#3B82F6', mt: 0.2 }} fontSize="small" />
-								<Typography variant="caption" sx={{ color: '#1E40AF', fontWeight: 500 }}>
+								<PushPin sx={{ color: 'primary.main', mt: 0.2 }} fontSize="small" />
+								<Typography variant="caption" sx={{ color: 'primary.dark', fontWeight: 500 }}>
 									This location will be tied to the current station. Racks and equipment can later
 									be placed inside this location.
 								</Typography>
@@ -190,13 +192,13 @@ export default function AddLocationForm() {
 				<Divider />
 
 				{/* Footer Actions */}
-				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 3, bgcolor: 'background.default' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addLocationDrawer' }))}
-							sx={{ fontWeight: 700, color: '#64748B' }}
+							sx={{ fontWeight: 700, color: 'text.secondary' }}
 						>
 							Cancel
 						</Button>
@@ -207,11 +209,11 @@ export default function AddLocationForm() {
 							fullWidth
 							disableElevation
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								py: 1.5,
 								fontWeight: 700,
 								borderRadius: 2,
-								'&:hover': { bgcolor: '#2563EB' },
+								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
 							Create Location

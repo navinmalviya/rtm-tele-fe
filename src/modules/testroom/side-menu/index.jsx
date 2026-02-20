@@ -12,36 +12,28 @@ import {
 } from '@mui/icons-material';
 import {
 	Box,
+	FormControlLabel,
 	List,
 	ListItem,
 	ListItemButton,
 	ListItemIcon,
 	ListItemText,
+	Switch,
 	Typography,
 } from '@mui/material';
 import Cookies from 'js-cookie';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import { alpha, useTheme } from '@mui/material/styles';
+import { useThemeMode } from '@/lib/providers';
 
 const sidebarWidth = 280;
 
-const menuItems = [
-	{ text: 'Dashboard', icon: <Dashboard />, path: '/testroom/dashboard' },
-	{ text: 'Topology', icon: <Hub />, path: '/testroom/topology' },
-	{ text: 'Reports', icon: <Assessment />, path: '/testroom/reports' },
-	{ text: 'Asset Management', icon: <Inventory />, path: '/testroom/assets' },
-	{ text: 'Equipment Library', icon: <LibraryBooks />, path: '/testroom/equipment-library' },
-	{ text: 'Projects & Tasks', icon: <AssignmentTurnedIn />, path: '/testroom/projects-tasks' },
-	{
-		text: 'Sections & Sub-sections',
-		icon: <AccountTree />,
-		path: '/testroom/sections-subsections',
-	},
-];
-
-export default function SideMenu() {
+export default function SideMenu({ menuItems }) {
 	const pathname = usePathname();
 	const router = useRouter();
+	const theme = useTheme();
+	const { mode, toggleMode } = useThemeMode();
 	const handleLogout = async () => {
 		// 1. Clear NextAuth Session (Clears 'next-auth.session-token')
 		await signOut({ redirect: false });
@@ -70,16 +62,15 @@ export default function SideMenu() {
 			sx={{
 				width: sidebarWidth,
 				flexShrink: 0,
-				// FIX: Hardcode the dark color here instead of background.paper
-				bgcolor: '#101214',
-				color: 'white',
+				bgcolor: theme.palette.custom.sidebarBg,
+				color: theme.palette.custom.sidebarText,
 				height: '100vh',
 				display: 'flex',
 				flexDirection: 'column',
 				position: 'fixed',
 				left: 0,
 				top: 0,
-				borderRight: '1px solid rgba(255,255,255,0.05)', // Optional: subtle border
+				borderRight: `1px solid ${theme.palette.custom.sidebarBorder}`,
 			}}
 		>
 			{/* Logo/Header Area */}
@@ -95,9 +86,9 @@ export default function SideMenu() {
 						justifyContent: 'center',
 					}}
 				>
-					<Hub sx={{ color: 'white' }} />
+					<Hub sx={{ color: 'primary.contrastText' }} />
 				</Box>
-				<Typography variant="h6" sx={{ fontWeight: 800, color: 'white' }}>
+				<Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.custom.sidebarText }}>
 					Telcom Control Desk
 				</Typography>
 			</Box>
@@ -107,7 +98,7 @@ export default function SideMenu() {
 				sx={{
 					px: 3,
 					mt: 2,
-					color: 'rgba(255,255,255,0.3)', // Slightly dimmed for better contrast
+					color: theme.palette.custom.sidebarMuted,
 					fontWeight: 700,
 				}}
 			>
@@ -125,14 +116,16 @@ export default function SideMenu() {
 									borderRadius: 3,
 									bgcolor: isActive ? 'primary.main' : 'transparent',
 									'&:hover': {
-										bgcolor: isActive ? 'primary.main' : 'rgba(255,255,255,0.05)',
+										bgcolor: isActive
+											? 'primary.main'
+											: alpha(theme.palette.common.white, 0.08),
 									},
 									transition: 'all 0.2s',
 								}}
 							>
 								<ListItemIcon
 									sx={{
-										color: isActive ? 'white' : 'rgba(255,255,255,0.5)',
+										color: isActive ? 'primary.contrastText' : theme.palette.custom.sidebarMuted,
 										minWidth: 45,
 									}}
 								>
@@ -142,7 +135,7 @@ export default function SideMenu() {
 									primary={item.text}
 									primaryTypographyProps={{
 										fontWeight: isActive ? 700 : 500,
-										color: isActive ? 'white' : 'rgba(255,255,255,0.7)',
+										color: isActive ? 'primary.contrastText' : theme.palette.custom.sidebarMuted,
 									}}
 								/>
 							</ListItemButton>
@@ -156,17 +149,27 @@ export default function SideMenu() {
 					variant="overline"
 					sx={{
 						px: 2,
-						color: 'rgba(255,255,255,0.3)',
+						color: theme.palette.custom.sidebarMuted,
 						fontWeight: 700,
 					}}
 				>
 					SUPPORT
 				</Typography>
+				<Box sx={{ px: 2, py: 1 }}>
+					<FormControlLabel
+						control={<Switch checked={mode === 'dark'} onChange={toggleMode} size="small" />}
+						label={mode === 'dark' ? 'Dark Mode' : 'Light Mode'}
+						sx={{
+							color: theme.palette.custom.sidebarMuted,
+							'& .MuiFormControlLabel-label': { fontSize: '0.85rem', fontWeight: 600 },
+						}}
+					/>
+				</Box>
 				<ListItemButton
 					sx={{
 						borderRadius: 3,
-						color: 'rgba(255,255,255,0.7)',
-						'&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+						color: theme.palette.custom.sidebarMuted,
+						'&:hover': { bgcolor: alpha(theme.palette.common.white, 0.08) },
 					}}
 				>
 					<ListItemIcon sx={{ color: 'inherit', minWidth: 45 }}>
@@ -178,8 +181,8 @@ export default function SideMenu() {
 					onClick={handleLogout}
 					sx={{
 						borderRadius: 3,
-						color: '#ef4444',
-						'&:hover': { bgcolor: 'rgba(239, 68, 68, 0.05)' },
+						color: theme.palette.error.main,
+						'&:hover': { bgcolor: alpha(theme.palette.error.main, 0.12) },
 					}}
 				>
 					<ListItemIcon sx={{ color: 'inherit', minWidth: 45 }}>

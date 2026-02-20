@@ -2,6 +2,7 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Box, CssBaseline } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { MuiThemeProvider, QueryProvider, SessionProvider, StoreProvider } from '@/lib/providers';
 import { ToastProvider } from '@/lib/providers/ToastProvider';
 
@@ -19,34 +20,41 @@ export default function RootLayout({ children }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className={`${geistSans.variable} ${geistMono.variable}`}>
-				<CssBaseline />
-				{/* Global Background */}
-				<Box sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', width: '100%' }}>
-					{/* The 1400px Centered App Shell */}
+				<MuiThemeProvider>
+					<CssBaseline />
+					{/* Global Background */}
 					<Box
-						sx={{
-							width: '100%', // Use 100%, NEVER 100vw
-							margin: '0 auto', // This handles the centering perfectly
-							bgcolor: '#fff',
+						sx={(theme) => ({
+							bgcolor: theme.palette.background.default,
 							minHeight: '100vh',
-							display: 'flex',
-							flexDirection: 'column',
-							boxShadow: '0 0 15px rgba(0,0,0,0.05)',
-						}}
+							width: '100%',
+						})}
 					>
-						<SessionProvider>
-							<ToastProvider>
-								<StoreProvider>
-									<QueryProvider>
-										<MuiThemeProvider>
-											{children}
-										</MuiThemeProvider>
-									</QueryProvider>
-								</StoreProvider>
-							</ToastProvider>
-						</SessionProvider>
+						{/* App Shell */}
+						<Box
+							sx={(theme) => ({
+								width: '100%',
+								margin: '0 auto',
+								bgcolor: theme.palette.background.paper,
+								minHeight: '100vh',
+								display: 'flex',
+								flexDirection: 'column',
+								boxShadow:
+									theme.palette.mode === 'dark'
+										? 'none'
+										: `0 0 15px ${alpha(theme.palette.common.black, 0.05)}`,
+							})}
+						>
+							<SessionProvider>
+								<ToastProvider>
+									<StoreProvider>
+										<QueryProvider>{children}</QueryProvider>
+									</StoreProvider>
+								</ToastProvider>
+							</SessionProvider>
+						</Box>
 					</Box>
-				</Box>
+				</MuiThemeProvider>
 			</body>
 		</html>
 	);

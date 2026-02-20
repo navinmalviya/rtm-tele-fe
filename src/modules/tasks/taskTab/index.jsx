@@ -9,12 +9,12 @@ import { useUsers } from '@/hooks/user/useUsers';
 import TaskBoard from '@/lib/common/task-board';
 
 const SELECT_STYLES = {
-	bgcolor: 'white',
+	bgcolor: 'background.paper',
 	height: 36,
 	fontSize: '0.75rem',
 	fontWeight: 700,
 	borderRadius: 2,
-	'& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' },
+	'& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
 };
 
 const TaskTab = () => {
@@ -55,10 +55,10 @@ const TaskTab = () => {
 				sx={{ mb: 3, px: 1, gap: 2 }}
 			>
 				<Box>
-					<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>
+					<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1 }}>
 						Workload Overview
 					</Typography>
-					<Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
+					<Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
 						Showing {filteredTasks.length} of {tasks.length} active tasks
 					</Typography>
 				</Box>
@@ -112,15 +112,16 @@ const TaskTab = () => {
 							onClick={() => refetch()}
 							disabled={isFetching}
 							sx={{
-								bgcolor: 'white',
-								border: '1px solid #E2E8F0',
-								'&:hover': { bgcolor: '#F8FAFC' },
+								bgcolor: 'background.paper',
+								border: '1px solid',
+								borderColor: 'divider',
+								'&:hover': { bgcolor: 'action.hover' },
 							}}
 						>
 							<Refresh
 								fontSize="small"
 								sx={{
-									color: '#64748B',
+									color: 'text.secondary',
 									animation: isFetching ? 'spin 1s linear infinite' : 'none',
 									'@keyframes spin': {
 										'0%': { transform: 'rotate(0deg)' },

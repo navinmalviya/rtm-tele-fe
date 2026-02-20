@@ -22,14 +22,15 @@ const StationNode = memo(({ data }) => {
 					p: 2,
 					minWidth: 140,
 					textAlign: 'center',
-					border: '1px solid #E2E8F0',
+					border: '1px solid',
+					borderColor: 'divider',
 					borderRadius: '8px',
-					bgcolor: '#FFFFFF',
+					bgcolor: 'background.paper',
 					position: 'relative',
-					'&:hover': { borderColor: '#3B82F6' },
+					'&:hover': { borderColor: 'primary.main' },
 				}}
 			>
-				<Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E293B' }}>
+				<Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary' }}>
 					{data.label}
 				</Typography>
 

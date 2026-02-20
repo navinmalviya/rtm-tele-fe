@@ -1,23 +1,23 @@
-export const DataGridStyles = {
+export const DataGridStyles = (theme) => ({
 	// 1. Root Grid Reset
 	'&.MuiDataGrid-root': {
 		border: 'none',
 		borderRadius: 0,
-		backgroundColor: '#FFFFFF',
+		backgroundColor: theme.palette.background.paper,
 	},
 
 	// 2. Header Layer
 	'& .MuiDataGrid-container--top-section': {
-		backgroundColor: '#F1F5F9 !important',
+		backgroundColor: `${theme.palette.action.hover} !important`,
 		borderRadius: 0,
 	},
 	'& .MuiDataGrid-columnHeaders': {
-		backgroundColor: '#F1F5F9 !important',
-		borderBottom: '1px solid #E2E8F0 !important',
+		backgroundColor: `${theme.palette.action.hover} !important`,
+		borderBottom: `1px solid ${theme.palette.divider} !important`,
 		borderRadius: 0,
 	},
 	'& .MuiDataGrid-columnHeader': {
-		backgroundColor: '#F1F5F9 !important',
+		backgroundColor: `${theme.palette.action.hover} !important`,
 		'&:focus, &:focus-within': {
 			outline: 'none !important',
 		},
@@ -25,7 +25,7 @@ export const DataGridStyles = {
 
 	// 3. Header Text
 	'& .MuiDataGrid-columnHeaderTitle': {
-		color: '#64748B !important',
+		color: `${theme.palette.text.secondary} !important`,
 		fontWeight: '700 !important',
 		fontSize: '0.75rem',
 		textTransform: 'uppercase',
@@ -35,7 +35,7 @@ export const DataGridStyles = {
 	// 4. FIXING SORT ARROWS & BLACK DOTS
 	// This makes the arrows visible (Slate Blue color)
 	'& .MuiDataGrid-sortIcon': {
-		color: '#64748B !important',
+		color: `${theme.palette.text.secondary} !important`,
 		opacity: '1 !important', // Ensure they aren't hidden
 	},
 	// This removes the "black dot" hover effect
@@ -46,7 +46,7 @@ export const DataGridStyles = {
 	'& .MuiIconButton-root': {
 		backgroundColor: 'transparent !important', // Remove the black dot
 		'&:hover': {
-			backgroundColor: 'rgba(100, 116, 139, 0.1) !important', // Subtle soft grey hover instead
+			backgroundColor: `${theme.palette.action.hover} !important`, // Subtle soft grey hover instead
 		},
 	},
 	// Fix for the "Menu" dots/arrows that appear on hover
@@ -59,17 +59,17 @@ export const DataGridStyles = {
 	'& .MuiDataGrid-row': {
 		minHeight: '72px !important',
 		maxHeight: '72px !important',
-		borderBottom: '1px solid #F1F5F9',
+		borderBottom: `1px solid ${theme.palette.divider}`,
 		'&:hover': {
-			backgroundColor: '#F8FAFC !important',
+			backgroundColor: `${theme.palette.action.hover} !important`,
 		},
 	},
-	'& .even-row': { backgroundColor: '#FFFFFF' },
-	'& .odd-row': { backgroundColor: '#FDFDFD' },
+	'& .even-row': { backgroundColor: theme.palette.background.paper },
+	'& .odd-row': { backgroundColor: theme.palette.background.default },
 
 	'& .MuiDataGrid-cell': {
 		border: 'none !important',
-		color: '#1E293B',
+		color: theme.palette.text.primary,
 		fontSize: '0.9rem',
 		fontWeight: '500',
 		display: 'flex',
@@ -79,14 +79,14 @@ export const DataGridStyles = {
 
 	// 6. Footer & Filler
 	'& .MuiDataGrid-footerContainer': {
-		borderTop: '1px solid #E2E8F0 !important',
-		backgroundColor: '#FFFFFF',
+		borderTop: `1px solid ${theme.palette.divider} !important`,
+		backgroundColor: theme.palette.background.paper,
 		borderRadius: 0,
 	},
 	'& .MuiDataGrid-filler': {
-		backgroundColor: '#F1F5F9 !important',
+		backgroundColor: `${theme.palette.action.hover} !important`,
 	},
 	'& .MuiDataGrid-columnSeparator': {
 		display: 'none !important',
 	},
-};
+});

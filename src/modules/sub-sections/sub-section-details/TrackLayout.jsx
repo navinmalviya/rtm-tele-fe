@@ -1,9 +1,11 @@
 import { Cable } from '@mui/icons-material';
 import { Box, ButtonBase, Paper, Stack, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useDispatch } from 'react-redux';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 
 export const TrackLayout = ({ upCables, downCables, selectedId, onCableSelect }) => {
+	const theme = useTheme();
 	return (
 		<Stack spacing={4} sx={{ width: '100%' }}>
 			<TrackSide
@@ -19,20 +21,34 @@ export const TrackLayout = ({ upCables, downCables, selectedId, onCableSelect })
 				sx={{
 					height: 50,
 					width: '100%',
-					bgcolor: '#1E293B',
+					bgcolor: theme.palette.grey[900],
 					borderRadius: 4,
 					position: 'relative',
 					display: 'flex',
 					alignItems: 'center',
 				}}
 			>
-				<Box sx={{ position: 'absolute', top: 12, width: '100%', height: 3, bgcolor: '#475569' }} />
 				<Box
-					sx={{ position: 'absolute', bottom: 12, width: '100%', height: 3, bgcolor: '#475569' }}
+					sx={{
+						position: 'absolute',
+						top: 12,
+						width: '100%',
+						height: 3,
+						bgcolor: theme.palette.grey[700],
+					}}
+				/>
+				<Box
+					sx={{
+						position: 'absolute',
+						bottom: 12,
+						width: '100%',
+						height: 3,
+						bgcolor: theme.palette.grey[700],
+					}}
 				/>
 				<Stack direction="row" justifyContent="space-around" sx={{ width: '100%', px: 4 }}>
 					{[...Array(15)].map((_, i) => (
-						<Box key={i} sx={{ width: 6, height: '100%', bgcolor: '#334155' }} />
+						<Box key={i} sx={{ width: 6, height: '100%', bgcolor: theme.palette.grey[800] }} />
 					))}
 				</Stack>
 			</Box>
@@ -49,6 +65,7 @@ export const TrackLayout = ({ upCables, downCables, selectedId, onCableSelect })
 };
 
 const TrackSide = ({ label, cables, selectedId, onSelect, position }) => {
+	const theme = useTheme();
 	const dispatch = useDispatch();
 	return (
 		<Box
@@ -80,9 +97,15 @@ const TrackSide = ({ label, cables, selectedId, onSelect, position }) => {
 							display: 'flex',
 							alignItems: 'center',
 							gap: 1.5,
-							bgcolor: selectedId === c.id ? (c.type === 'OFC' ? '#F59E0B' : '#2563EB') : 'white',
-							color: selectedId === c.id ? 'white' : 'inherit',
-							border: '1px solid #E2E8F0',
+							bgcolor:
+								selectedId === c.id
+									? c.type === 'OFC'
+										? theme.palette.warning.main
+										: theme.palette.primary.main
+									: 'background.paper',
+							color: selectedId === c.id ? 'primary.contrastText' : 'inherit',
+							border: '1px solid',
+							borderColor: 'divider',
 						}}
 					>
 						<Cable sx={{ fontSize: 16 }} />
@@ -103,7 +126,7 @@ const SideLabel = ({ label }) => (
 		sx={{
 			fontSize: '0.6rem',
 			fontWeight: 900,
-			color: '#94A3B8',
+			color: 'text.disabled',
 			letterSpacing: 2,
 			textTransform: 'uppercase',
 		}}

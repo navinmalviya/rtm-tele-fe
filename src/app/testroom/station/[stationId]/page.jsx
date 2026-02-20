@@ -2,6 +2,7 @@
 
 import { AddLocationAlt, AppRegistration, Devices, Hub, Room, Storage } from '@mui/icons-material';
 import { Box, Button, Divider, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -16,6 +17,7 @@ import { AddRackForm, RackTable } from '@/modules/racks';
 import { AddStationEquipmentDrawer, StationInternalTopology } from '@/modules/stations';
 
 export default function StationDetailPage() {
+	const theme = useTheme();
 	const params = useParams();
 	const dispatch = useDispatch();
 	const { stationId } = params;
@@ -26,9 +28,6 @@ export default function StationDetailPage() {
 	const { data: equipments = [], isLoading: equipmentsLoading } = useEquipmentByStation(stationId);
 
 	const [tabValue, setTabValue] = useState(0);
-
-	// Uniform theme color: Primary Blue
-	const THEME_COLOR = '#3B82F6';
 
 	// Context-aware actions with uniform styling
 	const tabActions = {
@@ -63,7 +62,7 @@ export default function StationDetailPage() {
 				flexDirection: 'column',
 				height: '100%',
 				width: '100%',
-				bgcolor: '#F8FAFC',
+				bgcolor: 'background.default',
 			}}
 		>
 			{/* 1. Uniform Header */}
@@ -75,19 +74,19 @@ export default function StationDetailPage() {
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'space-between',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				<Stack direction="row" spacing={1.5} alignItems="center">
 					<Box
 						sx={{
 							p: 1,
-							bgcolor: '#F1F5F9',
+							bgcolor: 'action.hover',
 							borderRadius: 2,
 							display: 'flex',
 						}}
 					>
-						<AppRegistration sx={{ color: '#64748B' }} />
+						<AppRegistration sx={{ color: 'text.secondary' }} />
 					</Box>
 					<Box>
 						<Stack direction="row" spacing={1} alignItems="baseline">
@@ -95,20 +94,20 @@ export default function StationDetailPage() {
 								variant="h5"
 								sx={{
 									fontWeight: 900,
-									color: '#0F172A',
+									color: 'text.primary',
 									letterSpacing: '-0.02em',
 								}}
 							>
 								{station?.name || 'Loading...'}
 							</Typography>
-							<Typography variant="subtitle1" sx={{ color: '#94A3B8', fontWeight: 600 }}>
+							<Typography variant="subtitle1" sx={{ color: 'text.disabled', fontWeight: 600 }}>
 								{station?.code}
 							</Typography>
 						</Stack>
 						<Typography
 							variant="caption"
 							sx={{
-								color: '#64748B',
+								color: 'text.secondary',
 								fontWeight: 700,
 								textTransform: 'uppercase',
 								letterSpacing: '1px',
@@ -125,7 +124,7 @@ export default function StationDetailPage() {
 					startIcon={currentAction.icon}
 					onClick={() => dispatch(openDrawer({ drawerName: currentAction.drawer }))}
 					sx={{
-						bgcolor: THEME_COLOR,
+						bgcolor: 'primary.main',
 						borderRadius: 2.5,
 						textTransform: 'none',
 						fontWeight: 800,
@@ -133,11 +132,11 @@ export default function StationDetailPage() {
 						py: 1.2,
 						fontSize: '0.85rem',
 						// Uniform shadow
-						boxShadow: `0 4px 12px ${THEME_COLOR}33`,
+						boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`,
 						'&:hover': {
-							bgcolor: THEME_COLOR,
+							bgcolor: 'primary.dark',
 							filter: 'brightness(0.9)',
-							boxShadow: `0 6px 16px ${THEME_COLOR}44`,
+							boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.28)}`,
 						},
 					}}
 				>
@@ -146,7 +145,7 @@ export default function StationDetailPage() {
 			</Box>
 
 			{/* 2. Uniform Navigation Tabs */}
-			<Box sx={{ px: 3, bgcolor: 'white' }}>
+			<Box sx={{ px: 3, bgcolor: 'background.paper' }}>
 				<Tabs
 					value={tabValue}
 					onChange={(_, val) => setTabValue(val)}
@@ -155,17 +154,17 @@ export default function StationDetailPage() {
 						'& .MuiTabs-indicator': {
 							height: 3,
 							borderRadius: '3px 3px 0 0',
-							bgcolor: THEME_COLOR,
+							bgcolor: 'primary.main',
 						},
 						'& .MuiTab-root': {
 							fontWeight: 700,
 							fontSize: '0.8rem',
 							minWidth: 140,
 							textTransform: 'uppercase',
-							color: '#94A3B8',
+							color: 'text.disabled',
 							transition: 'color 0.2s ease',
 							'&.Mui-selected': {
-								color: THEME_COLOR,
+								color: 'primary.main',
 							},
 						},
 					}}
@@ -179,7 +178,7 @@ export default function StationDetailPage() {
 					/>
 					<Tab icon={<Devices sx={{ fontSize: 18 }} />} iconPosition="start" label="Equipments" />
 				</Tabs>
-				<Divider sx={{ borderColor: '#F1F5F9' }} />
+				<Divider sx={{ borderColor: 'divider' }} />
 			</Box>
 
 			{/* 3. Content Area */}
@@ -197,7 +196,7 @@ export default function StationDetailPage() {
 				<AddStationEquipmentDrawer equipments={equipments} />
 
 				{tabValue === 0 && (
-					<Box sx={{ width: '100%', height: '100%', bgcolor: '#F1F5F9' }}>
+					<Box sx={{ width: '100%', height: '100%', bgcolor: 'background.default' }}>
 						<StationInternalTopology stationId={stationId} />
 					</Box>
 				)}
@@ -205,9 +204,10 @@ export default function StationDetailPage() {
 				{tabValue === 1 && (
 					<Box
 						sx={{
-							bgcolor: 'white',
+							bgcolor: 'background.paper',
 							borderRadius: 3,
-							border: '1px solid #E2E8F0',
+							border: '1px solid',
+							borderColor: 'divider',
 							overflow: 'hidden',
 						}}
 					>
@@ -218,9 +218,10 @@ export default function StationDetailPage() {
 				{tabValue === 2 && (
 					<Box
 						sx={{
-							bgcolor: 'white',
+							bgcolor: 'background.paper',
 							borderRadius: 3,
-							border: '1px solid #E2E8F0',
+							border: '1px solid',
+							borderColor: 'divider',
 							overflow: 'hidden',
 						}}
 					>
@@ -230,9 +231,10 @@ export default function StationDetailPage() {
 				{tabValue === 3 && (
 					<Box
 						sx={{
-							bgcolor: 'white',
+							bgcolor: 'background.paper',
 							borderRadius: 3,
-							border: '1px solid #E2E8F0',
+							border: '1px solid',
+							borderColor: 'divider',
 							overflow: 'hidden',
 						}}
 					>

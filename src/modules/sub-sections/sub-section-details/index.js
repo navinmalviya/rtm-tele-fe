@@ -2,6 +2,7 @@
 
 import { Add, ViewInAr } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useCablesBySubsection } from '@/hooks/sub-sections';
@@ -11,6 +12,7 @@ import { CableDetailPanel } from './CableDetailPanel';
 import { TrackLayout } from './TrackLayout';
 
 export default function SubSectionDetails({ subsectionId }) {
+	const theme = useTheme();
 	const dispatch = useDispatch();
 	const [selectedCableId, setSelectedCableId] = useState(null);
 	console.log('selectedCableId', selectedCableId);
@@ -27,7 +29,7 @@ export default function SubSectionDetails({ subsectionId }) {
 	if (isLoading) {
 		return (
 			<Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-				<CircularProgress size={32} sx={{ color: '#3B82F6' }} />
+				<CircularProgress size={32} sx={{ color: 'primary.main' }} />
 			</Box>
 		);
 	}
@@ -37,7 +39,7 @@ export default function SubSectionDetails({ subsectionId }) {
 
 	return (
 		<Box
-			sx={{ display: 'flex', height: 'calc(100vh - 64px)', bgcolor: '#F8FAFC', overflow: 'hidden' }}
+			sx={{ display: 'flex', height: 'calc(100vh - 64px)', bgcolor: 'background.default', overflow: 'hidden' }}
 		>
 			<AddCableDrawer />
 			<Box sx={{ flex: 1, p: 4, overflowY: 'auto' }}>
@@ -52,15 +54,15 @@ export default function SubSectionDetails({ subsectionId }) {
 							variant="h5"
 							sx={{
 								fontWeight: 800,
-								color: '#0F172A',
+								color: 'text.primary',
 								display: 'flex',
 								alignItems: 'center',
 								gap: 1.5,
 							}}
 						>
-							<ViewInAr sx={{ color: '#3B82F6' }} /> Subsection Track Layout
+							<ViewInAr sx={{ color: 'primary.main' }} /> Subsection Track Layout
 						</Typography>
-						<Typography variant="body2" sx={{ color: '#64748B', fontWeight: 600 }}>
+						<Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
 							Geographic distribution of cable assets
 						</Typography>
 					</Box>
@@ -69,11 +71,11 @@ export default function SubSectionDetails({ subsectionId }) {
 						{/* Legend Section */}
 						<Paper
 							elevation={0}
-							sx={{ p: 2, border: '1px solid #E2E8F0', borderRadius: 3, bgcolor: 'white' }}
+							sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'background.paper' }}
 						>
 							<Stack direction="row" spacing={3}>
-								<LegendItem color="#2563EB" label="PIJF / Quad" />
-								<LegendItem color="#F59E0B" label="OFC" />
+								<LegendItem color={theme.palette.primary.main} label="PIJF / Quad" />
+								<LegendItem color={theme.palette.warning.main} label="OFC" />
 							</Stack>
 						</Paper>
 
@@ -83,16 +85,16 @@ export default function SubSectionDetails({ subsectionId }) {
 							startIcon={<Add />}
 							onClick={handleAddCable}
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								fontWeight: 700,
 								textTransform: 'none',
 								borderRadius: 2.5,
 								px: 3,
 								py: 1,
-								boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)',
+								boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.25)}`,
 								'&:hover': {
-									bgcolor: '#2563EB',
-									boxShadow: '0 6px 16px rgba(59, 130, 246, 0.35)',
+									bgcolor: 'primary.dark',
+									boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.35)}`,
 								},
 							}}
 						>
@@ -121,6 +123,6 @@ export default function SubSectionDetails({ subsectionId }) {
 const LegendItem = ({ color, label }) => (
 	<Stack direction="row" spacing={1} alignItems="center">
 		<Box sx={{ width: 12, height: 12, borderRadius: '3px', bgcolor: color }} />
-		<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>{label}</Typography>
+		<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary' }}>{label}</Typography>
 	</Stack>
 );

@@ -10,6 +10,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { RtmDrawer } from '@/lib/common/layout';
@@ -56,8 +57,9 @@ export default function AddStationEquipmentDrawer({
 				'& .MuiBackdrop-root': { display: 'none' },
 				'& .MuiDrawer-paper': {
 					pointerEvents: 'auto',
-					boxShadow: '10px 0 20px rgba(0,0,0,0.05)',
-					borderLeft: '1px solid #E2E8F0',
+					boxShadow: (theme) => `10px 0 20px ${alpha(theme.palette.common.black, 0.08)}`,
+					borderLeft: '1px solid',
+					borderColor: 'divider',
 				},
 			}}
 		>
@@ -67,24 +69,24 @@ export default function AddStationEquipmentDrawer({
 					height: '100%',
 					display: 'flex',
 					flexDirection: 'column',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				{/* Header */}
 				<Box sx={{ p: 3 }}>
 					<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
 						<Box>
-							<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
+							<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>
 								Station Assets
 							</Typography>
-							<Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
+							<Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
 								Drag assets to the canvas to position them
 							</Typography>
 						</Box>
 						<IconButton
 							onClick={handleClose}
 							size="small"
-							sx={{ bgcolor: '#F1F5F9', '&:hover': { bgcolor: '#E2E8F0' } }}
+							sx={{ bgcolor: 'action.hover', '&:hover': { bgcolor: 'action.selected' } }}
 						>
 							<Close fontSize="small" />
 						</IconButton>
@@ -96,11 +98,14 @@ export default function AddStationEquipmentDrawer({
 						placeholder="Search unplaced assets..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						sx={{ mt: 2, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: '#F8FAFC' } }}
+						sx={{
+							mt: 2,
+							'& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.default' },
+						}}
 						InputProps={{
 							startAdornment: (
 								<InputAdornment position="start">
-									<Search sx={{ fontSize: 18, color: '#94A3B8' }} />
+									<Search sx={{ fontSize: 18, color: 'text.disabled' }} />
 								</InputAdornment>
 							),
 						}}
@@ -108,7 +113,7 @@ export default function AddStationEquipmentDrawer({
 				</Box>
 
 				{/* List Section */}
-				<Box sx={{ flex: 1, overflowY: 'auto', p: 2, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ flex: 1, overflowY: 'auto', p: 2, bgcolor: 'background.default' }}>
 					<Stack spacing={1.5}>
 						{unplacedEquipment.map((eq) => (
 							<Paper
@@ -119,36 +124,37 @@ export default function AddStationEquipmentDrawer({
 								elevation={0}
 								sx={{
 									p: 2,
-									border: '1px solid #E2E8F0',
+									border: '1px solid',
+									borderColor: 'divider',
 									borderRadius: 3,
 									cursor: 'grab',
 									userSelect: 'none',
 									transition: 'all 0.2s',
 									'&:hover': {
-										borderColor: '#3B82F6',
-										bgcolor: 'white',
-										boxShadow: '0 4px 12px rgba(59, 130, 246, 0.1)',
+										borderColor: 'primary.main',
+										bgcolor: 'background.paper',
+										boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.primary.main, 0.12)}`,
 									},
 								}}
 							>
 								<Stack direction="row" spacing={2} alignItems="center">
-									<DragIndicator sx={{ color: '#CBD5E1', fontSize: 20 }} />
+									<DragIndicator sx={{ color: 'text.disabled', fontSize: 20 }} />
 									<Box
-										sx={{
+										sx={(theme) => ({
 											p: 1,
-											bgcolor: '#EFF6FF',
+											bgcolor: alpha(theme.palette.primary.main, 0.12),
 											borderRadius: 2,
-											color: '#3B82F6',
+											color: theme.palette.primary.main,
 											display: 'flex',
-										}}
+										})}
 									>
 										<Memory fontSize="small" />
 									</Box>
 									<Box sx={{ flex: 1 }}>
-										<Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#1E293B' }}>
+										<Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: 'text.primary' }}>
 											{eq.name}
 										</Typography>
-										<Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
+										<Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
 											{eq.template?.make} {eq.template?.modelName}
 										</Typography>
 									</Box>
@@ -161,7 +167,7 @@ export default function AddStationEquipmentDrawer({
 								sx={{
 									textAlign: 'center',
 									py: 8,
-									color: '#94A3B8',
+									color: 'text.disabled',
 									fontSize: '0.85rem',
 									fontWeight: 600,
 								}}

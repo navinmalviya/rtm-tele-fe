@@ -14,8 +14,6 @@ export default function HierarchyManagementPage() {
 	const dispatch = useDispatch();
 	const [tabValue, setTabValue] = useState(0);
 
-	const THEME_COLOR = '#3B82F6';
-
 	const tabActions = {
 		0: { label: 'Add Station', icon: <Place />, drawer: 'addStationDrawer' },
 		1: { label: 'Add Sub-section', icon: <LinearScale />, drawer: 'addSubSectionDrawer' },
@@ -31,7 +29,7 @@ export default function HierarchyManagementPage() {
 				flexDirection: 'column',
 				height: '100%',
 				width: '100%',
-				bgcolor: '#F8FAFC',
+				bgcolor: 'background.default',
 			}}
 		>
 			{/* Header */}
@@ -42,18 +40,18 @@ export default function HierarchyManagementPage() {
 					pb: 2,
 					display: 'flex',
 					justifyContent: 'space-between',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				<Stack direction="row" spacing={1.5} alignItems="center">
-					<Box sx={{ p: 1, bgcolor: '#F1F5F9', borderRadius: 2, display: 'flex' }}>
-						<SettingsSuggest sx={{ color: '#64748B' }} />
+					<Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 2, display: 'flex' }}>
+						<SettingsSuggest sx={{ color: 'text.secondary' }} />
 					</Box>
 					<Box>
-						<Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A' }}>
+						<Typography variant="h5" sx={{ fontWeight: 900, color: 'text.primary' }}>
 							Division Hierarchy
 						</Typography>
-						<Typography variant="caption" sx={{ color: '#64748B', fontWeight: 700 }}>
+						<Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
 							Ratlam Division • Asset Mapping
 						</Typography>
 					</Box>
@@ -62,14 +60,20 @@ export default function HierarchyManagementPage() {
 					variant="contained"
 					startIcon={currentAction.icon}
 					onClick={() => dispatch(openDrawer({ drawerName: currentAction.drawer }))}
-					sx={{ bgcolor: THEME_COLOR, borderRadius: 2.5, fontWeight: 800, textTransform: 'none' }}
+					sx={{
+						bgcolor: 'primary.main',
+						borderRadius: 2.5,
+						fontWeight: 800,
+						textTransform: 'none',
+						'&:hover': { bgcolor: 'primary.dark' },
+					}}
 				>
 					{currentAction.label}
 				</Button>
 			</Box>
 
 			{/* Tabs */}
-			<Box sx={{ px: 3, bgcolor: 'white' }}>
+			<Box sx={{ px: 3, bgcolor: 'background.paper' }}>
 				<Tabs
 					value={tabValue}
 					onChange={(_, val) => setTabValue(val)}
@@ -94,9 +98,10 @@ export default function HierarchyManagementPage() {
 
 				<Box
 					sx={{
-						bgcolor: 'white',
+						bgcolor: 'background.paper',
 						borderRadius: 3,
-						border: '1px solid #E2E8F0',
+						border: '1px solid',
+						borderColor: 'divider',
 						overflow: 'hidden',
 					}}
 				>

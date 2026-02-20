@@ -12,6 +12,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useProjects } from '@/hooks/project/useProjects';
@@ -21,12 +22,12 @@ import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 const TEXT_FIELD_STYLES = {
-	bgcolor: 'white',
+	bgcolor: 'background.paper',
 	'& .MuiOutlinedInput-root': {
 		borderRadius: 2,
-		'& fieldset': { borderColor: '#E2E8F0' },
-		'&:hover fieldset': { borderColor: '#CBD5E1' },
-		'&.Mui-focused fieldset': { borderColor: '#3B82F6' },
+		'& fieldset': { borderColor: 'divider' },
+		'&:hover fieldset': { borderColor: 'text.disabled' },
+		'&.Mui-focused fieldset': { borderColor: 'primary.main' },
 	},
 };
 
@@ -81,20 +82,20 @@ const AddTaskDrawer = () => {
 					display: 'flex',
 					flexDirection: 'column',
 					height: '100%',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				{/* Header */}
 				<Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 					<Box>
-						<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
+						<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>
 							Dispatch Work Order
 						</Typography>
-						<Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
+						<Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
 							Assign tasks to divisional staff
 						</Typography>
 					</Box>
-					<IconButton onClick={handleClose} sx={{ bgcolor: '#F1F5F9' }}>
+					<IconButton onClick={handleClose} sx={{ bgcolor: 'action.hover' }}>
 						<Close fontSize="small" />
 					</IconButton>
 				</Box>
@@ -111,7 +112,7 @@ const AddTaskDrawer = () => {
 									sx={{
 										fontWeight: 700,
 										mb: 2,
-										color: '#475569',
+										color: 'text.secondary',
 										fontSize: '0.75rem',
 										letterSpacing: '1px',
 									}}
@@ -133,7 +134,7 @@ const AddTaskDrawer = () => {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<Assignment fontSize="small" sx={{ color: '#3B82F6' }} />
+															<Assignment fontSize="small" sx={{ color: 'primary.main' }} />
 														</InputAdornment>
 													),
 												}}
@@ -164,7 +165,7 @@ const AddTaskDrawer = () => {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', fontSize: '0.75rem' }}
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', fontSize: '0.75rem' }}
 								>
 									CLASSIFICATION & ASSIGNMENT
 								</Typography>
@@ -223,7 +224,7 @@ const AddTaskDrawer = () => {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<Person fontSize="small" sx={{ color: '#6366F1' }} />
+															<Person fontSize="small" sx={{ color: 'info.main' }} />
 														</InputAdornment>
 													),
 												}}
@@ -242,9 +243,15 @@ const AddTaskDrawer = () => {
 							{/* 3. Conditional Project Task Metrics */}
 							{selectedType === 'PROJECT' && (
 								<Box
-									sx={{ p: 3, bgcolor: '#F0F9FF', borderRadius: 3, border: '1px solid #BAE6FD' }}
+									sx={(theme) => ({
+										p: 3,
+										bgcolor: alpha(theme.palette.primary.main, 0.08),
+										borderRadius: 3,
+										border: '1px solid',
+										borderColor: alpha(theme.palette.primary.main, 0.2),
+									})}
 								>
-									<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: '#0369A1' }}>
+									<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'primary.dark' }}>
 										PROJECT STRATEGY
 									</Typography>
 									<Stack direction="row" spacing={2}>
@@ -297,13 +304,13 @@ const AddTaskDrawer = () => {
 
 				<Divider />
 
-				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 3, bgcolor: 'background.default' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
 							onClick={handleClose}
-							sx={{ fontWeight: 700, color: '#64748B' }}
+							sx={{ fontWeight: 700, color: 'text.secondary' }}
 						>
 							Cancel
 						</Button>
@@ -313,7 +320,7 @@ const AddTaskDrawer = () => {
 							variant="contained"
 							fullWidth
 							disableElevation
-							sx={{ bgcolor: '#3B82F6', py: 1.5, fontWeight: 700, borderRadius: 2 }}
+							sx={{ bgcolor: 'primary.main', py: 1.5, fontWeight: 700, borderRadius: 2, '&:hover': { bgcolor: 'primary.dark' } }}
 						>
 							Dispatch Work
 						</Button>

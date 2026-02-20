@@ -61,11 +61,11 @@ export default function AddSectionForm() {
 						display: 'flex',
 						justifyContent: 'space-between',
 						alignItems: 'center',
-						bgcolor: 'white',
+						bgcolor: 'background.paper',
 					}}
 				>
 					<Box>
-						<Typography variant="h5" sx={{ fontWeight: 800, color: '#1E293B' }}>
+						<Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
 							Create Main Section
 						</Typography>
 						<Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
@@ -74,19 +74,19 @@ export default function AddSectionForm() {
 					</Box>
 					<IconButton
 						onClick={() => dispatch(closeDrawer({ drawerName: 'addSectionDrawer' }))}
-						sx={{ bgcolor: '#F1F5F9' }}
+						sx={{ bgcolor: 'action.hover' }}
 					>
 						<Close fontSize="small" />
 					</IconButton>
 				</Box>
 
-				<Divider sx={{ borderColor: '#F1F5F9' }} />
+				<Divider sx={{ borderColor: 'divider' }} />
 
-				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: 'white' }}>
+				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: 'background.paper' }}>
 					<form id="section-form" onSubmit={handleSubmit(handleFormSubmit)}>
 						<Stack spacing={4}>
 							<Box>
-								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: '#64748B' }}>
+								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}>
 									IDENTIFICATION
 								</Typography>
 								<Stack spacing={3}>
@@ -133,7 +133,7 @@ export default function AddSectionForm() {
 							</Box>
 
 							<Box>
-								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: '#64748B' }}>
+								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}>
 									CONSTITUENT BLOCKS
 								</Typography>
 								<Controller
@@ -179,13 +179,13 @@ export default function AddSectionForm() {
 
 				<Divider />
 
-				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 3, bgcolor: 'background.default' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addSectionDrawer' }))}
-							sx={{ color: '#64748B', fontWeight: 700 }}
+							sx={{ color: 'text.secondary', fontWeight: 700 }}
 						>
 							Cancel
 						</Button>
@@ -196,13 +196,13 @@ export default function AddSectionForm() {
 							fullWidth
 							disableElevation
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								borderRadius: 2.5,
 								py: 1.5,
 								fontWeight: 700,
 								textTransform: 'none',
 								fontSize: '1rem',
-								'&:hover': { bgcolor: '#2563EB' },
+								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
 							Save Section

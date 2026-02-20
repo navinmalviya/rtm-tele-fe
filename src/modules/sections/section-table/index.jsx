@@ -2,6 +2,7 @@
 
 import { AccountTree, Edit, Hub, Layers } from '@mui/icons-material';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useSections } from '@/hooks/sections';
 import RtmDataGrid from '@/lib/common/datagrid';
 
@@ -16,15 +17,21 @@ export function SectionTable() {
 			renderCell: (params) => (
 				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%' }}>
 					<Box
-						sx={{ p: 1, bgcolor: '#FFF1F2', borderRadius: 1.5, display: 'flex', color: '#E11D48' }}
+						sx={(theme) => ({
+							p: 1,
+							bgcolor: alpha(theme.palette.error.main, 0.12),
+							borderRadius: 1.5,
+							display: 'flex',
+							color: theme.palette.error.main,
+						})}
 					>
 						<AccountTree fontSize="small" />
 					</Box>
 					<Box>
-						<Typography sx={{ fontWeight: 800, color: '#0F172A', fontSize: '0.85rem' }}>
+						<Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '0.85rem' }}>
 							{params.value}
 						</Typography>
-						<Typography sx={{ color: '#64748B', fontSize: '0.75rem' }}>
+						<Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
 							{params.row.name}
 						</Typography>
 					</Box>
@@ -37,8 +44,8 @@ export function SectionTable() {
 			flex: 1,
 			renderCell: (params) => (
 				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-					<Layers sx={{ fontSize: 16, color: '#94A3B8' }} />
-					<Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#475569' }}>
+					<Layers sx={{ fontSize: 16, color: 'text.disabled' }} />
+					<Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: 'text.secondary' }}>
 						{params.value?.length || 0} Sub-sections
 					</Typography>
 				</Box>
@@ -52,11 +59,11 @@ export function SectionTable() {
 			renderCell: () => (
 				<Box sx={{ display: 'flex', gap: 0.5 }}>
 					<Tooltip title="View Section Map">
-						<IconButton size="small" sx={{ color: '#94A3B8' }}>
+						<IconButton size="small" sx={{ color: 'text.secondary' }}>
 							<Hub fontSize="small" />
 						</IconButton>
 					</Tooltip>
-					<IconButton size="small" sx={{ color: '#94A3B8' }}>
+					<IconButton size="small" sx={{ color: 'text.secondary' }}>
 						<Edit fontSize="small" />
 					</IconButton>
 				</Box>

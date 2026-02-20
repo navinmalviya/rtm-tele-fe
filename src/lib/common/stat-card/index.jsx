@@ -1,14 +1,27 @@
 'use client';
 import { Avatar, Box, Card, Stack, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 
 export default function StatCard({ label, value, trend, icon, color }) {
+	const theme = useTheme();
+	const resolveColor = (value) => {
+		if (!value) return theme.palette.primary.main;
+		if (value.includes?.('.')) {
+			const [section, shade] = value.split('.');
+			return theme.palette[section]?.[shade] || value;
+		}
+		return value;
+	};
+
+	const trendColor = resolveColor(color);
 	return (
 		<Card
 			sx={{
 				borderRadius: 4,
-				border: '1px solid #E2E8F0',
-				boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-				bgcolor: 'white',
+				border: '1px solid',
+				borderColor: 'divider',
+				boxShadow: 1,
+				bgcolor: 'background.paper',
 				height: '100%', // Stretch to match sibling heights
 			}}
 		>
@@ -40,8 +53,8 @@ export default function StatCard({ label, value, trend, icon, color }) {
 								px: 1,
 								py: 0.3,
 								borderRadius: 1,
-								bgcolor: `${color}15`,
-								color: color,
+								bgcolor: alpha(trendColor, 0.16),
+								color: trendColor,
 							}}
 						>
 							{trend}
@@ -49,7 +62,7 @@ export default function StatCard({ label, value, trend, icon, color }) {
 					</Box>
 					<Avatar
 						sx={{
-							bgcolor: '#F1F5F9',
+							bgcolor: 'action.hover',
 							color: 'text.secondary',
 							width: 56,
 							height: 56,

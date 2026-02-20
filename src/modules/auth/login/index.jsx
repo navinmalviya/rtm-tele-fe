@@ -14,6 +14,7 @@ import {
 	useMediaQuery,
 	useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
 import { getSession, signIn } from 'next-auth/react';
 import { useState } from 'react';
@@ -64,12 +65,12 @@ export default function LoginPage() {
 					xs={false}
 					lg={6}
 					sx={{
-						bgcolor: 'black', // #101214
+						bgcolor: 'custom.sidebarBg',
 						display: 'flex',
 						flexDirection: 'column',
 						justifyContent: 'center',
 						p: 8,
-						color: 'white',
+						color: 'custom.sidebarText',
 						position: 'relative',
 						overflow: 'hidden',
 					}}
@@ -102,8 +103,10 @@ export default function LoginPage() {
 							width: 300,
 							height: 300,
 							borderRadius: '50%',
-							background:
-								'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(16, 18, 20, 0) 70%)',
+							background: `radial-gradient(circle, ${alpha(
+								theme.palette.primary.main,
+								0.12
+							)} 0%, transparent 70%)`,
 						}}
 					/>
 				</Grid>
@@ -118,7 +121,7 @@ export default function LoginPage() {
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'center',
-					bgcolor: 'background.default', // #F8FAFC
+					bgcolor: 'background.default',
 					p: 4,
 				}}
 			>
@@ -167,7 +170,7 @@ export default function LoginPage() {
 											error={!!errors.username}
 											helperText={errors.username?.message}
 											sx={{
-												bgcolor: 'white',
+												bgcolor: 'background.paper',
 											}}
 										/>
 									)}
@@ -193,7 +196,7 @@ export default function LoginPage() {
 											error={!!errors.password}
 											helperText={errors.password?.message}
 											sx={{
-												bgcolor: 'white',
+												bgcolor: 'background.paper',
 											}}
 										/>
 									)}

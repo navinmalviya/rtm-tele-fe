@@ -19,6 +19,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useParams } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
@@ -40,14 +41,14 @@ const CABLE_SUBTYPES = {
 const INPUT_STYLES = {
 	'& .MuiOutlinedInput-root': {
 		borderRadius: 2,
-		bgcolor: 'white',
-		'& fieldset': { borderColor: '#E2E8F0' },
-		'&:hover fieldset': { borderColor: '#CBD5E1' },
-		'&.Mui-focused fieldset': { borderColor: '#3B82F6' },
+		bgcolor: 'background.paper',
+		'& fieldset': { borderColor: 'divider' },
+		'&:hover fieldset': { borderColor: 'text.disabled' },
+		'&.Mui-focused fieldset': { borderColor: 'primary.main' },
 	},
 	'& .MuiInputLabel-root': {
 		fontWeight: 600,
-		color: '#64748B',
+		color: 'text.secondary',
 	},
 };
 
@@ -88,7 +89,7 @@ export default function AddCableDrawer() {
 					height: '100%',
 					display: 'flex',
 					flexDirection: 'column',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				{/* Header: High-Contrast Branding */}
@@ -97,17 +98,17 @@ export default function AddCableDrawer() {
 						<Box>
 							<Typography
 								variant="h5"
-								sx={{ fontWeight: 800, color: '#1E293B', fontSize: '1.5rem' }}
+								sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.5rem' }}
 							>
 								New Cable Asset
 							</Typography>
-							<Typography variant="body2" sx={{ fontWeight: 600, color: '#64748B', mt: 0.5 }}>
+							<Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mt: 0.5 }}>
 								Transmission Specification Library
 							</Typography>
 						</Box>
 						<IconButton
 							onClick={handleClose}
-							sx={{ bgcolor: '#F8FAFC', border: '1px solid #F1F5F9' }}
+							sx={{ bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}
 						>
 							<Close fontSize="small" />
 						</IconButton>
@@ -129,7 +130,7 @@ export default function AddCableDrawer() {
 									sx={{
 										fontWeight: 800,
 										mb: 3,
-										color: '#1E293B',
+										color: 'text.primary',
 										fontSize: '0.75rem',
 										letterSpacing: '0.1em',
 									}}
@@ -150,7 +151,7 @@ export default function AddCableDrawer() {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<Category sx={{ color: '#3B82F6', fontSize: 20, mr: 1 }} />
+															<Category sx={{ color: 'primary.main', fontSize: 20, mr: 1 }} />
 														</InputAdornment>
 													),
 												}}
@@ -178,12 +179,13 @@ export default function AddCableDrawer() {
 
 							{/* 2. Technical Specs: High-Radius Container */}
 							<Box
-								sx={{
+								sx={(theme) => ({
 									p: 3.5,
-									bgcolor: '#F0F9FF',
+									bgcolor: alpha(theme.palette.primary.main, 0.08),
 									borderRadius: 3,
-									border: '1px solid #BAE6FD',
-								}}
+									border: '1px solid',
+									borderColor: alpha(theme.palette.primary.main, 0.2),
+								})}
 							>
 								<Stack
 									direction="row"
@@ -194,15 +196,22 @@ export default function AddCableDrawer() {
 									<Typography
 										sx={{
 											fontWeight: 800,
-											color: '#0369A1',
+											color: 'primary.dark',
 											fontSize: '0.75rem',
 											textTransform: 'uppercase',
 										}}
 									>
 										{selectedType} Specs
 									</Typography>
-									<Box sx={{ bgcolor: '#DBEAFE', px: 1.5, py: 0.5, borderRadius: 2 }}>
-										<Typography sx={{ fontSize: '0.65rem', fontWeight: 900, color: '#2563EB' }}>
+									<Box
+										sx={(theme) => ({
+											bgcolor: alpha(theme.palette.primary.main, 0.16),
+											px: 1.5,
+											py: 0.5,
+											borderRadius: 2,
+										})}
+									>
+										<Typography sx={{ fontSize: '0.65rem', fontWeight: 900, color: 'primary.main' }}>
 											AUTO-GENERATE
 										</Typography>
 									</Box>
@@ -223,7 +232,7 @@ export default function AddCableDrawer() {
 											InputProps={{
 												startAdornment: (
 													<InputAdornment position="start">
-														<Straighten sx={{ color: '#0369A1', fontSize: 18, mr: 1 }} />
+														<Straighten sx={{ color: 'primary.dark', fontSize: 18, mr: 1 }} />
 													</InputAdornment>
 												),
 											}}
@@ -239,7 +248,7 @@ export default function AddCableDrawer() {
 									sx={{
 										fontWeight: 800,
 										mb: 3,
-										color: '#1E293B',
+										color: 'text.primary',
 										fontSize: '0.75rem',
 										letterSpacing: '0.1em',
 									}}
@@ -263,7 +272,7 @@ export default function AddCableDrawer() {
 														InputProps={{
 															startAdornment: (
 																<InputAdornment position="start">
-																	<Public sx={{ color: '#64748B', fontSize: 18, mr: 1 }} />
+																	<Public sx={{ color: 'text.secondary', fontSize: 18, mr: 1 }} />
 																</InputAdornment>
 															),
 														}}
@@ -289,7 +298,7 @@ export default function AddCableDrawer() {
 														InputProps={{
 															startAdornment: (
 																<InputAdornment position="start">
-																	<CalendarMonth sx={{ color: '#10B981', fontSize: 18, mr: 1 }} />
+																	<CalendarMonth sx={{ color: 'success.main', fontSize: 18, mr: 1 }} />
 																</InputAdornment>
 															),
 														}}
@@ -315,7 +324,7 @@ export default function AddCableDrawer() {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<Engineering sx={{ color: '#6366F1', fontSize: 18, mr: 1 }} />
+															<Engineering sx={{ color: 'info.main', fontSize: 18, mr: 1 }} />
 														</InputAdornment>
 													),
 												}}
@@ -329,13 +338,13 @@ export default function AddCableDrawer() {
 				</Box>
 
 				{/* Footer: Pill-shaped primary button */}
-				<Box sx={{ p: 4, bgcolor: 'white', borderTop: '1px solid #F1F5F9' }}>
+				<Box sx={{ p: 4, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
 					<Stack direction="row" spacing={2} alignItems="center">
 						<Button
 							variant="text"
 							fullWidth
 							onClick={handleClose}
-							sx={{ color: '#64748B', fontWeight: 800, textTransform: 'none' }}
+							sx={{ color: 'text.secondary', fontWeight: 800, textTransform: 'none' }}
 						>
 							Cancel
 						</Button>
@@ -347,13 +356,13 @@ export default function AddCableDrawer() {
 							disableElevation
 							disabled={isLoading}
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								borderRadius: '100px', // Full Pill Radius
 								py: 2,
 								fontWeight: 800,
 								textTransform: 'none',
 								fontSize: '1rem',
-								'&:hover': { bgcolor: '#2563EB' },
+								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
 							{isLoading ? 'Processing...' : 'Create Cable Asset'}

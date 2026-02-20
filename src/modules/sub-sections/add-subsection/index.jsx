@@ -57,16 +57,17 @@ export default function AddSubSectionForm() {
 			MenuProps: {
 				PaperProps: {
 					sx: {
-						bgcolor: 'white',
+						bgcolor: 'background.paper',
 						elevation: 8,
 						mt: 1,
-						border: '1px solid #E2E8F0',
+						border: '1px solid',
+						borderColor: 'divider',
 						'& .MuiMenuItem-root': {
 							fontSize: '0.875rem',
 							fontWeight: 500,
-							color: '#1E293B',
+							color: 'text.primary',
 							paddingY: '10px',
-							'&:hover': { bgcolor: '#F1F5F9' },
+							'&:hover': { bgcolor: 'action.hover' },
 						},
 					},
 				},
@@ -92,13 +93,13 @@ export default function AddSubSectionForm() {
 						display: 'flex',
 						justifyContent: 'space-between',
 						alignItems: 'center',
-						bgcolor: 'white',
+						bgcolor: 'background.paper',
 					}}
 				>
 					<Box>
 						<Typography
 							variant="h5"
-							sx={{ fontWeight: 800, color: '#1E293B' }}
+							sx={{ fontWeight: 800, color: 'text.primary' }}
 						>
 							Create Sub-section
 						</Typography>
@@ -119,13 +120,13 @@ export default function AddSubSectionForm() {
 								})
 							)
 						}
-						sx={{ bgcolor: '#F1F5F9' }}
+						sx={{ bgcolor: 'action.hover' }}
 					>
 						<Close fontSize="small" />
 					</IconButton>
 				</Box>
 
-				<Divider sx={{ borderColor: '#F1F5F9' }} />
+				<Divider sx={{ borderColor: 'divider' }} />
 
 				{/* Form Content */}
 				<Box
@@ -133,7 +134,7 @@ export default function AddSubSectionForm() {
 						p: 4,
 						flexGrow: 1,
 						overflowY: 'auto',
-						bgcolor: 'white',
+						bgcolor: 'background.paper',
 					}}
 				>
 					<form
@@ -147,7 +148,7 @@ export default function AddSubSectionForm() {
 									sx={{
 										fontWeight: 700,
 										mb: 2,
-										color: '#64748B',
+										color: 'text.secondary',
 									}}
 								>
 									IDENTIFICATION
@@ -233,7 +234,7 @@ export default function AddSubSectionForm() {
 									sx={{
 										fontWeight: 700,
 										mb: 2,
-										color: '#64748B',
+										color: 'text.secondary',
 									}}
 								>
 									BOUNDARY STATIONS
@@ -368,7 +369,7 @@ export default function AddSubSectionForm() {
 				<Divider />
 
 				{/* Footer matching Station and Section UI */}
-				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 3, bgcolor: 'background.default' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
@@ -380,7 +381,7 @@ export default function AddSubSectionForm() {
 									})
 								)
 							}
-							sx={{ color: '#64748B', fontWeight: 700 }}
+							sx={{ color: 'text.secondary', fontWeight: 700 }}
 						>
 							Cancel
 						</Button>
@@ -391,13 +392,13 @@ export default function AddSubSectionForm() {
 							fullWidth
 							disableElevation
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								borderRadius: 2.5,
 								py: 1.5,
 								fontWeight: 700,
 								textTransform: 'none',
 								fontSize: '1rem',
-								'&:hover': { bgcolor: '#2563EB' },
+								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
 							Save Sub-section

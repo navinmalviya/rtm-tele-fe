@@ -2,6 +2,7 @@
 
 import Box from '@mui/material/Box';
 import { DataGrid } from '@mui/x-data-grid';
+import { alpha } from '@mui/material/styles';
 
 /**
  * RtmDataGrid - Common Table Component
@@ -17,38 +18,35 @@ export default function RtmDataGrid({
 	sx = {},
 	...rest
 }) {
-	const blueprintStyles = {
+	const blueprintStyles = (theme) => ({
 		border: 'none',
-		backgroundColor: '#FFFFFF !important',
+		backgroundColor: `${theme.palette.background.paper} !important`,
 		// --- HEADER & SORTING ICON FIXES ---
 		'& .MuiDataGrid-columnHeaders': {
-			backgroundColor: '#F8FAFC !important',
-			color: '#475569',
-			borderBottom: '1px solid #E2E8F0',
+			backgroundColor: `${alpha(theme.palette.primary.main, 0.04)} !important`,
+			color: theme.palette.text.secondary,
+			borderBottom: `1px solid ${theme.palette.divider}`,
 			backgroundImage: 'none !important',
 		},
 		'& .MuiDataGrid-columnHeader': {
-			backgroundColor: '#F8FAFC !important',
+			backgroundColor: `${alpha(theme.palette.primary.main, 0.04)} !important`,
 			'&:hover, &:focus': {
-				backgroundColor: '#F1F5F9 !important',
+				backgroundColor: `${alpha(theme.palette.primary.main, 0.08)} !important`,
 				outline: 'none',
 			},
-			// Targeting the container of the sort icon
 			'& .MuiDataGrid-iconButtonContainer': {
 				visibility: 'visible !important',
 				width: 'auto',
-				// This targets the actual button around the arrow
 				'& .MuiButtonBase-root': {
-					color: '#3B82F6 !important',
+					color: `${theme.palette.primary.main} !important`,
 					backgroundColor: 'transparent !important',
 					'&:hover': {
-						backgroundColor: 'rgba(59, 130, 246, 0.08) !important', // Soft blue hover, NOT black
+						backgroundColor: `${alpha(theme.palette.primary.main, 0.12)} !important`,
 					},
 				},
 			},
-			// The arrow icon itself
 			'& .MuiDataGrid-sortIcon': {
-				color: '#3B82F6 !important',
+				color: `${theme.palette.primary.main} !important`,
 				opacity: '1 !important',
 			},
 		},
@@ -57,22 +55,22 @@ export default function RtmDataGrid({
 			fontSize: '0.72rem',
 			letterSpacing: '0.5px',
 			textTransform: 'uppercase',
-			color: '#64748B',
+			color: theme.palette.text.secondary,
 		},
 		// --- ROW & HOVER FIXES ---
 		'& .MuiDataGrid-row': {
-			backgroundColor: '#FFFFFF',
+			backgroundColor: theme.palette.background.paper,
 			transition: 'background-color 0.15s ease',
 			'&:hover': {
-				backgroundColor: '#F1F5F9 !important', // Clean light gray
+				backgroundColor: `${alpha(theme.palette.primary.main, 0.06)} !important`,
 			},
-			'&.even-row': { backgroundColor: '#FFFFFF' },
-			'&.odd-row': { backgroundColor: '#FAFBFC' },
+			'&.even-row': { backgroundColor: theme.palette.background.paper },
+			'&.odd-row': { backgroundColor: alpha(theme.palette.primary.main, 0.02) },
 		},
 		// --- CELL & SELECTION FIXES ---
 		'& .MuiDataGrid-cell': {
-			borderBottom: '1px solid #F1F5F9',
-			color: '#1E293B',
+			borderBottom: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
+			color: theme.palette.text.primary,
 			display: 'flex',
 			alignItems: 'center',
 			fontSize: '0.85rem',
@@ -82,32 +80,35 @@ export default function RtmDataGrid({
 			},
 		},
 		'& .Mui-selected': {
-			backgroundColor: '#EFF6FF !important',
+			backgroundColor: `${alpha(theme.palette.primary.main, 0.12)} !important`,
 			'&:hover': {
-				backgroundColor: '#DBEAFE !important',
+				backgroundColor: `${alpha(theme.palette.primary.main, 0.18)} !important`,
 			},
 		},
 		// --- UI UTILITIES ---
 		'& .MuiDataGrid-virtualScroller': {
-			backgroundColor: '#FFFFFF !important',
+			backgroundColor: `${theme.palette.background.paper} !important`,
 		},
 		'& .MuiDataGrid-footerContainer': {
-			borderTop: '1px solid #E2E8F0',
-			backgroundColor: '#FFFFFF',
+			borderTop: `1px solid ${theme.palette.divider}`,
+			backgroundColor: theme.palette.background.paper,
 		},
 		...sx,
-	};
+	});
 
 	return (
 		<Box
-			sx={{
+			sx={(theme) => ({
 				width: '100%',
-				backgroundColor: '#FFFFFF',
-				border: '1px solid #E2E8F0',
+				backgroundColor: theme.palette.background.paper,
+				border: `1px solid ${theme.palette.divider}`,
 				borderRadius: '16px',
 				overflow: 'hidden',
-				boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
-			}}
+				boxShadow:
+					theme.palette.mode === 'dark'
+						? 'none'
+						: `0 1px 3px 0 ${alpha(theme.palette.common.black, 0.05)}`,
+			})}
 		>
 			<DataGrid
 				sx={blueprintStyles}

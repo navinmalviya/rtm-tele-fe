@@ -58,16 +58,16 @@ export default function AddRackForm({ locations = [], isLoading }) {
 	};
 
 	const textFieldStyles = {
-		bgcolor: 'white',
+		bgcolor: 'background.paper',
 		borderRadius: 2,
 		'& .MuiOutlinedInput-root': {
 			borderRadius: 2,
 			'& .MuiSelect-select': {
-				bgcolor: 'white', // Fixes internal black background
+				bgcolor: 'background.paper', // Fixes internal black background
 			},
-			'& fieldset': { borderColor: '#E2E8F0' },
-			'&:hover fieldset': { borderColor: '#CBD5E1' },
-			'&.Mui-focused fieldset': { borderColor: '#3B82F6' },
+			'& fieldset': { borderColor: 'divider' },
+			'&:hover fieldset': { borderColor: 'text.disabled' },
+			'&.Mui-focused fieldset': { borderColor: 'primary.main' },
 		},
 	};
 
@@ -76,9 +76,10 @@ export default function AddRackForm({ locations = [], isLoading }) {
 		autoFocus: false,
 		PaperProps: {
 			sx: {
-				bgcolor: 'white',
-				boxShadow: '0px 8px 24px rgba(149, 157, 165, 0.2)',
-				border: '1px solid #E2E8F0',
+				bgcolor: 'background.paper',
+				boxShadow: 6,
+				border: '1px solid',
+				borderColor: 'divider',
 				backgroundImage: 'none', // Critical for preventing theme-based dark overlays
 			},
 		},
@@ -92,7 +93,7 @@ export default function AddRackForm({ locations = [], isLoading }) {
 					display: 'flex',
 					flexDirection: 'column',
 					height: '100%',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				{/* Header */}
@@ -105,16 +106,16 @@ export default function AddRackForm({ locations = [], isLoading }) {
 					}}
 				>
 					<Box>
-						<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
+						<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>
 							New Rack Configuration
 						</Typography>
-						<Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
+						<Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
 							Physical Infrastructure Asset
 						</Typography>
 					</Box>
 					<IconButton
 						onClick={() => dispatch(closeDrawer({ drawerName: 'addRackDrawer' }))}
-						sx={{ bgcolor: '#F1F5F9' }}
+						sx={{ bgcolor: 'action.hover' }}
 					>
 						<Close fontSize="small" />
 					</IconButton>
@@ -123,14 +124,14 @@ export default function AddRackForm({ locations = [], isLoading }) {
 				<Divider />
 
 				{/* Form Body */}
-				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: 'background.default' }}>
 					<form id="rack-form" onSubmit={handleSubmit(handleRackSubmit)}>
 						<Stack spacing={4}>
 							{/* SECTION 1: IDENTITY */}
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', letterSpacing: '1px' }}
 								>
 									PLACEMENT & IDENTITY
 								</Typography>
@@ -150,7 +151,7 @@ export default function AddRackForm({ locations = [], isLoading }) {
 													input: {
 														startAdornment: (
 															<InputAdornment position="start">
-																<HomeWork sx={{ color: '#3B82F6' }} />
+																<HomeWork sx={{ color: 'primary.main' }} />
 															</InputAdornment>
 														),
 													},
@@ -183,7 +184,7 @@ export default function AddRackForm({ locations = [], isLoading }) {
 													input: {
 														startAdornment: (
 															<InputAdornment position="start">
-																<Inventory sx={{ color: '#64748B' }} />
+																<Inventory sx={{ color: 'text.secondary' }} />
 															</InputAdornment>
 														),
 													},
@@ -198,7 +199,7 @@ export default function AddRackForm({ locations = [], isLoading }) {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', letterSpacing: '1px' }}
 								>
 									PHYSICAL SPECIFICATIONS
 								</Typography>
@@ -217,7 +218,7 @@ export default function AddRackForm({ locations = [], isLoading }) {
 													input: {
 														startAdornment: (
 															<InputAdornment position="start">
-																<ViewInAr sx={{ color: '#8B5CF6' }} />
+																<ViewInAr sx={{ color: 'secondary.main' }} />
 															</InputAdornment>
 														),
 													},
@@ -247,7 +248,7 @@ export default function AddRackForm({ locations = [], isLoading }) {
 													input: {
 														startAdornment: (
 															<InputAdornment position="start">
-																<Height sx={{ color: '#F59E0B' }} />
+																<Height sx={{ color: 'warning.main' }} />
 															</InputAdornment>
 														),
 													},
@@ -262,7 +263,7 @@ export default function AddRackForm({ locations = [], isLoading }) {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', letterSpacing: '1px' }}
 								>
 									ADDITIONAL DETAILS
 								</Typography>
@@ -285,7 +286,7 @@ export default function AddRackForm({ locations = [], isLoading }) {
 															position="start"
 															sx={{ alignSelf: 'flex-start', mt: 1.5 }}
 														>
-															<Description sx={{ color: '#64748B' }} />
+															<Description sx={{ color: 'text.secondary' }} />
 														</InputAdornment>
 													),
 												},
@@ -301,13 +302,13 @@ export default function AddRackForm({ locations = [], isLoading }) {
 				<Divider />
 
 				{/* Footer Actions */}
-				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 3, bgcolor: 'background.default' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addRackDrawer' }))}
-							sx={{ fontWeight: 700, color: '#64748B' }}
+							sx={{ fontWeight: 700, color: 'text.secondary' }}
 						>
 							Cancel
 						</Button>
@@ -318,11 +319,11 @@ export default function AddRackForm({ locations = [], isLoading }) {
 							fullWidth
 							disableElevation
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								py: 1.5,
 								fontWeight: 700,
 								borderRadius: 2,
-								'&:hover': { bgcolor: '#2563EB' },
+								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
 							Deploy Rack

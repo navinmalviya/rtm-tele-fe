@@ -39,6 +39,7 @@ import {
 	Tooltip,
 	Typography,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 
@@ -57,14 +58,15 @@ const nodeTypes = {
 	station: StationNode,
 };
 
-const EDGE_STYLE = {
-	type: 'smoothstep',
-	animated: true,
-	style: { stroke: '#0F172A', strokeWidth: 2 },
-	zIndex: 1000,
-};
-
 export default function TopLayerTopology() {
+	const theme = useTheme();
+	const EDGE_STYLE = {
+		type: 'smoothstep',
+		animated: true,
+		style: { stroke: theme.palette.text.primary, strokeWidth: 2 },
+		zIndex: 1000,
+	};
+
 	const dispatch = useDispatch();
 	const router = useRouter();
 
@@ -171,7 +173,7 @@ export default function TopLayerTopology() {
 				sourcePortId: pendingConnection.portId,
 				targetPortId: port.id,
 				mediaType: 'OFC',
-				cableColor: '#0F172A',
+				cableColor: theme.palette.text.primary,
 			});
 
 			setPendingConnection(null);
@@ -197,7 +199,7 @@ export default function TopLayerTopology() {
 			sx={{
 				width: '100%',
 				height: '100%',
-				bgcolor: '#F8FAFC',
+				bgcolor: 'background.default',
 				p: 2,
 				'& .react-flow__edgelayer': { zIndex: '10 !important' },
 			}}
@@ -223,7 +225,7 @@ export default function TopLayerTopology() {
 				zoomOnDoubleClick={false}
 				fitView
 			>
-				<Background variant="dots" gap={24} size={1} color="#cbd5e1" />
+				<Background variant="dots" gap={24} size={1} color={theme.palette.divider} />
 
 				<Menu
 					anchorEl={portMenuAnchor}
@@ -233,7 +235,13 @@ export default function TopLayerTopology() {
 						if (!pendingConnection) setActiveStationId(null);
 					}}
 					PaperProps={{
-						sx: { width: 320, maxHeight: 400, borderRadius: 3, border: '1px solid #E2E8F0' },
+						sx: {
+							width: 320,
+							maxHeight: 400,
+							borderRadius: 3,
+							border: '1px solid',
+							borderColor: 'divider',
+						},
 					}}
 				>
 					<Box sx={{ px: 2, py: 1.5 }}>
@@ -275,8 +283,9 @@ export default function TopLayerTopology() {
 							sx={{
 								p: 2,
 								borderRadius: 4,
-								border: '2px solid #3B82F6',
-								bgcolor: 'rgba(255, 255, 255, 0.95)',
+								border: '2px solid',
+								borderColor: 'primary.main',
+								bgcolor: (theme) => alpha(theme.palette.background.paper, 0.95),
 							}}
 						>
 							<Stack direction="row" spacing={3} alignItems="center">
@@ -312,8 +321,9 @@ export default function TopLayerTopology() {
 						sx={{
 							p: 0.8,
 							borderRadius: '16px',
-							border: '1px solid #E2E8F0',
-							bgcolor: 'rgba(255,255,255,0.9)',
+							border: '1px solid',
+							borderColor: 'divider',
+							bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
 						}}
 					>
 						<Stack direction="row" spacing={1} alignItems="center">
@@ -322,7 +332,7 @@ export default function TopLayerTopology() {
 									<Tooltip title="Add Asset">
 										<IconButton
 											onClick={(e) => setAssetMenuAnchor(e.currentTarget)}
-											sx={{ bgcolor: 'primary.main', color: 'white' }}
+											sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}
 										>
 											<AddIcon fontSize="small" />
 										</IconButton>
@@ -344,13 +354,13 @@ export default function TopLayerTopology() {
 									</Typography>
 									<IconButton
 										onClick={handleSavePositions}
-										sx={{ bgcolor: '#4caf50', color: 'white' }}
+										sx={{ bgcolor: 'success.main', color: 'success.contrastText' }}
 									>
 										<SaveIcon fontSize="small" />
 									</IconButton>
 									<IconButton
 										onClick={() => setIsEditMode(false)}
-										sx={{ bgcolor: '#ef5350', color: 'white' }}
+										sx={{ bgcolor: 'error.main', color: 'error.contrastText' }}
 									>
 										<CancelIcon fontSize="small" />
 									</IconButton>

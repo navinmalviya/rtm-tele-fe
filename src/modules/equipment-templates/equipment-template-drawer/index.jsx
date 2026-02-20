@@ -29,6 +29,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
@@ -136,12 +137,12 @@ export default function AddEquipmentTemplateDrawer() {
 	};
 
 	const textFieldStyles = {
-		bgcolor: 'white',
+		bgcolor: 'background.paper',
 		'& .MuiOutlinedInput-root': {
 			borderRadius: 2,
-			'& fieldset': { borderColor: '#E2E8F0' },
-			'&:hover fieldset': { borderColor: '#CBD5E1' },
-			'&.Mui-focused fieldset': { borderColor: '#3B82F6' },
+			'& fieldset': { borderColor: 'divider' },
+			'&:hover fieldset': { borderColor: 'text.disabled' },
+			'&.Mui-focused fieldset': { borderColor: 'primary.main' },
 		},
 	};
 
@@ -150,9 +151,10 @@ export default function AddEquipmentTemplateDrawer() {
 			autoFocus: false,
 			PaperProps: {
 				sx: {
-					bgcolor: 'white',
-					boxShadow: '0px 8px 24px rgba(149, 157, 165, 0.2)',
-					border: '1px solid #E2E8F0',
+					bgcolor: 'background.paper',
+					boxShadow: 6,
+					border: '1px solid',
+					borderColor: 'divider',
 				},
 			},
 		},
@@ -170,32 +172,32 @@ export default function AddEquipmentTemplateDrawer() {
 					display: 'flex',
 					flexDirection: 'column',
 					height: '100%',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				{/* HEADER */}
 				<Box sx={{ p: 4, pb: 2 }}>
 					<Stack direction="row" justifyContent="space-between" alignItems="center">
 						<Box>
-							<Typography variant="h5" sx={{ fontWeight: 800, color: '#1E293B' }}>
+							<Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
 								New Template
 							</Typography>
-							<Typography variant="body2" sx={{ fontWeight: 600, color: '#64748B', mt: 0.5 }}>
+							<Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mt: 0.5 }}>
 								Standard IR-Telecom Asset Blueprints
 							</Typography>
 						</Box>
 						<IconButton
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addTemplateDrawer' }))}
-							sx={{ bgcolor: '#F1F5F9' }}
+							sx={{ bgcolor: 'action.hover' }}
 						>
 							<Close fontSize="small" />
 						</IconButton>
 					</Stack>
 				</Box>
 
-				<Divider sx={{ mx: 4, borderColor: '#F1F5F9' }} />
+				<Divider sx={{ mx: 4, borderColor: 'divider' }} />
 
-				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: 'background.default' }}>
 					<form id="template-form" onSubmit={handleSubmit(handleFormSubmit)}>
 						<Stack spacing={4}>
 							{/* SECTION 1: CORE IDENTITY */}
@@ -205,7 +207,7 @@ export default function AddEquipmentTemplateDrawer() {
 									sx={{
 										fontWeight: 800,
 										mb: 2,
-										color: '#475569',
+										color: 'text.secondary',
 										fontSize: '0.7rem',
 										letterSpacing: '0.1em',
 									}}
@@ -228,7 +230,7 @@ export default function AddEquipmentTemplateDrawer() {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<Memory sx={{ color: '#3B82F6' }} />
+															<Memory sx={{ color: 'primary.main' }} />
 														</InputAdornment>
 													),
 												}}
@@ -249,7 +251,7 @@ export default function AddEquipmentTemplateDrawer() {
 													InputProps={{
 														startAdornment: (
 															<InputAdornment position="start">
-																<Business sx={{ color: '#64748B' }} />
+																<Business sx={{ color: 'text.secondary' }} />
 															</InputAdornment>
 														),
 													}}
@@ -281,7 +283,7 @@ export default function AddEquipmentTemplateDrawer() {
 									sx={{
 										fontWeight: 800,
 										mb: 2,
-										color: '#475569',
+										color: 'text.secondary',
 										fontSize: '0.7rem',
 										letterSpacing: '0.1em',
 									}}
@@ -304,7 +306,7 @@ export default function AddEquipmentTemplateDrawer() {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<Category sx={{ color: '#3B82F6' }} />
+															<Category sx={{ color: 'primary.main' }} />
 														</InputAdornment>
 													),
 												}}
@@ -358,22 +360,28 @@ export default function AddEquipmentTemplateDrawer() {
 							{/* SECTION 3: NETWORKING SPECS */}
 							{selectedCategory === 'NETWORKING' && (
 								<Box
-									sx={{ p: 3, bgcolor: '#EFF6FF', borderRadius: 4, border: '1px solid #DBEAFE' }}
+									sx={(theme) => ({
+										p: 3,
+										bgcolor: alpha(theme.palette.primary.main, 0.08),
+										borderRadius: 4,
+										border: '1px solid',
+										borderColor: alpha(theme.palette.primary.main, 0.2),
+									})}
 								>
 									<Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-										<Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1E40AF' }}>
+										<Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'primary.dark' }}>
 											NETWORKING SPECS
 										</Typography>
 										<Typography
 											variant="caption"
-											sx={{
-												bgcolor: '#DBEAFE',
+											sx={(theme) => ({
+												bgcolor: alpha(theme.palette.primary.main, 0.16),
 												px: 1,
 												py: 0.5,
 												borderRadius: 1,
 												fontWeight: 700,
-												color: '#1E40AF',
-											}}
+												color: 'primary.dark',
+											})}
 										>
 											{['L3_SWITCH', 'ROUTER', 'FIREWALL'].includes(selectedSubCategory)
 												? 'AUTO: LAYER 3'
@@ -394,7 +402,7 @@ export default function AddEquipmentTemplateDrawer() {
 													InputProps={{
 														startAdornment: (
 															<InputAdornment position="start">
-																<Speed sx={{ color: '#1E40AF' }} />
+																<Speed sx={{ color: 'primary.dark' }} />
 															</InputAdornment>
 														),
 													}}
@@ -448,7 +456,7 @@ export default function AddEquipmentTemplateDrawer() {
 									sx={{
 										fontWeight: 800,
 										mb: 2,
-										color: '#475569',
+										color: 'text.secondary',
 										fontSize: '0.7rem',
 										letterSpacing: '0.1em',
 									}}
@@ -466,12 +474,12 @@ export default function AddEquipmentTemplateDrawer() {
 									InputProps={{
 										startAdornment: (
 											<InputAdornment position="start">
-												<AddCircleOutline sx={{ color: '#8B5CF6' }} />
+												<AddCircleOutline sx={{ color: 'secondary.main' }} />
 											</InputAdornment>
 										),
 									}}
 								>
-									<ListSubheader disableSticky sx={{ bgcolor: 'white' }}>
+									<ListSubheader disableSticky sx={{ bgcolor: 'background.paper' }}>
 										<TextField
 											size="small"
 											fullWidth
@@ -499,14 +507,23 @@ export default function AddEquipmentTemplateDrawer() {
 										<Paper
 											key={field.id}
 											variant="outlined"
-											sx={{ p: 2, borderRadius: 3, bgcolor: 'white', border: '1px solid #E2E8F0' }}
+											sx={{
+												p: 2,
+												borderRadius: 3,
+												bgcolor: 'background.paper',
+												border: '1px solid',
+												borderColor: 'divider',
+											}}
 										>
 											<Stack direction="row" spacing={2} alignItems="center">
 												<Box sx={{ flexGrow: 1 }}>
 													<Typography variant="body2" sx={{ fontWeight: 800 }}>
 														{field.name}
 													</Typography>
-													<Typography variant="caption" sx={{ color: '#64748B', fontWeight: 600 }}>
+													<Typography
+														variant="caption"
+														sx={{ color: 'text.secondary', fontWeight: 600 }}
+													>
 														{field.meta}
 													</Typography>
 												</Box>
@@ -546,7 +563,7 @@ export default function AddEquipmentTemplateDrawer() {
 									sx={{
 										fontWeight: 800,
 										mb: 2,
-										color: '#475569',
+										color: 'text.secondary',
 										fontSize: '0.7rem',
 										letterSpacing: '0.1em',
 									}}
@@ -568,7 +585,7 @@ export default function AddEquipmentTemplateDrawer() {
 													InputProps={{
 														startAdornment: (
 															<InputAdornment position="start">
-																<Straighten sx={{ color: '#64748B' }} />
+																<Straighten sx={{ color: 'text.secondary' }} />
 															</InputAdornment>
 														),
 													}}
@@ -586,14 +603,14 @@ export default function AddEquipmentTemplateDrawer() {
 												label="Power Supply"
 												fullWidth
 												sx={textFieldStyles}
-												InputProps={{
-													startAdornment: (
-														<InputAdornment position="start">
-															<ElectricBolt sx={{ color: '#F59E0B' }} />
-														</InputAdornment>
-													),
-												}}
-											>
+													InputProps={{
+														startAdornment: (
+															<InputAdornment position="start">
+																<ElectricBolt sx={{ color: 'warning.main' }} />
+															</InputAdornment>
+														),
+													}}
+												>
 												<MenuItem value="230V AC">230V AC</MenuItem>
 												<MenuItem value="110V AC">110V AC</MenuItem>
 												<MenuItem value="-48V DC">-48V DC</MenuItem>
@@ -607,15 +624,15 @@ export default function AddEquipmentTemplateDrawer() {
 					</form>
 				</Box>
 
-				<Divider sx={{ borderColor: '#F1F5F9' }} />
+				<Divider sx={{ borderColor: 'divider' }} />
 
-				<Box sx={{ p: 4, bgcolor: 'white' }}>
+				<Box sx={{ p: 4, bgcolor: 'background.paper' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addTemplateDrawer' }))}
-							sx={{ fontWeight: 800, color: '#64748B', textTransform: 'none' }}
+							sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'none' }}
 						>
 							Cancel
 						</Button>
@@ -626,11 +643,12 @@ export default function AddEquipmentTemplateDrawer() {
 							fullWidth
 							disableElevation
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								py: 2,
 								fontWeight: 800,
 								borderRadius: '16px',
 								textTransform: 'none',
+								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
 							{isLoading ? 'Saving...' : 'Create Template'}

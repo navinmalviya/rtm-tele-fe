@@ -59,7 +59,7 @@ const RtmTabs = ({ tabs, tabsName, initialState }) => {
 			onChange={handleTabChange}
 			sx={{
 				mb: 3,
-				borderBottom: '1px solid #E2E8F0',
+				borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
 				'& .MuiTab-root': {
 					fontWeight: 700,
 					textTransform: 'none',
@@ -68,12 +68,12 @@ const RtmTabs = ({ tabs, tabsName, initialState }) => {
 					transition: 'all 0.2s ease',
 				},
 				'& .Mui-selected': {
-					color: '#3B82F6 !important',
+					color: (theme) => `${theme.palette.primary.main} !important`,
 				},
 				'& .MuiTabs-indicator': {
 					height: 3,
 					borderRadius: '3px 3px 0 0',
-					bgcolor: '#3B82F6',
+					bgcolor: (theme) => theme.palette.primary.main,
 				},
 			}}
 		>

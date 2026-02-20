@@ -71,14 +71,14 @@ export default function AddEquipmentDrawer() {
 
 	// Blueprint Design System Styles
 	const textFieldStyles = {
-		bgcolor: 'white',
+		bgcolor: 'background.paper',
 		borderRadius: 2,
 		'& .MuiOutlinedInput-root': {
 			borderRadius: 2,
-			'& .MuiSelect-select': { bgcolor: 'white' },
-			'& fieldset': { borderColor: '#E2E8F0' },
-			'&:hover fieldset': { borderColor: '#CBD5E1' },
-			'&.Mui-focused fieldset': { borderColor: '#3B82F6' },
+			'& .MuiSelect-select': { bgcolor: 'background.paper' },
+			'& fieldset': { borderColor: 'divider' },
+			'&:hover fieldset': { borderColor: 'text.disabled' },
+			'&.Mui-focused fieldset': { borderColor: 'primary.main' },
 		},
 	};
 
@@ -86,9 +86,10 @@ export default function AddEquipmentDrawer() {
 		autoFocus: false,
 		PaperProps: {
 			sx: {
-				bgcolor: 'white',
-				boxShadow: '0px 8px 24px rgba(149,157,165,0.2)',
-				border: '1px solid #E2E8F0',
+				bgcolor: 'background.paper',
+				boxShadow: 6,
+				border: '1px solid',
+				borderColor: 'divider',
 				backgroundImage: 'none',
 			},
 		},
@@ -102,22 +103,22 @@ export default function AddEquipmentDrawer() {
 					display: 'flex',
 					flexDirection: 'column',
 					height: '100%',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				{/* HEADER */}
 				<Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 					<Box>
-						<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
+						<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>
 							Deploy New Asset
 						</Typography>
-						<Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
+						<Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
 							Physical Instance Registration
 						</Typography>
 					</Box>
 					<IconButton
 						onClick={() => dispatch(closeDrawer({ drawerName: 'addEquipmentDrawer' }))}
-						sx={{ bgcolor: '#F1F5F9' }}
+						sx={{ bgcolor: 'action.hover' }}
 					>
 						<Close fontSize="small" />
 					</IconButton>
@@ -125,14 +126,14 @@ export default function AddEquipmentDrawer() {
 
 				<Divider />
 
-				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: 'background.default' }}>
 					<form id="equipment-form" onSubmit={handleSubmit(onFormSubmit)}>
 						<Stack spacing={4}>
 							{/* SECTION 1: IDENTITY & MODEL */}
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', letterSpacing: '1px' }}
 								>
 									IDENTITY & MODEL
 								</Typography>
@@ -153,7 +154,7 @@ export default function AddEquipmentDrawer() {
 													input: {
 														startAdornment: (
 															<InputAdornment position="start">
-																<Inventory sx={{ color: '#3B82F6' }} />
+																<Inventory sx={{ color: 'primary.main' }} />
 															</InputAdornment>
 														),
 													},
@@ -177,7 +178,7 @@ export default function AddEquipmentDrawer() {
 													input: {
 														startAdornment: (
 															<InputAdornment position="start">
-																<Memory sx={{ color: '#8B5CF6' }} />
+																<Memory sx={{ color: 'secondary.main' }} />
 															</InputAdornment>
 														),
 													},
@@ -199,7 +200,7 @@ export default function AddEquipmentDrawer() {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', letterSpacing: '1px' }}
 								>
 									PHYSICAL PLACEMENT
 								</Typography>
@@ -218,7 +219,7 @@ export default function AddEquipmentDrawer() {
 													input: {
 														startAdornment: (
 															<InputAdornment position="start">
-																<Dns sx={{ color: '#64748B' }} />
+																<Dns sx={{ color: 'text.secondary' }} />
 															</InputAdornment>
 														),
 													},
@@ -248,7 +249,7 @@ export default function AddEquipmentDrawer() {
 													input: {
 														startAdornment: (
 															<InputAdornment position="start">
-																<Place sx={{ color: '#F59E0B' }} />
+																<Place sx={{ color: 'warning.main' }} />
 															</InputAdornment>
 														),
 													},
@@ -263,7 +264,7 @@ export default function AddEquipmentDrawer() {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', letterSpacing: '1px' }}
 								>
 									TECHNICAL AUDIT
 								</Typography>
@@ -280,12 +281,12 @@ export default function AddEquipmentDrawer() {
 													sx={textFieldStyles}
 													slotProps={{
 														input: {
-															startAdornment: (
-																<InputAdornment position="start">
-																	<Pin sx={{ color: '#64748B' }} />
-																</InputAdornment>
-															),
-														},
+														startAdornment: (
+															<InputAdornment position="start">
+																<Pin sx={{ color: 'text.secondary' }} />
+															</InputAdornment>
+														),
+													},
 													}}
 												/>
 											)}
@@ -301,12 +302,12 @@ export default function AddEquipmentDrawer() {
 													sx={textFieldStyles}
 													slotProps={{
 														input: {
-															startAdornment: (
-																<InputAdornment position="start">
-																	<Business sx={{ color: '#64748B' }} />
-																</InputAdornment>
-															),
-														},
+														startAdornment: (
+															<InputAdornment position="start">
+																<Business sx={{ color: 'text.secondary' }} />
+															</InputAdornment>
+														),
+													},
 													}}
 												/>
 											)}
@@ -326,7 +327,7 @@ export default function AddEquipmentDrawer() {
 													input: {
 														startAdornment: (
 															<InputAdornment position="start">
-																<CalendarMonth sx={{ color: '#10B981' }} />
+																<CalendarMonth sx={{ color: 'success.main' }} />
 															</InputAdornment>
 														),
 													},
@@ -341,7 +342,7 @@ export default function AddEquipmentDrawer() {
 							<Box>
 								<Typography
 									variant="subtitle2"
-									sx={{ fontWeight: 700, mb: 2, color: '#475569', letterSpacing: '1px' }}
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', letterSpacing: '1px' }}
 								>
 									ADDITIONAL INFO
 								</Typography>
@@ -364,7 +365,7 @@ export default function AddEquipmentDrawer() {
 															position="start"
 															sx={{ alignSelf: 'flex-start', mt: 1.5 }}
 														>
-															<Description sx={{ color: '#64748B' }} />
+															<Description sx={{ color: 'text.secondary' }} />
 														</InputAdornment>
 													),
 												},
@@ -380,13 +381,13 @@ export default function AddEquipmentDrawer() {
 				<Divider />
 
 				{/* FOOTER */}
-				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 3, bgcolor: 'background.default' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addEquipmentDrawer' }))}
-							sx={{ fontWeight: 700, color: '#64748B' }}
+							sx={{ fontWeight: 700, color: 'text.secondary' }}
 						>
 							Cancel
 						</Button>
@@ -398,11 +399,11 @@ export default function AddEquipmentDrawer() {
 							disableElevation
 							disabled={isSaving}
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								py: 1.5,
 								fontWeight: 700,
 								borderRadius: 2,
-								'&:hover': { bgcolor: '#2563EB' },
+								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
 							{isSaving ? 'Deploying...' : 'Deploy Asset'}

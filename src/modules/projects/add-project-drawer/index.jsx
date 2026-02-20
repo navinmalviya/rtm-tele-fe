@@ -11,6 +11,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useAddProject } from '@/hooks/project';
@@ -42,15 +43,15 @@ export default function AddProjectDrawer() {
 
 	// Shared styling for the Input boxes to match your design language
 	const textFieldStyles = {
-		bgcolor: 'white',
+		bgcolor: 'background.paper',
 		'& .MuiOutlinedInput-root': {
 			borderRadius: 2,
-			'& fieldset': { borderColor: '#E2E8F0' },
-			'&:hover fieldset': { borderColor: '#CBD5E1' },
-			'&.Mui-focused fieldset': { borderColor: '#3B82F6' },
+			'& fieldset': { borderColor: 'divider' },
+			'&:hover fieldset': { borderColor: 'text.disabled' },
+			'&.Mui-focused fieldset': { borderColor: 'primary.main' },
 		},
-		'& .MuiInputBase-input': { color: '#1E293B' },
-		'& .MuiInputLabel-root': { color: '#64748B' },
+		'& .MuiInputBase-input': { color: 'text.primary' },
+		'& .MuiInputLabel-root': { color: 'text.secondary' },
 	};
 
 	return (
@@ -61,7 +62,7 @@ export default function AddProjectDrawer() {
 					display: 'flex',
 					flexDirection: 'column',
 					height: '100%',
-					bgcolor: 'white',
+					bgcolor: 'background.paper',
 				}}
 			>
 				{/* 1. Header Section */}
@@ -74,16 +75,16 @@ export default function AddProjectDrawer() {
 					}}
 				>
 					<Box>
-						<Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
+						<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>
 							Initiate New Project
 						</Typography>
-						<Typography variant="caption" sx={{ fontWeight: 600, color: '#64748B' }}>
+						<Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
 							Infrastructure & Operational Planning
 						</Typography>
 					</Box>
 					<IconButton
 						onClick={() => dispatch(closeDrawer({ drawerName: 'addProjectDrawer' }))}
-						sx={{ bgcolor: '#F1F5F9' }}
+						sx={{ bgcolor: 'action.hover' }}
 					>
 						<Close fontSize="small" />
 					</IconButton>
@@ -102,7 +103,7 @@ export default function AddProjectDrawer() {
 									sx={{
 										fontWeight: 700,
 										mb: 2,
-										color: '#475569',
+										color: 'text.secondary',
 										fontSize: '0.75rem',
 										letterSpacing: '1px',
 									}}
@@ -126,7 +127,7 @@ export default function AddProjectDrawer() {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<RocketLaunch fontSize="small" sx={{ color: '#3B82F6' }} />
+															<RocketLaunch fontSize="small" sx={{ color: 'primary.main' }} />
 														</InputAdornment>
 													),
 												}}
@@ -152,7 +153,7 @@ export default function AddProjectDrawer() {
 															position="start"
 															sx={{ alignSelf: 'flex-start', mt: 1.5 }}
 														>
-															<Description fontSize="small" sx={{ color: '#64748B' }} />
+															<Description fontSize="small" sx={{ color: 'text.secondary' }} />
 														</InputAdornment>
 													),
 												}}
@@ -163,8 +164,16 @@ export default function AddProjectDrawer() {
 							</Box>
 
 							{/* Timeline Attributes */}
-							<Box sx={{ p: 3, bgcolor: '#F8FAFC', borderRadius: 3, border: '1px solid #E2E8F0' }}>
-								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: '#475569' }}>
+							<Box
+								sx={(theme) => ({
+									p: 3,
+									bgcolor: alpha(theme.palette.text.primary, 0.04),
+									borderRadius: 3,
+									border: '1px solid',
+									borderColor: 'divider',
+								})}
+							>
+								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}>
 									TIMELINE & PLANNING
 								</Typography>
 								<Stack direction="row" spacing={2}>
@@ -183,7 +192,7 @@ export default function AddProjectDrawer() {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<CalendarMonth fontSize="small" sx={{ color: '#10B981' }} />
+															<CalendarMonth fontSize="small" sx={{ color: 'success.main' }} />
 														</InputAdornment>
 													),
 												}}
@@ -204,7 +213,7 @@ export default function AddProjectDrawer() {
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
-															<EventNote fontSize="small" sx={{ color: '#F59E0B' }} />
+															<EventNote fontSize="small" sx={{ color: 'warning.main' }} />
 														</InputAdornment>
 													),
 												}}
@@ -220,13 +229,13 @@ export default function AddProjectDrawer() {
 				<Divider />
 
 				{/* 3. Footer Actions */}
-				<Box sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+				<Box sx={{ p: 3, bgcolor: 'background.default' }}>
 					<Stack direction="row" spacing={2}>
 						<Button
 							variant="text"
 							fullWidth
 							onClick={() => dispatch(closeDrawer({ drawerName: 'addProjectDrawer' }))}
-							sx={{ fontWeight: 700, color: '#64748B' }}
+							sx={{ fontWeight: 700, color: 'text.secondary' }}
 						>
 							Cancel
 						</Button>
@@ -237,11 +246,11 @@ export default function AddProjectDrawer() {
 							fullWidth
 							disableElevation
 							sx={{
-								bgcolor: '#3B82F6',
+								bgcolor: 'primary.main',
 								py: 1.5,
 								fontWeight: 700,
 								borderRadius: 2,
-								'&:hover': { bgcolor: '#2563EB' },
+								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
 							Create Project

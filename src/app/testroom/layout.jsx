@@ -1,5 +1,15 @@
 'use client';
 
+import {
+	AccountTree,
+	Assessment,
+	AssignmentTurnedIn,
+	BuildCircle,
+	Dashboard,
+	Hub,
+	Inventory,
+	LibraryBooks,
+} from '@mui/icons-material';
 import { Box } from '@mui/material';
 // import { Navbar } from '@/lib/common/layout';
 // import { ADMIN_NAV_LINKS } from '@/lib/constants';
@@ -9,17 +19,33 @@ export default function Layout({ children }) {
 	store.subscribe(() => {
 		console.log('Store=>', store.getState());
 	});
+
+	const menuItems = [
+		{ text: 'Dashboard', icon: <Dashboard />, path: '/testroom/dashboard' },
+		{ text: 'Topology', icon: <Hub />, path: '/testroom/topology' },
+		{ text: 'Reports', icon: <Assessment />, path: '/testroom/reports' },
+		{ text: 'Maintenance', icon: <BuildCircle />, path: '/testroom/maintenance' },
+		{ text: 'Asset Management', icon: <Inventory />, path: '/testroom/assets' },
+		{ text: 'Equipment Library', icon: <LibraryBooks />, path: '/testroom/equipment-library' },
+		{ text: 'Projects & Tasks', icon: <AssignmentTurnedIn />, path: '/testroom/projects-tasks' },
+		{
+			text: 'Sections & Sub-sections',
+			icon: <AccountTree />,
+			path: '/testroom/sections-subsections',
+		},
+	];
+
 	return (
 		<Box
 			sx={{
 				display: 'flex',
-				bgcolor: '#F8FAFC', // Light background for main content
+				bgcolor: 'background.default',
 				minHeight: '100vh',
 				width: '100vw', // Occupy full viewport width
 				overflowX: 'hidden',
 			}}
 		>
-			<SideMenu />
+			<SideMenu menuItems={menuItems} />
 
 			<Box
 				component="main"
@@ -30,6 +56,7 @@ export default function Layout({ children }) {
 					width: `calc(100% - 280px)`, // Dynamic calculation for the rest
 					display: 'flex',
 					flexDirection: 'column',
+					bgcolor: 'background.default',
 				}}
 			>
 				{children}
