@@ -1,15 +1,51 @@
 'use client';
 
 import { Close } from '@mui/icons-material';
-import { Box, Grid, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { Box, Button, Grid, IconButton, Paper, Stack, TextField, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { useCableDetails } from '@/hooks/cable';
+import { useState } from 'react';
+import { useAddEcSocket, useCableDetails } from '@/hooks/cable';
 import { RtmDrawer } from '@/lib/common/layout';
 
 export function CableDetailPanel({ cableId, onClose }) {
 	const { data: cable, isLoading } = useCableDetails(cableId);
+	const { mutate: addEcSocket, isLoading: isAddingSocket } = useAddEcSocket(cableId);
+	const [socketKm, setSocketKm] = useState('');
+	const [socketError, setSocketError] = useState('');
 
 	if (isLoading || !cable) return null;
+
+	const parseKmValue = (value) => {
+		const match = String(value || '').match(/^\s*(\d+(\.\d+)?)/);
+		return match ? Number.parseFloat(match[1]) : null;
+	};
+
+	const handleAddSocket = (event) => {
+		event.preventDefault();
+		const trimmed = socketKm.trim();
+		if (!trimmed) {
+			setSocketError('KM value is required');
+			return;
+		}
+
+		const rangeStart = cable.subsection?.startKm;
+		const rangeEnd = cable.subsection?.endKm;
+		if (rangeStart !== null && rangeEnd !== null && rangeStart !== undefined && rangeEnd !== undefined) {
+			const kmValue = parseKmValue(trimmed);
+			if (kmValue === null) {
+				setSocketError(`Enter KM within ${rangeStart}-${rangeEnd}`);
+				return;
+			}
+			if (kmValue < rangeStart || kmValue > rangeEnd) {
+				setSocketError(`KM must be within ${rangeStart}-${rangeEnd}`);
+				return;
+			}
+		}
+
+		setSocketError('');
+		addEcSocket({ poleKm: trimmed });
+		setSocketKm('');
+	};
 
 	return (
 		<RtmDrawer drawerName="cableDetailPanel" isOpen={!!cableId}>
@@ -47,9 +83,68 @@ export function CableDetailPanel({ cableId, onClose }) {
 				{/* Asset List Section */}
 				<Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
 					{cable.type === 'PIJF' ? (
-						<QuadList pairs={cable.copperPairs} />
+						<Stack spacing={2}>
+							<QuadList pairs={cable.copperPairs} />
+							{cable.subType === 'QUAD_6' && (
+								<EcSocketList
+									sockets={cable.ecSockets}
+									subsectionRange={{
+										startKm: cable.subsection?.startKm,
+										endKm: cable.subsection?.endKm,
+									}}
+									socketKm={socketKm}
+									socketError={socketError}
+									isAdding={isAddingSocket}
+									onSocketChange={(value) => {
+										setSocketKm(value);
+										setSocketError('');
+									}}
+									onSubmit={handleAddSocket}
+								/>
+							)}
+						</Stack>
 					) : (
 						<FiberList fibers={cable.fibers} />
+					)}
+					{(cable.sideSegments || []).length > 0 && (
+						<Paper
+							elevation={0}
+							sx={{
+								mt: 2,
+								p: 2,
+								borderRadius: 4,
+								border: '1px solid',
+								borderColor: 'divider',
+								bgcolor: 'background.paper',
+							}}
+						>
+							<Typography sx={{ fontSize: '0.75rem', fontWeight: 900, color: 'text.primary', mb: 1 }}>
+								Side Segments
+							</Typography>
+							<Stack spacing={1}>
+								{cable.sideSegments.map((segment) => (
+									<Box
+										key={segment.id}
+										sx={{
+											p: 1,
+											bgcolor: 'background.default',
+											borderRadius: 2,
+											display: 'flex',
+											justifyContent: 'space-between',
+											border: '1px solid',
+											borderColor: 'divider',
+										}}
+									>
+										<Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.primary' }}>
+											KM {segment.fromKm} - {segment.toKm}
+										</Typography>
+										<Typography sx={{ fontSize: '0.65rem', fontWeight: 800, color: 'text.secondary' }}>
+											{segment.side}
+										</Typography>
+									</Box>
+								))}
+							</Stack>
+						</Paper>
 					)}
 				</Box>
 			</Box>
@@ -227,6 +322,138 @@ const QuadList = ({ pairs = [] }) => {
 				</Paper>
 			))}
 		</Stack>
+	);
+};
+
+const EcSocketList = ({
+	sockets = [],
+	subsectionRange,
+	socketKm,
+	socketError,
+	isAdding,
+	onSocketChange,
+	onSubmit,
+}) => {
+	const rangeLabel =
+		subsectionRange?.startKm !== undefined &&
+		subsectionRange?.startKm !== null &&
+		subsectionRange?.endKm !== undefined &&
+		subsectionRange?.endKm !== null
+			? `KM ${subsectionRange.startKm} - ${subsectionRange.endKm}`
+			: null;
+
+	if (!sockets.length) {
+		return (
+			<Paper
+				elevation={0}
+				sx={{
+					p: 2,
+					borderRadius: 4,
+					border: '1px solid',
+					borderColor: 'divider',
+					bgcolor: 'background.paper',
+				}}
+			>
+				<Stack spacing={1.5}>
+					<Box>
+						<Typography sx={{ fontSize: '0.75rem', fontWeight: 900, color: 'text.primary' }}>
+							EC Sockets
+						</Typography>
+						{rangeLabel && (
+							<Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', mt: 0.5 }}>
+								Subsection range: {rangeLabel}
+							</Typography>
+						)}
+						<Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mt: 1 }}>
+							No sockets recorded yet.
+						</Typography>
+					</Box>
+					<form onSubmit={onSubmit}>
+						<Stack direction="row" spacing={1.5} alignItems="flex-start">
+							<TextField
+								value={socketKm}
+								onChange={(event) => onSocketChange(event.target.value)}
+								label="Socket KM"
+								placeholder="e.g. 10.2/3"
+								size="small"
+								error={!!socketError}
+								helperText={socketError || ' '}
+								fullWidth
+							/>
+							<Button type="submit" variant="contained" disableElevation disabled={isAdding}>
+								{isAdding ? 'Adding...' : 'Add'}
+							</Button>
+						</Stack>
+					</form>
+				</Stack>
+			</Paper>
+		);
+	}
+
+	return (
+		<Paper
+			elevation={0}
+			sx={{
+				p: 2,
+				borderRadius: 4,
+				border: '1px solid',
+				borderColor: 'divider',
+				bgcolor: 'background.paper',
+			}}
+		>
+			<Stack spacing={1.5}>
+				<Box>
+					<Typography sx={{ fontSize: '0.75rem', fontWeight: 900, color: 'text.primary' }}>
+						EC Sockets
+					</Typography>
+					{rangeLabel && (
+						<Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', mt: 0.5 }}>
+							Subsection range: {rangeLabel}
+						</Typography>
+					)}
+				</Box>
+				<form onSubmit={onSubmit}>
+					<Stack direction="row" spacing={1.5} alignItems="flex-start">
+						<TextField
+							value={socketKm}
+							onChange={(event) => onSocketChange(event.target.value)}
+							label="Socket KM"
+							placeholder="e.g. 10.2/3"
+							size="small"
+							error={!!socketError}
+							helperText={socketError || ' '}
+							fullWidth
+						/>
+						<Button type="submit" variant="contained" disableElevation disabled={isAdding}>
+							{isAdding ? 'Adding...' : 'Add'}
+						</Button>
+					</Stack>
+				</form>
+				<Stack spacing={1}>
+					{sockets.map((socket, index) => (
+						<Box
+							key={socket.id}
+							sx={{
+								p: 1,
+								bgcolor: 'background.default',
+								borderRadius: 2,
+								display: 'flex',
+								justifyContent: 'space-between',
+								border: '1px solid',
+								borderColor: 'divider',
+							}}
+						>
+							<Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: 'text.primary' }}>
+								Socket {index + 1}
+							</Typography>
+							<Typography sx={{ fontSize: '0.65rem', fontWeight: 800, color: 'text.secondary' }}>
+								KM {socket.poleKm}
+							</Typography>
+						</Box>
+					))}
+				</Stack>
+			</Stack>
+		</Paper>
 	);
 };
 

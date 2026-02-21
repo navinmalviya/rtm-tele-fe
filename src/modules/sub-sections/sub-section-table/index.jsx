@@ -66,6 +66,20 @@ export function SubSectionTable() {
 			),
 		},
 		{
+			field: 'kmRange',
+			headerName: 'KM RANGE',
+			flex: 0.8,
+			renderCell: (params) => {
+				const start = params.row.startKm ?? '--';
+				const end = params.row.endKm ?? '--';
+				return (
+					<Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: 'text.primary' }}>
+						{start} - {end}
+					</Typography>
+				);
+			},
+		},
+		{
 			field: 'actions',
 			headerName: '',
 			width: 100,

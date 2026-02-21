@@ -1,6 +1,6 @@
 'use client';
 
-import { Add, ViewInAr } from '@mui/icons-material';
+import { Add, Cable, South, ViewInAr, North } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useState } from 'react';
@@ -34,31 +34,32 @@ export default function SubSectionDetails({ subsectionId }) {
 		);
 	}
 
-	const upSideCables = cables?.filter((c) => c.side === 'UP') || [];
-	const downSideCables = cables?.filter((c) => c.side === 'DOWN') || [];
+	const mappedCables = (cables || []).map((cable) => {
+		const segmentSides = new Set((cable.sideSegments || []).map((segment) => segment.side));
+		const hasSegments = segmentSides.size > 0;
+		const hasUp = hasSegments ? segmentSides.has('UP') : cable.side === 'UP';
+		const hasDown = hasSegments ? segmentSides.has('DOWN') : cable.side === 'DOWN';
+		const sideLabel = hasSegments ? Array.from(segmentSides).sort().join(' / ') : cable.side;
+		return { ...cable, hasUp, hasDown, sideLabel };
+	});
+
+	const segmentedCables = mappedCables.filter((cable) => cable.hasUp && cable.hasDown);
+	const upSideCables = mappedCables.filter((cable) => cable.hasUp);
+	const downSideCables = mappedCables.filter((cable) => cable.hasDown);
+
+	const totalCables = mappedCables.length;
+	const upCount = mappedCables.filter((cable) => cable.hasUp).length;
+	const downCount = mappedCables.filter((cable) => cable.hasDown).length;
 
 	return (
-		<Box
-			sx={{ display: 'flex', height: 'calc(100vh - 64px)', bgcolor: 'background.default', overflow: 'hidden' }}
-		>
+		<Box sx={{ display: 'flex', height: 'calc(100vh - 64px)', bgcolor: 'background.default', overflow: 'hidden' }}>
 			<AddCableDrawer />
 			<Box sx={{ flex: 1, p: 4, overflowY: 'auto' }}>
-				<Stack
-					direction="row"
-					justifyContent="space-between"
-					alignItems="flex-start"
-					sx={{ mb: 6 }}
-				>
+				<Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 4 }}>
 					<Box>
 						<Typography
 							variant="h5"
-							sx={{
-								fontWeight: 800,
-								color: 'text.primary',
-								display: 'flex',
-								alignItems: 'center',
-								gap: 1.5,
-							}}
+							sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1.5 }}
 						>
 							<ViewInAr sx={{ color: 'primary.main' }} /> Subsection Track Layout
 						</Typography>
@@ -68,18 +69,17 @@ export default function SubSectionDetails({ subsectionId }) {
 					</Box>
 
 					<Stack direction="row" spacing={2} alignItems="center">
-						{/* Legend Section */}
 						<Paper
 							elevation={0}
-							sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'background.paper' }}
+							sx={{ p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'background.paper' }}
 						>
-							<Stack direction="row" spacing={3}>
+							<Stack direction="row" spacing={2}>
 								<LegendItem color={theme.palette.primary.main} label="PIJF / Quad" />
 								<LegendItem color={theme.palette.warning.main} label="OFC" />
+								<LegendItem color={theme.palette.info.main} label="Segmented" />
 							</Stack>
 						</Paper>
 
-						{/* Add Cable Button */}
 						<Button
 							variant="contained"
 							startIcon={<Add />}
@@ -92,10 +92,7 @@ export default function SubSectionDetails({ subsectionId }) {
 								px: 3,
 								py: 1,
 								boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.25)}`,
-								'&:hover': {
-									bgcolor: 'primary.dark',
-									boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.35)}`,
-								},
+								'&:hover': { bgcolor: 'primary.dark', boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.35)}` },
 							}}
 						>
 							Add Cable
@@ -103,10 +100,122 @@ export default function SubSectionDetails({ subsectionId }) {
 					</Stack>
 				</Stack>
 
+				<Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ mb: 4 }}>
+					<Paper
+						elevation={0}
+						sx={{
+							flex: 1,
+							p: 2.5,
+							borderRadius: 3,
+							border: '1px solid',
+							borderColor: 'divider',
+							bgcolor: 'background.paper',
+						}}
+					>
+						<Stack direction="row" spacing={2} alignItems="center">
+							<Box
+								sx={{
+									width: 40,
+									height: 40,
+									borderRadius: 2,
+									bgcolor: alpha(theme.palette.primary.main, 0.12),
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									color: 'primary.main',
+								}}
+							>
+								<Cable />
+							</Box>
+							<Box>
+								<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary' }}>
+									Total Cables
+								</Typography>
+								<Typography sx={{ fontSize: '1.2rem', fontWeight: 800, color: 'text.primary' }}>
+									{totalCables}
+								</Typography>
+							</Box>
+						</Stack>
+					</Paper>
+
+					<Paper
+						elevation={0}
+						sx={{
+							flex: 1,
+							p: 2.5,
+							borderRadius: 3,
+							border: '1px solid',
+							borderColor: 'divider',
+							bgcolor: 'background.paper',
+						}}
+					>
+						<Stack direction="row" spacing={2} alignItems="center">
+							<Box
+								sx={{
+									width: 40,
+									height: 40,
+									borderRadius: 2,
+									bgcolor: alpha(theme.palette.success.main, 0.12),
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									color: 'success.main',
+								}}
+							>
+								<North />
+							</Box>
+							<Box>
+								<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary' }}>
+									UP Side Coverage
+								</Typography>
+								<Typography sx={{ fontSize: '1.2rem', fontWeight: 800, color: 'text.primary' }}>
+									{upCount}
+								</Typography>
+							</Box>
+						</Stack>
+					</Paper>
+
+					<Paper
+						elevation={0}
+						sx={{
+							flex: 1,
+							p: 2.5,
+							borderRadius: 3,
+							border: '1px solid',
+							borderColor: 'divider',
+							bgcolor: 'background.paper',
+						}}
+					>
+						<Stack direction="row" spacing={2} alignItems="center">
+							<Box
+								sx={{
+									width: 40,
+									height: 40,
+									borderRadius: 2,
+									bgcolor: alpha(theme.palette.warning.main, 0.12),
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									color: 'warning.main',
+								}}
+							>
+								<South />
+							</Box>
+							<Box>
+								<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary' }}>
+									DOWN Side Coverage
+								</Typography>
+								<Typography sx={{ fontSize: '1.2rem', fontWeight: 800, color: 'text.primary' }}>
+									{downCount}
+								</Typography>
+							</Box>
+						</Stack>
+					</Paper>
+				</Stack>
+
 				<Container maxWidth="lg">
 					<TrackLayout
-						upCables={upSideCables}
-						downCables={downSideCables}
+						cables={mappedCables}
 						selectedId={selectedCableId}
 						onCableSelect={setSelectedCableId}
 					/>

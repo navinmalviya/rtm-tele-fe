@@ -40,6 +40,8 @@ export default function AddSubSectionForm() {
 			code: '',
 			fromStationId: '',
 			toStationId: '',
+			startKm: '',
+			endKm: '',
 		},
 	});
 
@@ -358,6 +360,63 @@ export default function AddSubSectionForm() {
 														)
 													)}
 											</TextField>
+										)}
+									/>
+								</Stack>
+							</Box>
+
+							<Box>
+								<Typography
+									variant="subtitle2"
+									sx={{
+										fontWeight: 700,
+										mb: 2,
+										color: 'text.secondary',
+									}}
+								>
+									KM RANGE
+								</Typography>
+								<Stack direction="row" spacing={2}>
+									<Controller
+										name="startKm"
+										control={control}
+										rules={{
+											required: 'Start KM is required',
+										}}
+										render={({ field }) => (
+											<TextField
+												{...field}
+												label="Start KM"
+												type="number"
+												inputProps={{ step: '0.1' }}
+												fullWidth
+												error={!!errors.startKm}
+												helperText={errors.startKm?.message}
+												InputProps={{
+													sx: { borderRadius: 2 },
+												}}
+											/>
+										)}
+									/>
+									<Controller
+										name="endKm"
+										control={control}
+										rules={{
+											required: 'End KM is required',
+										}}
+										render={({ field }) => (
+											<TextField
+												{...field}
+												label="End KM"
+												type="number"
+												inputProps={{ step: '0.1' }}
+												fullWidth
+												error={!!errors.endKm}
+												helperText={errors.endKm?.message}
+												InputProps={{
+													sx: { borderRadius: 2 },
+												}}
+											/>
 										)}
 									/>
 								</Stack>

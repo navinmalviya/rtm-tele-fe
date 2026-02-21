@@ -24,6 +24,13 @@ const addCable = (cableData) => {
 };
 
 /**
+ * Adds an EC socket to a cable.
+ */
+const addEcSocket = (cableId, payload) => {
+	return http.post(`/cable/${cableId}/ec-socket`, payload);
+};
+
+/**
  * Updates existing cable metadata such as length or maintenance authority.
  */
 const updateCable = (id, data) => {
@@ -41,6 +48,7 @@ export const CableService = {
 	getCablesBySubsection,
 	getCableDetails,
 	addCable,
+	addEcSocket,
 	updateCable,
 	deleteCable,
 };

@@ -26,6 +26,8 @@ export const useCablesBySubsection = (subsectionId) => {
 				length: cable.length,
 				maintenanceBy: cable.maintenanceBy,
 				dateOfCommissioning: cable.dateOfCommissioning,
+				sideSegments: cable.sideSegments || [],
+				_count: cable._count || {},
 				// Metadata for graphical rendering and counts
 				meta: {
 					quadCount: cable.quadCount,
