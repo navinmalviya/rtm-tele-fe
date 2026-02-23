@@ -1,17 +1,36 @@
 'use client';
 
 import { Close } from '@mui/icons-material';
-import { Box, Button, Grid, IconButton, Paper, Stack, TextField, Typography } from '@mui/material';
+import {
+	Box,
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	Grid,
+	IconButton,
+	MenuItem,
+	Paper,
+	Stack,
+	TextField,
+	Typography,
+} from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useState } from 'react';
-import { useAddEcSocket, useCableDetails } from '@/hooks/cable';
+import { useAddEcSocket, useCableDetails, useConnectMedia } from '@/hooks/cable';
+import { useAllEquipment } from '@/hooks/equipment';
 import { RtmDrawer } from '@/lib/common/layout';
 
 export function CableDetailPanel({ cableId, onClose }) {
 	const { data: cable, isLoading } = useCableDetails(cableId);
 	const { mutate: addEcSocket, isLoading: isAddingSocket } = useAddEcSocket(cableId);
+	const { mutate: connectMedia, isLoading: isConnecting } = useConnectMedia(cableId);
+	const { data: allEquipment = [] } = useAllEquipment();
 	const [socketKm, setSocketKm] = useState('');
 	const [socketError, setSocketError] = useState('');
+	const [connectState, setConnectState] = useState({ open: false, mediaType: null, mediaId: null });
+	const [selectedEquipmentId, setSelectedEquipmentId] = useState('');
 
 	if (isLoading || !cable) return null;
 
@@ -47,8 +66,19 @@ export function CableDetailPanel({ cableId, onClose }) {
 		setSocketKm('');
 	};
 
+	const handleConnect = () => {
+		if (!selectedEquipmentId) return;
+		connectMedia({
+			mediaType: connectState.mediaType,
+			mediaId: connectState.mediaId,
+			equipmentId: selectedEquipmentId,
+		});
+		setConnectState({ open: false, mediaType: null, mediaId: null });
+		setSelectedEquipmentId('');
+	};
+
 	return (
-		<RtmDrawer drawerName="cableDetailPanel" isOpen={!!cableId}>
+		<RtmDrawer drawerName="cableDetailPanel">
 			<Box
 				sx={{
 					width: 420,
@@ -84,7 +114,10 @@ export function CableDetailPanel({ cableId, onClose }) {
 				<Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
 					{cable.type === 'PIJF' ? (
 						<Stack spacing={2}>
-							<QuadList pairs={cable.copperPairs} />
+							<QuadList
+								pairs={cable.copperPairs}
+								onConnect={(id) => setConnectState({ open: true, mediaType: 'PAIR', mediaId: id })}
+							/>
 							{cable.subType === 'QUAD_6' && (
 								<EcSocketList
 									sockets={cable.ecSockets}
@@ -104,7 +137,10 @@ export function CableDetailPanel({ cableId, onClose }) {
 							)}
 						</Stack>
 					) : (
-						<FiberList fibers={cable.fibers} />
+						<FiberList
+							fibers={cable.fibers}
+							onConnect={(id) => setConnectState({ open: true, mediaType: 'FIBER', mediaId: id })}
+						/>
 					)}
 					{(cable.sideSegments || []).length > 0 && (
 						<Paper
@@ -147,6 +183,32 @@ export function CableDetailPanel({ cableId, onClose }) {
 						</Paper>
 					)}
 				</Box>
+
+				<Dialog open={connectState.open} onClose={() => setConnectState({ open: false, mediaType: null, mediaId: null })}>
+					<DialogTitle>Connect Equipment</DialogTitle>
+					<DialogContent sx={{ minWidth: 320 }}>
+						<TextField
+							select
+							label="Select Equipment"
+							fullWidth
+							value={selectedEquipmentId}
+							onChange={(event) => setSelectedEquipmentId(event.target.value)}
+							sx={{ mt: 1 }}
+						>
+							{allEquipment.map((equipment) => (
+								<MenuItem key={equipment.id} value={equipment.id}>
+									{equipment.name} ({equipment.station?.code || equipment.station?.name || 'Station'})
+								</MenuItem>
+							))}
+						</TextField>
+					</DialogContent>
+					<DialogActions sx={{ px: 3, pb: 2 }}>
+						<Button onClick={() => setConnectState({ open: false, mediaType: null, mediaId: null })}>Cancel</Button>
+						<Button variant="contained" disableElevation onClick={handleConnect} disabled={isConnecting}>
+							{isConnecting ? 'Connecting...' : 'Connect'}
+						</Button>
+					</DialogActions>
+				</Dialog>
 			</Box>
 		</RtmDrawer>
 	);
@@ -155,7 +217,7 @@ export function CableDetailPanel({ cableId, onClose }) {
 /**
  * Renders Fibers grouped by Buffer Tubes
  */
-const FiberList = ({ fibers = [] }) => {
+const FiberList = ({ fibers = [], onConnect }) => {
 	const tubes = fibers.reduce((acc, fiber) => {
 		if (!acc[fiber.tubeNo]) acc[fiber.tubeNo] = [];
 		acc[fiber.tubeNo].push(fiber);
@@ -193,9 +255,16 @@ const FiberList = ({ fibers = [] }) => {
 					</Stack>
 
 					<Grid container spacing={1}>
-						{tFibers.map((fiber) => (
+						{tFibers.map((fiber) => {
+							const connectedEquipment = (fiber.circuits || []).flatMap(
+								(circuit) => circuit.equipments || []
+							);
+							return (
 							<Grid item xs={6} key={fiber.id}>
 								<Box
+									onClick={() => {
+										if (connectedEquipment.length === 0) onConnect(fiber.id);
+									}}
 									sx={{
 										p: 1.2,
 										bgcolor: 'background.default',
@@ -205,6 +274,7 @@ const FiberList = ({ fibers = [] }) => {
 										gap: 1.5,
 										border: '1px solid',
 										borderColor: 'divider',
+										cursor: connectedEquipment.length === 0 ? 'pointer' : 'default',
 									}}
 								>
 									{/* Fiber Color Circle */}
@@ -220,19 +290,26 @@ const FiberList = ({ fibers = [] }) => {
 											border: (theme) => `1px solid ${alpha(theme.palette.common.black, 0.1)}`,
 										}}
 									/>
-									<Box>
+									<Box sx={{ flex: 1 }}>
 										<Typography
 											sx={{ fontSize: '0.7rem', fontWeight: 900, color: 'text.primary', lineHeight: 1 }}
 										>
 											F-{fiber.fiberNo}
 										</Typography>
 										<Typography sx={{ fontSize: '0.6rem', color: 'text.secondary', fontWeight: 600 }}>
-											{fiber.fiberColor}
+											{connectedEquipment.length > 0
+												? connectedEquipment.map((eq) => eq.name).join(', ')
+												: 'SPARE'}
 										</Typography>
 									</Box>
+									{connectedEquipment.length === 0 && (
+										<Button size="small" onClick={() => onConnect(fiber.id)}>
+											Connect
+										</Button>
+									)}
 								</Box>
 							</Grid>
-						))}
+						)})}
 					</Grid>
 				</Paper>
 			))}
@@ -243,7 +320,7 @@ const FiberList = ({ fibers = [] }) => {
 /**
  * Renders Pairs grouped by Quads
  */
-const QuadList = ({ pairs = [] }) => {
+const QuadList = ({ pairs = [], onConnect }) => {
 	const quads = pairs.reduce((acc, pair) => {
 		if (!acc[pair.quadNo]) acc[pair.quadNo] = [];
 		acc[pair.quadNo].push(pair);
@@ -274,9 +351,16 @@ const QuadList = ({ pairs = [] }) => {
 					</Stack>
 
 					<Stack spacing={1}>
-						{qPairs.map((pair) => (
+						{qPairs.map((pair) => {
+							const connectedEquipment = (pair.circuits || []).flatMap(
+								(circuit) => circuit.equipments || []
+							);
+							return (
 							<Box
 								key={pair.id}
+								onClick={() => {
+									if (connectedEquipment.length === 0) onConnect(pair.id);
+								}}
 								sx={{
 									p: 1.5,
 									bgcolor: 'background.default',
@@ -286,6 +370,7 @@ const QuadList = ({ pairs = [] }) => {
 									justifyContent: 'space-between',
 									border: '1px solid',
 									borderColor: 'divider',
+									cursor: connectedEquipment.length === 0 ? 'pointer' : 'default',
 								}}
 							>
 								<Stack direction="row" spacing={2} alignItems="center">
@@ -307,17 +392,26 @@ const QuadList = ({ pairs = [] }) => {
 										{pair.pairColor}
 									</Typography>
 								</Stack>
-								<Typography
-									sx={{
-										fontSize: '0.65rem',
-										fontWeight: 800,
-										color: pair.circuitName ? 'success.main' : 'text.disabled',
-									}}
-								>
-									{pair.circuitName || 'SPARE'}
-								</Typography>
+								<Stack alignItems="flex-end" spacing={0.2}>
+									<Typography
+										sx={{
+											fontSize: '0.65rem',
+											fontWeight: 800,
+											color: connectedEquipment.length > 0 ? 'success.main' : 'text.disabled',
+										}}
+									>
+										{connectedEquipment.length > 0
+											? connectedEquipment.map((eq) => eq.name).join(', ')
+											: 'SPARE'}
+									</Typography>
+									{connectedEquipment.length === 0 && (
+										<Button size="small" onClick={() => onConnect(pair.id)}>
+											Connect
+										</Button>
+									)}
+								</Stack>
 							</Box>
-						))}
+						)})}
 					</Stack>
 				</Paper>
 			))}

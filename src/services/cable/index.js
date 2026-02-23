@@ -31,6 +31,13 @@ const addEcSocket = (cableId, payload) => {
 };
 
 /**
+ * Connects a pair or fiber to an equipment by creating a circuit.
+ */
+const connectMedia = (payload) => {
+	return http.post('/cable/connect-media', payload);
+};
+
+/**
  * Updates existing cable metadata such as length or maintenance authority.
  */
 const updateCable = (id, data) => {
@@ -49,6 +56,7 @@ export const CableService = {
 	getCableDetails,
 	addCable,
 	addEcSocket,
+	connectMedia,
 	updateCable,
 	deleteCable,
 };

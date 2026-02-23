@@ -17,6 +17,13 @@ const findByStation = (stationId) => {
 };
 
 /**
+ * Fetches all equipment for current division.
+ */
+const findAll = () => {
+	return http.get('/equipment/all');
+};
+
+/**
  * Universal update for a single asset.
  * Handles metadata, status, or single-node position changes.
  */
@@ -42,6 +49,7 @@ const deleteEquipment = (id) => {
 
 export const EquipmentService = {
 	addEquipment,
+	findAll,
 	findByStation,
 	updateEquipment,
 	bulkUpdateEquipment,

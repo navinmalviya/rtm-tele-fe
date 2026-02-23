@@ -1,26 +1,63 @@
 'use client';
 
 import { Bolt, Construction, Timeline, WifiTetheringError } from '@mui/icons-material';
-import { Box, Button, Grid, Paper, Stack, Typography } from '@mui/material';
+import {
+	Box,
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	Grid,
+	Paper,
+	Stack,
+	TextField,
+	Typography,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { BarChart, LineChart, PieChart } from '@mui/x-charts';
-import { useMemo } from 'react';
+import { BarChart, PieChart } from '@mui/x-charts';
+import { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useTasks } from '@/hooks/task';
+import { useStations } from '@/hooks/stations';
+import { useSubsections } from '@/hooks/sub-sections';
 import StatCard from '@/lib/common/stat-card';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 
 export default function DashboardPage() {
 	const dispatch = useDispatch();
 	const theme = useTheme();
+	const [drilldown, setDrilldown] = useState({ open: false, title: '', items: [] });
+	const [dateRange, setDateRange] = useState({
+		start: new Date(new Date().setDate(new Date().getDate() - 6)).toISOString().slice(0, 10),
+		end: new Date().toISOString().slice(0, 10),
+	});
 
 	// Fetching tasks which includes failures, inspections, etc.
 	const { data: allTasks = [] } = useTasks();
+	const { data: stations = [] } = useStations();
+	const { data: subsections = [] } = useSubsections();
 	// const { data: schedules = [] } = useMaintenanceSchedules();
 
 	// Logic: Filter for 'FAILURE' types specifically for the Test Room view
 	const failures = allTasks.filter((t) => t.type === 'FAILURE');
-	const activeFailures = failures.filter((f) => f.status !== 'RESOLVED');
+	const filteredFailures = useMemo(() => {
+		const start = dateRange.start ? new Date(dateRange.start) : null;
+		const end = dateRange.end ? new Date(dateRange.end) : null;
+		return failures.filter((task) => {
+			const dateValue = task.createdAt || task.updatedAt;
+			if (!dateValue) return false;
+			const dt = new Date(dateValue);
+			if (start && dt < start) return false;
+			if (end) {
+				const endOfDay = new Date(end);
+				endOfDay.setHours(23, 59, 59, 999);
+				if (dt > endOfDay) return false;
+			}
+			return true;
+		});
+	}, [failures, dateRange]);
+	const activeFailures = filteredFailures.filter((f) => f.status !== 'RESOLVED');
 
 	// Priority logic for the trend labels
 	const criticalCount = activeFailures.filter(
@@ -32,33 +69,6 @@ export default function DashboardPage() {
 		(s) => new Date(s.nextDueDate) < new Date() && s.status === 'PENDING'
 	).length;
 
-const failureTrend = useMemo(() => {
-		const now = new Date();
-		const start = new Date(now);
-		start.setDate(now.getDate() - 6);
-		const days = Array.from({ length: 7 }, (_, index) => {
-			const date = new Date(start);
-			date.setDate(start.getDate() + index);
-			const key = date.toISOString().slice(0, 10);
-			return {
-				key,
-				label: date.toLocaleDateString('en-IN', { weekday: 'short' }),
-				count: 0,
-			};
-		});
-		const dayMap = new Map(days.map((day) => [day.key, day]));
-		failures.forEach((task) => {
-			const dateValue = task.createdAt || task.updatedAt;
-			if (!dateValue) return;
-			const key = new Date(dateValue).toISOString().slice(0, 10);
-			const day = dayMap.get(key);
-			if (day) day.count += 1;
-		});
-		return days;
-	}, [failures]);
-
-	const durationToHours = (ms) => (Number.isFinite(ms) ? ms / (1000 * 60 * 60) : 0);
-
 	const formatDuration = (ms) => {
 		if (!Number.isFinite(ms) || ms <= 0) return 'N/A';
 		const totalMinutes = Math.round(ms / (1000 * 60));
@@ -68,7 +78,7 @@ const failureTrend = useMemo(() => {
 	};
 
 	const mttrValues = useMemo(() => {
-		return failures
+		return filteredFailures
 			.map((task) => {
 				const start = task.failure?.failureReportedAt || task.createdAt;
 				const end = task.failure?.restorationTime;
@@ -77,7 +87,7 @@ const failureTrend = useMemo(() => {
 				return duration > 0 ? duration : null;
 			})
 			.filter(Boolean);
-	}, [failures]);
+	}, [filteredFailures]);
 
 	const avgMttrMs = useMemo(() => {
 		if (!mttrValues.length) return null;
@@ -85,7 +95,7 @@ const failureTrend = useMemo(() => {
 	}, [mttrValues]);
 
 	const avgMtbfMs = useMemo(() => {
-		const points = failures
+		const points = filteredFailures
 			.map((task) => task.failure?.failureReportedAt || task.createdAt)
 			.filter(Boolean)
 			.map((value) => new Date(value).getTime())
@@ -94,104 +104,67 @@ const failureTrend = useMemo(() => {
 		const gaps = points.slice(1).map((value, index) => value - points[index]).filter((gap) => gap > 0);
 		if (!gaps.length) return null;
 		return gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length;
-	}, [failures]);
+	}, [filteredFailures]);
 
-	const mttrTrend = useMemo(() => {
-		const now = new Date();
-		const start = new Date(now);
-		start.setDate(now.getDate() - 6);
-		const days = Array.from({ length: 7 }, (_, index) => {
-			const date = new Date(start);
-			date.setDate(start.getDate() + index);
-			const key = date.toISOString().slice(0, 10);
-			return {
-				key,
-				label: date.toLocaleDateString('en-IN', { weekday: 'short' }),
-				values: [],
-			};
+
+	const stationChart = useMemo(() => {
+		const stationMap = new Map();
+		stations.forEach((station) => {
+			stationMap.set(station.id, station.data?.label || station.name);
 		});
-		const dayMap = new Map(days.map((day) => [day.key, day]));
-		failures.forEach((task) => {
-			const startDate = task.failure?.failureReportedAt || task.createdAt;
-			const endDate = task.failure?.restorationTime;
-			if (!startDate || !endDate) return;
-			const key = new Date(endDate).toISOString().slice(0, 10);
-			const day = dayMap.get(key);
-			if (!day) return;
-			const duration = new Date(endDate).getTime() - new Date(startDate).getTime();
-			if (duration > 0) day.values.push(duration);
+
+		const counts = new Map();
+		filteredFailures.forEach((task) => {
+			const stationId = task.failure?.stationId || task.failure?.location?.stationId;
+			if (!stationId) return;
+			const key = stationMap.get(stationId) || 'Unknown';
+			if (!counts.has(key)) counts.set(key, []);
+			counts.get(key).push(task);
 		});
-		return days.map((day) => ({
-			label: day.label,
-			value: day.values.length
-				? durationToHours(day.values.reduce((sum, value) => sum + value, 0) / day.values.length)
-				: 0,
+
+		return Array.from(counts.entries()).map(([label, items]) => ({
+			label,
+			value: items.length,
+			items,
 		}));
-	}, [failures]);
+	}, [filteredFailures, stations]);
 
-	const mtbfTrend = useMemo(() => {
-		const now = new Date();
-		const start = new Date(now);
-		start.setDate(now.getDate() - 6);
-		const days = Array.from({ length: 7 }, (_, index) => {
-			const date = new Date(start);
-			date.setDate(start.getDate() + index);
-			const key = date.toISOString().slice(0, 10);
-			return {
-				key,
-				label: date.toLocaleDateString('en-IN', { weekday: 'short' }),
-				values: [],
-			};
+	const subsectionChart = useMemo(() => {
+		const subsectionMap = new Map();
+		subsections.forEach((sub) => {
+			subsectionMap.set(sub.id, sub.name || sub.code);
 		});
-		const dayMap = new Map(days.map((day) => [day.key, day]));
-		const points = failures
-			.map((task) => task.failure?.failureReportedAt || task.createdAt)
-			.filter(Boolean)
-			.map((value) => new Date(value).getTime())
-			.sort((a, b) => a - b);
-		points.forEach((value, index) => {
-			if (index === 0) return;
-			const gap = value - points[index - 1];
-			if (gap <= 0) return;
-			const key = new Date(value).toISOString().slice(0, 10);
-			const day = dayMap.get(key);
-			if (!day) return;
-			day.values.push(gap);
+
+		const counts = new Map();
+		filteredFailures.forEach((task) => {
+			const subsectionId = task.failure?.subsectionId;
+			if (!subsectionId) return;
+			const key = subsectionMap.get(subsectionId) || 'Unknown';
+			if (!counts.has(key)) counts.set(key, []);
+			counts.get(key).push(task);
 		});
-		return days.map((day) => ({
-			label: day.label,
-			value: day.values.length
-				? durationToHours(day.values.reduce((sum, value) => sum + value, 0) / day.values.length)
-				: 0,
+
+		return Array.from(counts.entries()).map(([label, items]) => ({
+			label,
+			value: items.length,
+			items,
 		}));
-	}, [failures]);
+	}, [filteredFailures, subsections]);
 
-	const priorityChart = useMemo(() => {
-		const priorityBuckets = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
-		return priorityBuckets.map((priority) => ({
-			label: priority,
-			value: failures.filter((task) => task.priority === priority).length,
-		}));
-	}, [failures]);
-
-	const typeChart = useMemo(() => {
-		const typeCounts = new Map();
-		failures.forEach((task) => {
-			const type = task.type || 'UNKNOWN';
-			typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
+	const failureTypeChart = useMemo(() => {
+		const counts = new Map();
+		filteredFailures.forEach((task) => {
+			const key = task.failure?.type || 'UNKNOWN';
+			if (!counts.has(key)) counts.set(key, []);
+			counts.get(key).push(task);
 		});
-		const sorted = Array.from(typeCounts.entries()).sort((a, b) => b[1] - a[1]);
-		const top = sorted.slice(0, 5);
-		const rest = sorted.slice(5);
-		if (rest.length > 0) {
-			top.push(['OTHER', rest.reduce((sum, [, count]) => sum + count, 0)]);
-		}
-		return top.map(([label, value], index) => ({
+		return Array.from(counts.entries()).map(([label, items], index) => ({
 			id: index,
 			label,
-			value,
+			value: items.length,
+			items,
 		}));
-	}, [failures]);
+	}, [filteredFailures]);
 
 	return (
 		<Box sx={{ bgcolor: 'transparent', p: 4 }}>
@@ -282,123 +255,27 @@ const failureTrend = useMemo(() => {
 							{activeFailures.length} ACTIVE
 						</Typography>
 					</Box>
+					<Stack direction="row" spacing={2} alignItems="center" sx={{ ml: 'auto' }}>
+						<TextField
+							type="date"
+							label="Start Date"
+							value={dateRange.start}
+							onChange={(event) => setDateRange((prev) => ({ ...prev, start: event.target.value }))}
+							InputLabelProps={{ shrink: true }}
+							size="small"
+						/>
+						<TextField
+							type="date"
+							label="End Date"
+							value={dateRange.end}
+							onChange={(event) => setDateRange((prev) => ({ ...prev, end: event.target.value }))}
+							InputLabelProps={{ shrink: true }}
+							size="small"
+						/>
+					</Stack>
 				</Stack>
 
-				<Grid
-					container
-					spacing={3}
-					sx={{
-						width: '100%',
-						ml: 0,
-						mt: 0,
-						'& > .MuiGrid-item': { pl: 0 },
-					}}
-				>
-					<Grid item xs={12} lg={6}>
-						<Paper
-							variant="outlined"
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								borderColor: 'divider',
-								bgcolor: 'background.paper',
-								minHeight: 320,
-							}}
-						>
-							<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-								<Timeline sx={{ color: 'primary.main' }} />
-								<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
-									Failure Trend (Last 7 Days)
-								</Typography>
-							</Stack>
-							<LineChart
-								height={240}
-								series={[
-									{
-										data: failureTrend.map((item) => item.count),
-										label: 'Failures',
-										color: theme.palette.primary.main,
-										area: true,
-									},
-								]}
-								xAxis={[
-									{
-										scaleType: 'point',
-										data: failureTrend.map((item) => item.label),
-									},
-								]}
-								grid={{ vertical: false, horizontal: true }}
-							/>
-						</Paper>
-					</Grid>
-
-					<Grid item xs={12} lg={3}>
-						<Paper
-							variant="outlined"
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								borderColor: 'divider',
-								bgcolor: 'background.paper',
-								minHeight: 320,
-							}}
-						>
-							<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-								<WifiTetheringError sx={{ color: 'error.main' }} />
-								<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
-									Failures by Priority
-								</Typography>
-							</Stack>
-							<BarChart
-								height={240}
-								series={[
-									{
-										data: priorityChart.map((item) => item.value),
-										color: theme.palette.warning.main,
-									},
-								]}
-								xAxis={[
-									{
-										scaleType: 'band',
-										data: priorityChart.map((item) => item.label),
-									},
-								]}
-							/>
-						</Paper>
-					</Grid>
-
-					<Grid item xs={12} lg={3}>
-						<Paper
-							variant="outlined"
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								borderColor: 'divider',
-								bgcolor: 'background.paper',
-								minHeight: 320,
-							}}
-						>
-							<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-								<Bolt sx={{ color: 'success.main' }} />
-								<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
-									Failure Types
-								</Typography>
-							</Stack>
-							<PieChart
-								height={240}
-								series={[
-									{
-										data: typeChart,
-										innerRadius: 48,
-										paddingAngle: 2,
-										cornerRadius: 4,
-									},
-								]}
-								legend={{ hidden: false }}
-							/>
-						</Paper>
-					</Grid>
-				</Grid>
+				
 
 				<Grid
 					container
@@ -418,31 +295,35 @@ const failureTrend = useMemo(() => {
 								borderRadius: 3,
 								borderColor: 'divider',
 								bgcolor: 'background.paper',
-								minHeight: 280,
+								minHeight: 320,
 							}}
 						>
-							<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-								<Bolt sx={{ color: 'success.main' }} />
-								<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
-									MTTR Trend (Hours)
-								</Typography>
-							</Stack>
-							<LineChart
-								height={200}
+							<Typography sx={{ fontWeight: 700, color: 'text.primary', mb: 2 }}>
+								Failures by Station
+							</Typography>
+							<BarChart
+								height={240}
 								series={[
 									{
-										data: mttrTrend.map((item) => item.value),
-										label: 'MTTR',
-										color: theme.palette.success.main,
+										data: stationChart.map((item) => item.value),
+										color: theme.palette.primary.main,
 									},
 								]}
 								xAxis={[
 									{
-										scaleType: 'point',
-										data: mttrTrend.map((item) => item.label),
+										scaleType: 'band',
+										data: stationChart.map((item) => item.label),
 									},
 								]}
-								grid={{ vertical: false, horizontal: true }}
+								onItemClick={(event, payload) => {
+									const target = stationChart[payload.dataIndex];
+									if (!target) return;
+									setDrilldown({
+										open: true,
+										title: `Station: ${target.label}`,
+										items: target.items,
+									});
+								}}
 							/>
 						</Paper>
 					</Grid>
@@ -455,36 +336,103 @@ const failureTrend = useMemo(() => {
 								borderRadius: 3,
 								borderColor: 'divider',
 								bgcolor: 'background.paper',
-								minHeight: 280,
+								minHeight: 320,
 							}}
 						>
-							<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-								<Timeline sx={{ color: 'info.main' }} />
-								<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
-									MTBF Trend (Hours)
-								</Typography>
-							</Stack>
-							<LineChart
-								height={200}
+							<Typography sx={{ fontWeight: 700, color: 'text.primary', mb: 2 }}>
+								Failures by Sub-section
+							</Typography>
+							<BarChart
+								height={240}
 								series={[
 									{
-										data: mtbfTrend.map((item) => item.value),
-										label: 'MTBF',
-										color: theme.palette.info.main,
+										data: subsectionChart.map((item) => item.value),
+										color: theme.palette.warning.main,
 									},
 								]}
 								xAxis={[
 									{
-										scaleType: 'point',
-										data: mtbfTrend.map((item) => item.label),
+										scaleType: 'band',
+										data: subsectionChart.map((item) => item.label),
 									},
 								]}
-								grid={{ vertical: false, horizontal: true }}
+								onItemClick={(event, payload) => {
+									const target = subsectionChart[payload.dataIndex];
+									if (!target) return;
+									setDrilldown({
+										open: true,
+										title: `Sub-section: ${target.label}`,
+										items: target.items,
+									});
+								}}
 							/>
 						</Paper>
 					</Grid>
+
+					<Grid item xs={12} lg={6}>
+						<Paper
+							variant="outlined"
+							sx={{
+								p: 3,
+								borderRadius: 3,
+								borderColor: 'divider',
+								bgcolor: 'background.paper',
+								minHeight: 320,
+							}}
+						>
+							<Typography sx={{ fontWeight: 700, color: 'text.primary', mb: 2 }}>
+								Failure Types
+							</Typography>
+							<PieChart
+								height={240}
+								series={[
+									{
+										data: failureTypeChart,
+										innerRadius: 60,
+										paddingAngle: 2,
+										cornerRadius: 4,
+									},
+								]}
+								onItemClick={(event, payload) => {
+									const target = failureTypeChart[payload.dataIndex];
+									if (!target) return;
+									setDrilldown({
+										open: true,
+										title: `Failure Type: ${target.label}`,
+										items: target.items,
+									});
+								}}
+							/>
+						</Paper>
+					</Grid>
+
+					
 				</Grid>
 			</Box>
+
+			<Dialog open={drilldown.open} onClose={() => setDrilldown({ open: false, title: '', items: [] })} maxWidth="sm" fullWidth>
+				<DialogTitle>{drilldown.title}</DialogTitle>
+				<DialogContent>
+					<Stack spacing={1.5}>
+						{drilldown.items.length === 0 && (
+							<Typography sx={{ color: 'text.secondary' }}>No failures found.</Typography>
+						)}
+						{drilldown.items.map((task) => (
+							<Paper key={task.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+								<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
+									{task.title || 'Failure Ticket'}
+								</Typography>
+								<Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+									{task.failure?.type || task.type} • {task.priority} • {task.status}
+								</Typography>
+							</Paper>
+						))}
+					</Stack>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setDrilldown({ open: false, title: '', items: [] })}>Close</Button>
+				</DialogActions>
+			</Dialog>
 		</Box>
 	);
 }
