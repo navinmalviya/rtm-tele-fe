@@ -26,6 +26,7 @@ import RtmTabs from '@/lib/common/tabs';
 import StatCard from '@/lib/common/stat-card';
 import RtmDataGrid from '@/lib/common/datagrid';
 import { useTabs } from '@/hooks/common';
+import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 const REPORT_TABS = [
 	{ label: 'Daily Failure Report', step: 'daily-failure', icon: <Assessment sx={{ fontSize: 18 }} /> },
@@ -359,6 +360,8 @@ export default function ReportsPage() {
 										value={dateRange.start}
 										onChange={(event) => setDateRange((prev) => ({ ...prev, start: event.target.value }))}
 										InputLabelProps={{ shrink: true }}
+										onFocus={openNativeDateTimePicker}
+										onClick={openNativeDateTimePicker}
 										size="small"
 										sx={{ minWidth: 160 }}
 									/>
@@ -368,6 +371,8 @@ export default function ReportsPage() {
 										value={dateRange.end}
 										onChange={(event) => setDateRange((prev) => ({ ...prev, end: event.target.value }))}
 										InputLabelProps={{ shrink: true }}
+										onFocus={openNativeDateTimePicker}
+										onClick={openNativeDateTimePicker}
 										size="small"
 										sx={{ minWidth: 160 }}
 									/>

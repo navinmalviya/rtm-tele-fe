@@ -17,10 +17,13 @@ export const redirectUser = (session, router) => {
 			router.push('/sse-ic/dashboard');
 			break;
 		case 'SSE_SECTIONAL':
-			router.push('/sse-sectional/dashboard');
+			router.push('/field-engineer/dashboard');
 			break;
 		case 'JE_SECTIONAL':
-			router.push('/je-sectional/dashboard');
+			router.push('/field-engineer/dashboard');
+			break;
+		case 'JE_SSE_TELE_SECTIONAL':
+			router.push('/field-engineer/dashboard');
 			break;
 		case 'TECHNICIAN':
 			router.push('/technician/dashboard');

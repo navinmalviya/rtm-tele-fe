@@ -1,14 +1,12 @@
 'use client';
 
 import { Delete, Edit, MapsHomeWork, Storage, Subtitles } from '@mui/icons-material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useMemo } from 'react';
 import RtmDataGrid from '@/lib/common/datagrid';
 
-export default function LocationTable({ locations = [], isLoading }) {
+export default function LocationTable({ locations = [], isLoading, onEdit, onDelete }) {
 	const columns = useMemo(
 		() => [
 			{
@@ -106,29 +104,23 @@ export default function LocationTable({ locations = [], isLoading }) {
 				sortable: false,
 				align: 'right',
 				renderCell: (params) => {
-					const menuOptions = [
-						{
-							label: 'Edit Details',
-							icon: <EditIcon fontSize="small" />,
-							action: () => console.log('Edit:', params.row),
-						},
-						{
-							label: 'Delete Location',
-							icon: <DeleteIcon fontSize="small" />,
-							action: () => console.log('Delete:', params.row.id),
-							color: 'error.main',
-						},
-					];
-
 					return (
 						<Stack direction="row" spacing={0.5} alignItems="center" sx={{ height: '100%' }}>
 							<Tooltip title="Edit Blueprint">
-								<IconButton size="small" sx={{ color: 'text.secondary' }}>
+								<IconButton
+									size="small"
+									sx={{ color: 'text.secondary' }}
+									onClick={() => onEdit?.(params.row)}
+								>
 									<Edit fontSize="small" />
 								</IconButton>
 							</Tooltip>
 							<Tooltip title="Delete">
-								<IconButton size="small" sx={{ color: 'error.light' }}>
+								<IconButton
+									size="small"
+									sx={{ color: 'error.light' }}
+									onClick={() => onDelete?.(params.row)}
+								>
 									<Delete fontSize="small" />
 								</IconButton>
 							</Tooltip>
@@ -137,7 +129,7 @@ export default function LocationTable({ locations = [], isLoading }) {
 				},
 			},
 		],
-		[]
+		[onEdit, onDelete]
 	);
 
 	return (

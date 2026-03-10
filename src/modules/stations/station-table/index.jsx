@@ -1,15 +1,24 @@
 'use client';
 
-import { CalendarMonth, Edit, Place, Visibility } from '@mui/icons-material';
-import { Box, Chip, IconButton, Tooltip, Typography } from '@mui/material';
+import { CalendarMonth, Delete, Edit, Place, Visibility } from '@mui/icons-material';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
-import { useStations } from '@/hooks/stations';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useDeleteStation, useStations } from '@/hooks/stations';
 import RtmDataGrid from '@/lib/common/datagrid';
+import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import DeleteStationDialog from '../delete-station-dialog';
+import EditStationDrawer from '../edit-station';
 
 export function StationTable() {
 	const router = useRouter();
+	const dispatch = useDispatch();
 	const { data: stations = [], isLoading } = useStations();
+	const { mutate: deleteStation, isLoading: isDeleting } = useDeleteStation();
+	const [editTarget, setEditTarget] = useState(null);
+	const [deleteTarget, setDeleteTarget] = useState(null);
 
 	const columns = [
 		{
@@ -17,7 +26,6 @@ export function StationTable() {
 			headerName: 'STATION IDENTITY',
 			flex: 1.5,
 			renderCell: (params) => {
-				console.log('oar-<', params);
 				return (
 					<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%' }}>
 						<Box
@@ -44,21 +52,13 @@ export function StationTable() {
 			},
 		},
 		{
-			field: 'subsection',
-			headerName: 'PARENT SUB-SECTION',
+			field: 'supervisor',
+			headerName: 'SUPERVISOR',
 			flex: 1.2,
 			renderCell: (params) => (
-				<Chip
-					label={params.value?.code || 'MAIN LINE'}
-					size="small"
-					sx={{
-						bgcolor: 'action.hover',
-						color: 'text.secondary',
-						fontWeight: 700,
-						fontSize: '0.7rem',
-						borderRadius: 1,
-					}}
-				/>
+				<Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', fontWeight: 700 }}>
+					{params.row.supervisor?.name || params.row.data?.supervisor || '-'}
+				</Typography>
 			),
 		},
 		{
@@ -77,7 +77,7 @@ export function StationTable() {
 		{
 			field: 'actions',
 			headerName: '',
-			width: 100,
+			width: 140,
 			sortable: false,
 			renderCell: (params) => (
 				<Box sx={{ display: 'flex', gap: 0.5 }}>
@@ -91,8 +91,24 @@ export function StationTable() {
 						</IconButton>
 					</Tooltip>
 					<Tooltip title="Edit">
-						<IconButton size="small" sx={{ color: 'text.secondary' }}>
+						<IconButton
+							size="small"
+							sx={{ color: 'text.secondary' }}
+							onClick={() => {
+								setEditTarget(params.row);
+								dispatch(openDrawer({ drawerName: 'editStationDrawer' }));
+							}}
+						>
 							<Edit fontSize="small" />
+						</IconButton>
+					</Tooltip>
+					<Tooltip title="Delete">
+						<IconButton
+							size="small"
+							sx={{ color: 'error.light' }}
+							onClick={() => setDeleteTarget(params.row)}
+						>
+							<Delete fontSize="small" />
 						</IconButton>
 					</Tooltip>
 				</Box>
@@ -108,6 +124,19 @@ export function StationTable() {
 				loading={isLoading}
 				getRowId={(row) => row.id}
 				rowHeight={70}
+			/>
+			<EditStationDrawer station={editTarget} />
+			<DeleteStationDialog
+				open={!!deleteTarget}
+				station={deleteTarget}
+				isLoading={isDeleting}
+				onClose={() => setDeleteTarget(null)}
+				onConfirm={() => {
+					if (!deleteTarget?.id) return;
+					deleteStation(deleteTarget.id, {
+						onSuccess: () => setDeleteTarget(null),
+					});
+				}}
 			/>
 		</Box>
 	);

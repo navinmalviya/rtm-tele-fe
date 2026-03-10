@@ -16,9 +16,19 @@ const bulkUpdateStations = (stationsData) => {
 	return http.post(`/station/bulk-update`, stationsData);
 };
 
+const updateStation = (id, stationData) => {
+	return http.patch(`/station/update/${id}`, stationData);
+};
+
+const deleteStation = (id) => {
+	return http.delete(`/station/delete/${id}`);
+};
+
 export const StationService = {
 	allStations,
 	addStation,
 	bulkUpdateStations,
 	stationSummary,
+	updateStation,
+	deleteStation,
 };

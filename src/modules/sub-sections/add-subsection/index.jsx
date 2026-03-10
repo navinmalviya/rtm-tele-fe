@@ -15,6 +15,7 @@ import {
 import { useSession } from 'next-auth/react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
+import { useUsers } from '@/hooks/user';
 import { useStations } from '@/hooks/stations/useStations';
 import { useAddSubSection } from '@/hooks/sub-sections';
 import { RtmDrawer } from '@/lib/common/layout';
@@ -24,6 +25,7 @@ export default function AddSubSectionForm() {
 	const dispatch = useDispatch();
 	const { mutate: addSubSection } = useAddSubSection();
 	const { data: stations } = useStations();
+	const { data: users = [] } = useUsers();
 	const { data: session } = useSession();
 
 	console.log('stations=>', stations);
@@ -42,6 +44,7 @@ export default function AddSubSectionForm() {
 			toStationId: '',
 			startKm: '',
 			endKm: '',
+			supervisorId: '',
 		},
 	});
 
@@ -420,6 +423,46 @@ export default function AddSubSectionForm() {
 										)}
 									/>
 								</Stack>
+							</Box>
+
+							<Box>
+								<Typography
+									variant="subtitle2"
+									sx={{
+										fontWeight: 700,
+										mb: 2,
+										color: 'text.secondary',
+									}}
+								>
+									RESPONSIBILITY
+								</Typography>
+								<Controller
+									name="supervisorId"
+									control={control}
+									rules={{ required: 'Supervisor is required' }}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											select
+											label="Supervisor"
+											fullWidth
+											error={!!errors.supervisorId}
+											helperText={errors.supervisorId?.message}
+											slotProps={sharedSelectSlotProps}
+											InputProps={{
+												sx: {
+													borderRadius: 2,
+												},
+											}}
+										>
+											{users.map((user) => (
+												<MenuItem key={user.id} value={user.id}>
+													{user.name} ({user.designation || user.role})
+												</MenuItem>
+											))}
+										</TextField>
+									)}
+								/>
 							</Box>
 						</Stack>
 					</form>

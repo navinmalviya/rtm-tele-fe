@@ -23,6 +23,7 @@ import { useStations } from '@/hooks/stations';
 import { useSubsections } from '@/hooks/sub-sections';
 import StatCard from '@/lib/common/stat-card';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 export default function DashboardPage() {
 	const dispatch = useDispatch();
@@ -262,6 +263,8 @@ export default function DashboardPage() {
 							value={dateRange.start}
 							onChange={(event) => setDateRange((prev) => ({ ...prev, start: event.target.value }))}
 							InputLabelProps={{ shrink: true }}
+							onFocus={openNativeDateTimePicker}
+							onClick={openNativeDateTimePicker}
 							size="small"
 						/>
 						<TextField
@@ -270,6 +273,8 @@ export default function DashboardPage() {
 							value={dateRange.end}
 							onChange={(event) => setDateRange((prev) => ({ ...prev, end: event.target.value }))}
 							InputLabelProps={{ shrink: true }}
+							onFocus={openNativeDateTimePicker}
+							onClick={openNativeDateTimePicker}
 							size="small"
 						/>
 					</Stack>

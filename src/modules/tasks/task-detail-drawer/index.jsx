@@ -18,6 +18,7 @@ import {
 	Box,
 	Button,
 	Divider,
+	Chip,
 	IconButton,
 	InputAdornment,
 	Paper,
@@ -35,6 +36,7 @@ import { useSubsections } from '@/hooks/sub-sections';
 import { useAddTaskComment, useTask, useUpdateTaskFailure } from '@/hooks/task';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
+import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 const FAILURE_TYPES = [
 	'AXLE_COUTER',
@@ -80,6 +82,14 @@ const formatDateTime = (value) => {
 		hour: '2-digit',
 		minute: '2-digit',
 	});
+};
+
+const formatHistoryAction = (value) => {
+	if (!value) return 'Activity';
+	return value
+		.toLowerCase()
+		.replace(/_/g, ' ')
+		.replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
 export default function TaskDetailDrawer() {
@@ -483,6 +493,8 @@ export default function TaskDetailDrawer() {
 													type="datetime-local"
 													fullWidth
 													InputLabelProps={{ shrink: true }}
+													onFocus={openNativeDateTimePicker}
+													onClick={openNativeDateTimePicker}
 													InputProps={{
 														startAdornment: (
 															<InputAdornment position="start">
@@ -521,6 +533,67 @@ export default function TaskDetailDrawer() {
 							<Divider sx={{ my: 3 }} />
 
 							<Stack spacing={2}>
+								<Stack spacing={2}>
+									<Stack direction="row" justifyContent="space-between" alignItems="center">
+										<Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>
+											Activity History
+										</Typography>
+										<Typography variant="caption" sx={{ color: 'text.secondary' }}>
+											{(task.history || []).length} events
+										</Typography>
+									</Stack>
+
+									<Stack spacing={1.5}>
+										{(task.history || []).map((entry) => (
+											<Paper
+												key={entry.id}
+												variant="outlined"
+												sx={{
+													p: 1.75,
+													borderRadius: 3,
+													borderColor: 'divider',
+													bgcolor: 'background.paper',
+												}}
+											>
+												<Stack spacing={1}>
+													<Stack direction="row" justifyContent="space-between" alignItems="center">
+														<Stack direction="row" spacing={1} alignItems="center">
+															<Chip
+																size="small"
+																label={formatHistoryAction(entry.action)}
+																sx={{ fontWeight: 700 }}
+															/>
+															<Typography sx={{ fontSize: '0.78rem', color: 'text.primary', fontWeight: 700 }}>
+																{entry.actor?.name || 'System'}
+															</Typography>
+														</Stack>
+														<Typography variant="caption" sx={{ color: 'text.secondary' }}>
+															{formatDateTime(entry.createdAt)}
+														</Typography>
+													</Stack>
+													{(entry.fromValue || entry.toValue) && (
+														<Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+															{entry.fromValue || 'N/A'} → {entry.toValue || 'N/A'}
+														</Typography>
+													)}
+													{entry.details && (
+														<Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>
+															{entry.details}
+														</Typography>
+													)}
+												</Stack>
+											</Paper>
+										))}
+										{(task.history || []).length === 0 && (
+											<Typography sx={{ color: 'text.secondary' }}>
+												No activity logged yet.
+											</Typography>
+										)}
+									</Stack>
+								</Stack>
+
+								<Divider sx={{ my: 1 }} />
+
 								<Stack direction="row" justifyContent="space-between" alignItems="center">
 									<Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>
 										Comments

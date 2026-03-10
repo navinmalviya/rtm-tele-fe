@@ -26,7 +26,10 @@ export const useStations = () => {
 					section: station.section,
 					subSection: station.subSection,
 					createdBy: station.createdBy?.name,
+					supervisor: station.supervisor?.name,
 				},
+				supervisor: station.supervisor,
+				createdAt: station.createdAt,
 				// You can define node types based on your logic
 				type: 'default',
 			}));

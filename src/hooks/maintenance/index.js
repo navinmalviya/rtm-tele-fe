@@ -4,6 +4,7 @@ import { useOverdueMaintenance } from './useOverdueMaintenance';
 import { useCompleteMaintenance } from './useCompleteMaintenance';
 import { useUpdateMaintenanceSchedule } from './useUpdateMaintenanceSchedule';
 import { useToggleMaintenanceSchedule } from './useToggleMaintenanceSchedule';
+import { useMyMaintenanceSummary } from './useMyMaintenanceSummary';
 
 export {
 	useMaintenanceSchedules,
@@ -12,4 +13,5 @@ export {
 	useCompleteMaintenance,
 	useUpdateMaintenanceSchedule,
 	useToggleMaintenanceSchedule,
+	useMyMaintenanceSummary,
 };

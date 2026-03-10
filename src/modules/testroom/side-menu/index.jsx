@@ -166,6 +166,7 @@ export default function SideMenu({ menuItems }) {
 					/>
 				</Box>
 				<ListItemButton
+					onClick={() => router.push('/testroom/settings')}
 					sx={{
 						borderRadius: 3,
 						color: theme.palette.custom.sidebarMuted,

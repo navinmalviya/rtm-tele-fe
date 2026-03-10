@@ -28,6 +28,13 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 		equipment: item.equipment?.name || '-',
 		location: item.location?.name || '-',
 		status: item.status,
+		supervisor: item.supervisor?.name || '-',
+		completionState:
+			item.occurrences?.some((occ) => ['OPEN', 'OVERDUE'].includes(occ.status))
+				? 'PENDING'
+				: item.occurrences?.some((occ) => occ.status === 'COMPLETED')
+				? 'COMPLETED'
+				: 'PENDING',
 	}));
 
 	const columns = [
@@ -102,6 +109,33 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 					})}
 				/>
 			),
+		},
+		{
+			field: 'completionState',
+			headerName: 'Work State',
+			width: 130,
+			renderCell: (params) => (
+				<Chip
+					label={params.value}
+					size="small"
+					sx={(theme) => ({
+						fontWeight: 700,
+						bgcolor:
+							params.value === 'COMPLETED'
+								? alpha(theme.palette.success.main, 0.2)
+								: alpha(theme.palette.warning.main, 0.2),
+						color:
+							params.value === 'COMPLETED'
+								? theme.palette.success.main
+								: theme.palette.warning.main,
+					})}
+				/>
+			),
+		},
+		{
+			field: 'supervisor',
+			headerName: 'Supervisor',
+			width: 180,
 		},
 		{
 			field: 'actions',

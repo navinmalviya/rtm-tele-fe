@@ -18,7 +18,10 @@ export default withAuth(
 			{ prefix: '/technician', roles: ['TECHNICIAN'] },
 			{ prefix: '/audit', roles: ['AUDIT_USER'] },
 			{ prefix: '/testroom', roles: ['TESTROOM'] },
-			{ prefix: '/field-engineer', roles: ['FIELD_ENGINEER'] },
+			{
+				prefix: '/field-engineer',
+				roles: ['FIELD_ENGINEER', 'JE_SSE_TELE_SECTIONAL', 'SSE_SECTIONAL', 'JE_SECTIONAL'],
+			},
 			{ prefix: '/super-admin', roles: ['SUPER_ADMIN'] },
 			{ prefix: '/viewer', roles: ['VIEWER'] },
 		];

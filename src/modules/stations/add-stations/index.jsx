@@ -7,6 +7,7 @@ import {
 	Divider,
 	IconButton,
 	InputAdornment,
+	MenuItem,
 	Stack,
 	TextField,
 	Typography,
@@ -14,6 +15,7 @@ import {
 import { useSession } from 'next-auth/react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
+import { useUsers } from '@/hooks/user';
 import { useAddStation } from '@/hooks/stations';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
@@ -22,6 +24,7 @@ export default function AddStationForm({ initialData }) {
 	const dispatch = useDispatch();
 	const { mutate: addStation } = useAddStation();
 	const { data: session } = useSession();
+	const { data: users = [] } = useUsers();
 
 	const {
 		control,
@@ -34,6 +37,7 @@ export default function AddStationForm({ initialData }) {
 			name: '',
 			mapX: initialData?.x || 0,
 			mapY: initialData?.y || 0,
+			supervisorId: '',
 		},
 	});
 
@@ -173,6 +177,34 @@ export default function AddStationForm({ initialData }) {
 												},
 											}}
 										/>
+									)}
+								/>
+								<Controller
+									name="supervisorId"
+									control={control}
+									rules={{
+										required: 'Supervisor is required',
+									}}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											select
+											label="Supervisor"
+											fullWidth
+											error={!!errors.supervisorId}
+											helperText={errors.supervisorId?.message}
+											InputProps={{
+												sx: {
+													borderRadius: 2,
+												},
+											}}
+										>
+											{users.map((user) => (
+												<MenuItem key={user.id} value={user.id}>
+													{user.name} ({user.designation || user.role})
+												</MenuItem>
+											))}
+										</TextField>
 									)}
 								/>
 							</Stack>

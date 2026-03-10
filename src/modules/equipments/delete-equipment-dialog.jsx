@@ -1,0 +1,37 @@
+'use client';
+
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
+
+export default function DeleteEquipmentDialog({ open, equipment, onClose, onConfirm, isLoading }) {
+	if (!equipment) return null;
+
+	return (
+		<Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+			<DialogTitle sx={{ fontWeight: 800 }}>Delete Asset</DialogTitle>
+			<DialogContent>
+				<Stack spacing={1}>
+					<Typography sx={{ color: 'text.secondary' }}>
+						You are about to delete <strong>{equipment.name}</strong>.
+					</Typography>
+					<Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
+						This will remove the asset and all related ports from the system.
+					</Typography>
+				</Stack>
+			</DialogContent>
+			<DialogActions sx={{ p: 2 }}>
+				<Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700 }}>
+					Cancel
+				</Button>
+				<Button
+					variant="contained"
+					color="error"
+					onClick={onConfirm}
+					disabled={isLoading}
+					sx={{ textTransform: 'none', fontWeight: 800 }}
+				>
+					Delete
+				</Button>
+			</DialogActions>
+		</Dialog>
+	);
+}

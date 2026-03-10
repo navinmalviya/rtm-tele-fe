@@ -19,8 +19,10 @@ import { useEquipmentByStation } from '@/hooks/equipment';
 import { useStationLocations } from '@/hooks/locations';
 import { useAddMaintenanceSchedule } from '@/hooks/maintenance';
 import { useStations } from '@/hooks/stations';
+import { useUsers } from '@/hooks/user';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
+import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 const textFieldStyles = (theme) => ({
 	bgcolor: theme.palette.background.paper,
@@ -36,6 +38,7 @@ const AddMaintenanceScheduleDrawer = () => {
 	const dispatch = useDispatch();
 	const { mutate: addSchedule } = useAddMaintenanceSchedule();
 	const { data: stations = [] } = useStations();
+	const { data: users = [] } = useUsers();
 
 	const {
 		control,
@@ -54,6 +57,7 @@ const AddMaintenanceScheduleDrawer = () => {
 			stationId: '',
 			equipmentId: '',
 			locationId: '',
+			supervisorId: '',
 		},
 	});
 	const selectedStationId = watch('stationId');
@@ -205,6 +209,8 @@ const AddMaintenanceScheduleDrawer = () => {
 													error={!!errors.nextDueDate}
 													sx={textFieldStyles}
 													InputLabelProps={{ shrink: true }}
+													onFocus={openNativeDateTimePicker}
+													onClick={openNativeDateTimePicker}
 													InputProps={{
 														startAdornment: (
 															<InputAdornment position="start">
@@ -322,6 +328,46 @@ const AddMaintenanceScheduleDrawer = () => {
 										/>
 									</Stack>
 								</Stack>
+							</Box>
+
+							<Box>
+								<Typography
+									variant="subtitle2"
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', fontSize: '0.75rem' }}
+								>
+									ASSIGNED SUPERVISOR
+								</Typography>
+								<Controller
+									name="supervisorId"
+									control={control}
+									rules={{ required: 'Supervisor is required' }}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											select
+											label="Supervisor (JE/SSE)"
+											fullWidth
+											error={!!errors.supervisorId}
+											helperText={errors.supervisorId?.message}
+											sx={textFieldStyles}
+										>
+											{users
+												.filter((user) =>
+													[
+														'JE_SSE_TELE_SECTIONAL',
+														'JE_SECTIONAL',
+														'SSE_SECTIONAL',
+														'FIELD_ENGINEER',
+													].includes(user.role)
+												)
+												.map((user) => (
+													<MenuItem key={user.id} value={user.id}>
+														{user.name} ({user.designation || user.role})
+													</MenuItem>
+												))}
+										</TextField>
+									)}
+								/>
 							</Box>
 						</Stack>
 					</form>

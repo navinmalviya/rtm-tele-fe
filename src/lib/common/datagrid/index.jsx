@@ -3,6 +3,7 @@
 import Box from '@mui/material/Box';
 import { DataGrid } from '@mui/x-data-grid';
 import { alpha } from '@mui/material/styles';
+import { useCallback, useEffect, useState } from 'react';
 
 /**
  * RtmDataGrid - Common Table Component
@@ -15,9 +16,23 @@ export default function RtmDataGrid({
 	loading = false,
 	onSelectionChange,
 	checkboxSelection = false,
+	hideFooter: hideFooterProp,
 	sx = {},
 	...rest
 }) {
+	const [isClientMounted, setIsClientMounted] = useState(false);
+
+	useEffect(() => {
+		setIsClientMounted(true);
+	}, []);
+
+	const handleSelectionChange = useCallback(
+		(model) => {
+			onSelectionChange?.(model);
+		},
+		[onSelectionChange]
+	);
+
 	const blueprintStyles = (theme) => ({
 		border: 'none',
 		backgroundColor: `${theme.palette.background.paper} !important`,
@@ -108,24 +123,28 @@ export default function RtmDataGrid({
 					theme.palette.mode === 'dark'
 						? 'none'
 						: `0 1px 3px 0 ${alpha(theme.palette.common.black, 0.05)}`,
-			})}
+				})}
 		>
-			<DataGrid
-				sx={blueprintStyles}
-				getRowClassName={(params) =>
-					params.indexRelativeToCurrentPage % 2 === 0 ? 'even-row' : 'odd-row'
-				}
-				rows={rows}
-				columns={columns}
-				checkboxSelection={checkboxSelection}
-				onRowSelectionModelChange={onSelectionChange}
-				loading={loading}
-				disableRowSelectionOnClick
-				disableColumnMenu
-				density="comfortable"
-				hideFooter={rows.length < 10}
-				{...rest}
-			/>
+			{isClientMounted ? (
+				<DataGrid
+					sx={blueprintStyles}
+					getRowClassName={(params) =>
+						params.indexRelativeToCurrentPage % 2 === 0 ? 'even-row' : 'odd-row'
+					}
+					rows={rows}
+					columns={columns}
+					checkboxSelection={checkboxSelection}
+					onRowSelectionModelChange={handleSelectionChange}
+					loading={loading}
+					disableRowSelectionOnClick
+					disableColumnMenu
+					density="comfortable"
+					hideFooter={hideFooterProp ?? rows.length < 10}
+					{...rest}
+				/>
+			) : (
+				<Box sx={{ minHeight: 320 }} />
+			)}
 		</Box>
 	);
 }

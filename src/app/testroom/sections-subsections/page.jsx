@@ -1,9 +1,10 @@
 'use client';
 
 import { AccountTree, LinearScale, Place, SettingsSuggest } from '@mui/icons-material';
-import { Box, Button, Divider, Stack, Tab, Tabs, Typography } from '@mui/material';
-import { useState } from 'react';
+import { Box, Button, Divider, Stack, Typography } from '@mui/material';
 import { useDispatch } from 'react-redux';
+import { useTabs } from '@/hooks/common';
+import RtmTabs from '@/lib/common/tabs';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import { AddSectionForm, SectionTable } from '@/modules/sections';
 // Sub-components
@@ -12,15 +13,21 @@ import { AddSubSectionForm, SubSectionTable } from '@/modules/sub-sections';
 
 export default function HierarchyManagementPage() {
 	const dispatch = useDispatch();
-	const [tabValue, setTabValue] = useState(0);
+	const { currentTab } = useTabs('hierarchyHub', { currentTab: 'stations' });
 
 	const tabActions = {
-		0: { label: 'Add Station', icon: <Place />, drawer: 'addStationDrawer' },
-		1: { label: 'Add Sub-section', icon: <LinearScale />, drawer: 'addSubSectionDrawer' },
-		2: { label: 'Add Main Section', icon: <AccountTree />, drawer: 'addSectionDrawer' },
+		stations: { label: 'Add Station', icon: <Place />, drawer: 'addStationDrawer' },
+		subsections: { label: 'Add Sub-section', icon: <LinearScale />, drawer: 'addSubSectionDrawer' },
+		sections: { label: 'Add Main Section', icon: <AccountTree />, drawer: 'addSectionDrawer' },
 	};
 
-	const currentAction = tabActions[tabValue];
+	const currentAction = tabActions[currentTab] || tabActions.stations;
+
+	const tabs = [
+		{ label: 'Stations', step: 'stations', icon: <Place sx={{ fontSize: 18 }} /> },
+		{ label: 'Sub-sections', step: 'subsections', icon: <LinearScale sx={{ fontSize: 18 }} /> },
+		{ label: 'Sections', step: 'sections', icon: <AccountTree sx={{ fontSize: 18 }} /> },
+	];
 
 	return (
 		<Box
@@ -74,19 +81,7 @@ export default function HierarchyManagementPage() {
 
 			{/* Tabs */}
 			<Box sx={{ px: 3, bgcolor: 'background.paper' }}>
-				<Tabs
-					value={tabValue}
-					onChange={(_, val) => setTabValue(val)}
-					sx={{ '& .MuiTab-root': { fontWeight: 700 } }}
-				>
-					<Tab icon={<Place sx={{ fontSize: 18 }} />} iconPosition="start" label="Stations" />
-					<Tab
-						icon={<LinearScale sx={{ fontSize: 18 }} />}
-						iconPosition="start"
-						label="Sub-sections"
-					/>
-					<Tab icon={<AccountTree sx={{ fontSize: 18 }} />} iconPosition="start" label="Sections" />
-				</Tabs>
+				<RtmTabs tabs={tabs} tabsName="hierarchyHub" initialState={{ currentTab: 'stations' }} />
 				<Divider />
 			</Box>
 
@@ -105,9 +100,9 @@ export default function HierarchyManagementPage() {
 						overflow: 'hidden',
 					}}
 				>
-					{tabValue === 0 && <StationTable />}
-					{tabValue === 1 && <SubSectionTable />}
-					{tabValue === 2 && <SectionTable />}
+					{currentTab === 'stations' && <StationTable />}
+					{currentTab === 'subsections' && <SubSectionTable />}
+					{currentTab === 'sections' && <SectionTable />}
 				</Box>
 			</Box>
 		</Box>

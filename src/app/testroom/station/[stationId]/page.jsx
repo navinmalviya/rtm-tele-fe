@@ -1,19 +1,21 @@
 'use client';
 
 import { AddLocationAlt, AppRegistration, Devices, Hub, Room, Storage } from '@mui/icons-material';
-import { Box, Button, Divider, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Button, Divider, Stack, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useEquipmentByStation } from '@/hooks/equipment';
-import { useStationLocations } from '@/hooks/locations';
-import { useStationRacks } from '@/hooks/racks';
+import { useDeleteEquipment, useEquipmentByStation } from '@/hooks/equipment';
+import { useDeleteLocation, useStationLocations } from '@/hooks/locations';
+import { useDeleteRack, useStationRacks } from '@/hooks/racks';
 import { useStationSummary } from '@/hooks/stations';
+import { useTabs } from '@/hooks/common';
+import RtmTabs from '@/lib/common/tabs';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
-import { AddEquipmentDrawer, EquipmentTable } from '@/modules/equipments';
-import { AddLocationForm, LocationTable } from '@/modules/locations';
-import { AddRackForm, RackTable } from '@/modules/racks';
+import { AddEquipmentDrawer, DeleteEquipmentDialog, EditEquipmentDrawer, EquipmentTable } from '@/modules/equipments';
+import { AddLocationForm, DeleteLocationDialog, EditLocationDrawer, LocationTable } from '@/modules/locations';
+import { AddRackForm, DeleteRackDialog, EditRackDrawer, RackTable } from '@/modules/racks';
 import { AddStationEquipmentDrawer, StationInternalTopology } from '@/modules/stations';
 
 export default function StationDetailPage() {
@@ -26,34 +28,50 @@ export default function StationDetailPage() {
 	const { data: station = {} } = useStationSummary(stationId);
 	const { data: racks = [], isLoading: racksLoading } = useStationRacks(stationId);
 	const { data: equipments = [], isLoading: equipmentsLoading } = useEquipmentByStation(stationId);
+	const { mutate: deleteLocation, isLoading: isDeletingLocation } = useDeleteLocation(stationId);
+	const { mutate: deleteRack, isLoading: isDeletingRack } = useDeleteRack(stationId);
+	const { mutate: deleteEquipment, isLoading: isDeletingEquipment } = useDeleteEquipment(stationId);
 
-	const [tabValue, setTabValue] = useState(0);
+	const { currentTab } = useTabs(`stationDetail-${stationId}`, { currentTab: 'topology' });
+	const [editingLocation, setEditingLocation] = useState(null);
+	const [deleteTarget, setDeleteTarget] = useState(null);
+	const [editingRack, setEditingRack] = useState(null);
+	const [deleteRackTarget, setDeleteRackTarget] = useState(null);
+	const [editingEquipment, setEditingEquipment] = useState(null);
+	const [deleteEquipmentTarget, setDeleteEquipmentTarget] = useState(null);
 
 	// Context-aware actions with uniform styling
 	const tabActions = {
-		0: {
+		topology: {
 			label: 'Add Station Equipment',
 			icon: <Hub />,
 			drawer: 'stationEquipmentDrawer',
 		},
-		1: {
+		locations: {
 			label: 'Add Location',
 			icon: <AddLocationAlt />,
 			drawer: 'addLocationDrawer',
 		},
-		2: {
+		racks: {
 			label: 'Add Rack',
 			icon: <Storage />,
 			drawer: 'addRackDrawer',
 		},
-		3: {
+		equipments: {
 			label: 'Add Equipment',
 			icon: <Devices />,
 			drawer: 'addEquipmentDrawer',
 		},
 	};
 
-	const currentAction = tabActions[tabValue];
+	const currentAction = tabActions[currentTab] || tabActions.topology;
+
+	const tabs = [
+		{ label: 'Topology', step: 'topology', icon: <Hub sx={{ fontSize: 18 }} /> },
+		{ label: 'Locations', step: 'locations', icon: <Room sx={{ fontSize: 18 }} /> },
+		{ label: 'Racks & Assets', step: 'racks', icon: <Storage sx={{ fontSize: 18 }} /> },
+		{ label: 'Equipments', step: 'equipments', icon: <Devices sx={{ fontSize: 18 }} /> },
+	];
 
 	return (
 		<Box
@@ -146,38 +164,7 @@ export default function StationDetailPage() {
 
 			{/* 2. Uniform Navigation Tabs */}
 			<Box sx={{ px: 3, bgcolor: 'background.paper' }}>
-				<Tabs
-					value={tabValue}
-					onChange={(_, val) => setTabValue(val)}
-					sx={{
-						minHeight: 48,
-						'& .MuiTabs-indicator': {
-							height: 3,
-							borderRadius: '3px 3px 0 0',
-							bgcolor: 'primary.main',
-						},
-						'& .MuiTab-root': {
-							fontWeight: 700,
-							fontSize: '0.8rem',
-							minWidth: 140,
-							textTransform: 'uppercase',
-							color: 'text.disabled',
-							transition: 'color 0.2s ease',
-							'&.Mui-selected': {
-								color: 'primary.main',
-							},
-						},
-					}}
-				>
-					<Tab icon={<Hub sx={{ fontSize: 18 }} />} iconPosition="start" label="Topology" />
-					<Tab icon={<Room sx={{ fontSize: 18 }} />} iconPosition="start" label="Locations" />
-					<Tab
-						icon={<Storage sx={{ fontSize: 18 }} />}
-						iconPosition="start"
-						label="Racks & Assets"
-					/>
-					<Tab icon={<Devices sx={{ fontSize: 18 }} />} iconPosition="start" label="Equipments" />
-				</Tabs>
+				<RtmTabs tabs={tabs} tabsName={`stationDetail-${stationId}`} initialState={{ currentTab: 'topology' }} />
 				<Divider sx={{ borderColor: 'divider' }} />
 			</Box>
 
@@ -187,21 +174,60 @@ export default function StationDetailPage() {
 					flex: 1,
 					minHeight: 0,
 					overflowY: 'auto',
-					p: tabValue === 0 ? 0 : 3,
+					p: currentTab === 'topology' ? 0 : 3,
 				}}
 			>
 				<AddLocationForm />
+				<EditLocationDrawer location={editingLocation} stationId={stationId} />
+				<DeleteLocationDialog
+					open={!!deleteTarget}
+					location={deleteTarget}
+					isLoading={isDeletingLocation}
+					onClose={() => setDeleteTarget(null)}
+					onConfirm={() => {
+						if (!deleteTarget?.id) return;
+						deleteLocation(deleteTarget.id, {
+							onSuccess: () => setDeleteTarget(null),
+						});
+					}}
+				/>
 				<AddRackForm locations={locations} isLoading={locLoading} />
+				<EditRackDrawer rack={editingRack} stationId={stationId} locations={locations} />
+				<DeleteRackDialog
+					open={!!deleteRackTarget}
+					rack={deleteRackTarget}
+					isLoading={isDeletingRack}
+					onClose={() => setDeleteRackTarget(null)}
+					onConfirm={() => {
+						if (!deleteRackTarget?.id) return;
+						deleteRack(deleteRackTarget.id, {
+							onSuccess: () => setDeleteRackTarget(null),
+						});
+					}}
+				/>
 				<AddEquipmentDrawer />
+				<EditEquipmentDrawer equipment={editingEquipment} stationId={stationId} />
+				<DeleteEquipmentDialog
+					open={!!deleteEquipmentTarget}
+					equipment={deleteEquipmentTarget}
+					isLoading={isDeletingEquipment}
+					onClose={() => setDeleteEquipmentTarget(null)}
+					onConfirm={() => {
+						if (!deleteEquipmentTarget?.id) return;
+						deleteEquipment(deleteEquipmentTarget.id, {
+							onSuccess: () => setDeleteEquipmentTarget(null),
+						});
+					}}
+				/>
 				<AddStationEquipmentDrawer equipments={equipments} />
 
-				{tabValue === 0 && (
+				{currentTab === 'topology' && (
 					<Box sx={{ width: '100%', height: '100%', bgcolor: 'background.default' }}>
 						<StationInternalTopology stationId={stationId} />
 					</Box>
 				)}
 
-				{tabValue === 1 && (
+				{currentTab === 'locations' && (
 					<Box
 						sx={{
 							bgcolor: 'background.paper',
@@ -211,11 +237,20 @@ export default function StationDetailPage() {
 							overflow: 'hidden',
 						}}
 					>
-						<LocationTable stationId={stationId} locations={locations} isLoading={locLoading} />
+						<LocationTable
+							stationId={stationId}
+							locations={locations}
+							isLoading={locLoading}
+							onEdit={(location) => {
+								setEditingLocation(location);
+								dispatch(openDrawer({ drawerName: 'editLocationDrawer' }));
+							}}
+							onDelete={(location) => setDeleteTarget(location)}
+						/>
 					</Box>
 				)}
 
-				{tabValue === 2 && (
+				{currentTab === 'racks' && (
 					<Box
 						sx={{
 							bgcolor: 'background.paper',
@@ -225,10 +260,19 @@ export default function StationDetailPage() {
 							overflow: 'hidden',
 						}}
 					>
-						<RackTable stationId={stationId} racks={racks} isLoading={racksLoading} />
+						<RackTable
+							stationId={stationId}
+							racks={racks}
+							isLoading={racksLoading}
+							onEdit={(rack) => {
+								setEditingRack(rack);
+								dispatch(openDrawer({ drawerName: 'editRackDrawer' }));
+							}}
+							onDelete={(rack) => setDeleteRackTarget(rack)}
+						/>
 					</Box>
 				)}
-				{tabValue === 3 && (
+				{currentTab === 'equipments' && (
 					<Box
 						sx={{
 							bgcolor: 'background.paper',
@@ -242,6 +286,11 @@ export default function StationDetailPage() {
 							stationId={stationId}
 							equipments={equipments}
 							isLoading={equipmentsLoading}
+							onEdit={(equipment) => {
+								setEditingEquipment(equipment);
+								dispatch(openDrawer({ drawerName: 'editEquipmentDrawer' }));
+							}}
+							onDelete={(equipment) => setDeleteEquipmentTarget(equipment)}
 						/>
 					</Box>
 				)}

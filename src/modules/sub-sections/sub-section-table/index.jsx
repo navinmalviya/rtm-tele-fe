@@ -80,6 +80,16 @@ export function SubSectionTable() {
 			},
 		},
 		{
+			field: 'supervisor',
+			headerName: 'SUPERVISOR',
+			flex: 1,
+			renderCell: (params) => (
+				<Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: 'text.secondary' }}>
+					{params.row.supervisor?.name || params.row.data?.supervisor || '-'}
+				</Typography>
+			),
+		},
+		{
 			field: 'actions',
 			headerName: '',
 			width: 100,

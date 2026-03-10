@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EquipmentService } from '@/services/equipment';
 import { useToast } from '../common';
 
-export const useUpdateEquipment = () => {
+export const useUpdateEquipment = (stationId) => {
 	const queryClient = useQueryClient();
 	const showToast = useToast();
 
@@ -15,8 +15,10 @@ export const useUpdateEquipment = () => {
 		},
 
 		onSuccess: () => {
-			// Invalidate specific equipment queries to trigger the "poof" effect in the drawer
 			queryClient.invalidateQueries({ queryKey: ['equipment'] });
+			if (stationId) {
+				queryClient.invalidateQueries({ queryKey: ['equipment', 'station', stationId] });
+			}
 			showToast('Asset position updated', 'success');
 		},
 

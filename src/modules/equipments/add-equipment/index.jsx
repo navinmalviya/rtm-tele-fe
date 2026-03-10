@@ -30,6 +30,7 @@ import { useAddEquipment } from '@/hooks/equipment';
 import { useStationRacks } from '@/hooks/racks';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
+import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 export default function AddEquipmentDrawer() {
 	const dispatch = useDispatch();
@@ -322,6 +323,9 @@ export default function AddEquipmentDrawer() {
 												type="date"
 												label="Installation Date"
 												fullWidth
+												InputLabelProps={{ shrink: true }}
+												onFocus={openNativeDateTimePicker}
+												onClick={openNativeDateTimePicker}
 												sx={textFieldStyles}
 												slotProps={{
 													input: {

@@ -1,9 +1,11 @@
 'use client';
 
 import { Engineering, MyLocation, Schedule } from '@mui/icons-material';
-import { Box, Grid, Stack, Typography } from '@mui/material';
+import { Box, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useSession } from 'next-auth/react';
+import { useMyMaintenanceSummary } from '@/hooks/maintenance';
 import { useTasks } from '@/hooks/task';
+import RtmDataGrid from '@/lib/common/datagrid';
 import StatCard from '@/lib/common/stat-card';
 import TaskBoard from '@/lib/common/task-board';
 
@@ -11,8 +13,11 @@ export default function FieldEngineerDashboard() {
 	const { data: session } = useSession();
 
 	const { data: allTasks = [], isLoading } = useTasks();
+	const { data: maintenanceSummary, isLoading: maintLoading } = useMyMaintenanceSummary();
 
 	const myTasks = allTasks.filter((t) => t.assignedToId === session?.user?.id);
+	const pendingSchedules = maintenanceSummary?.pending || [];
+	const completedSchedules = maintenanceSummary?.completed || [];
 
 	const criticalMyTasks = myTasks.filter((t) => t.priority === 'CRITICAL').length;
 
@@ -39,12 +44,12 @@ export default function FieldEngineerDashboard() {
 				</Grid>
 				<Grid item xs={12} md={4}>
 					<StatCard
-						label="Next Inspection"
-						value={myTasks[0]?.station?.name || 'None'} // Dynamic station name
+						label="Pending Maintenance"
+						value={(maintenanceSummary?.pendingCount || 0).toString()}
 						trend={
-							myTasks[0]?.dueDate
-								? `Due ${new Date(myTasks[0].dueDate).toLocaleTimeString()}`
-								: 'No deadline'
+							pendingSchedules[0]?.dueDate
+								? `Next due ${new Date(pendingSchedules[0].dueDate).toLocaleDateString('en-IN')}`
+								: 'No pending schedule'
 						}
 						icon={<Schedule />}
 						color="warning.main"
@@ -52,9 +57,9 @@ export default function FieldEngineerDashboard() {
 				</Grid>
 				<Grid item xs={12} md={4}>
 					<StatCard
-						label="Personal MTTR"
-						value="1h 45m"
-						trend="Better than Avg"
+						label="Completed Maintenance"
+						value={(maintenanceSummary?.completedCount || 0).toString()}
+						trend={completedSchedules[0]?.completedAt ? 'Recently updated' : 'No completed schedule'}
 						icon={<MyLocation />}
 						color="success.main"
 					/>
@@ -74,6 +79,79 @@ export default function FieldEngineerDashboard() {
 				</Stack>
 
 				<TaskBoard tasks={myTasks} isLoading={isLoading} />
+			</Box>
+
+			<Box sx={{ mt: 6 }}>
+				<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 2 }}>
+					My Maintenance Schedules
+				</Typography>
+				<Grid container spacing={3}>
+					<Grid item xs={12} lg={6}>
+						<Paper variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+							<Typography sx={{ fontWeight: 700, mb: 1.5, color: 'warning.main' }}>
+								Pending
+							</Typography>
+							<RtmDataGrid
+								rows={pendingSchedules.map((item) => ({
+									id: item.id,
+									title: item.schedule?.title || '-',
+									station: item.schedule?.station
+										? `${item.schedule.station.name} (${item.schedule.station.code})`
+										: '-',
+									dueDate: item.dueDate,
+									status: item.status,
+								}))}
+								columns={[
+									{ field: 'title', headerName: 'Schedule', flex: 1.2 },
+									{ field: 'station', headerName: 'Station', flex: 1 },
+									{
+										field: 'dueDate',
+										headerName: 'Due',
+										flex: 0.9,
+										renderCell: (params) => new Date(params.value).toLocaleDateString('en-IN'),
+									},
+									{ field: 'status', headerName: 'Status', flex: 0.8 },
+								]}
+								loading={maintLoading}
+								hideFooter
+								rowHeight={56}
+							/>
+						</Paper>
+					</Grid>
+					<Grid item xs={12} lg={6}>
+						<Paper variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+							<Typography sx={{ fontWeight: 700, mb: 1.5, color: 'success.main' }}>
+								Completed
+							</Typography>
+							<RtmDataGrid
+								rows={completedSchedules.map((item) => ({
+									id: item.id,
+									title: item.schedule?.title || '-',
+									station: item.schedule?.station
+										? `${item.schedule.station.name} (${item.schedule.station.code})`
+										: '-',
+									completedAt: item.completedAt,
+									remarks: item.remarks || '-',
+								}))}
+								columns={[
+									{ field: 'title', headerName: 'Schedule', flex: 1.1 },
+									{ field: 'station', headerName: 'Station', flex: 1 },
+									{
+										field: 'completedAt',
+										headerName: 'Completed On',
+										flex: 0.9,
+										renderCell: (params) =>
+											params.value ? new Date(params.value).toLocaleDateString('en-IN') : '-',
+									},
+									{ field: 'remarks', headerName: 'Remarks', flex: 1.1 },
+								]}
+								loading={maintLoading}
+								hideFooter
+								rowHeight={56}
+							/>
+						</Paper>
+					</Grid>
+				</Grid>
 			</Box>
 		</Box>
 	);

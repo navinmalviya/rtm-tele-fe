@@ -2,11 +2,18 @@
 'use client';
 
 import { Assignment, FolderSpecial, Timer } from '@mui/icons-material';
-import { Box, Tab, Tabs, Typography } from '@mui/material';
-import { useState } from 'react';
+import { Box, Typography } from '@mui/material';
+import { useTabs } from '@/hooks/common';
+import RtmTabs from '@/lib/common/tabs';
 
 export default function ProjectsTasksPage() {
-	const [tabValue, setTabValue] = useState(0);
+	const { currentTab } = useTabs('fieldProjectsTasks', { currentTab: 'daily' });
+
+	const tabs = [
+		{ label: 'Daily Tasks', step: 'daily', icon: <Assignment sx={{ fontSize: 18 }} /> },
+		{ label: 'Major Projects', step: 'projects', icon: <FolderSpecial sx={{ fontSize: 18 }} /> },
+		{ label: 'Completed', step: 'completed', icon: <Timer sx={{ fontSize: 18 }} /> },
+	];
 
 	return (
 		<Box sx={{ p: 4 }}>
@@ -19,22 +26,7 @@ export default function ProjectsTasksPage() {
 				</Typography>
 			</Box>
 
-			<Tabs
-				value={tabValue}
-				onChange={(_, v) => setTabValue(v)}
-				sx={{
-					mb: 3,
-					'& .MuiTab-root': { fontWeight: 800, textTransform: 'none', fontSize: '0.9rem' },
-				}}
-			>
-				<Tab icon={<Assignment sx={{ fontSize: 18 }} />} iconPosition="start" label="Daily Tasks" />
-				<Tab
-					icon={<FolderSpecial sx={{ fontSize: 18 }} />}
-					iconPosition="start"
-					label="Major Projects"
-				/>
-				<Tab icon={<Timer sx={{ fontSize: 18 }} />} iconPosition="start" label="Completed" />
-			</Tabs>
+			<RtmTabs tabs={tabs} tabsName="fieldProjectsTasks" initialState={{ currentTab: 'daily' }} />
 
 			<Box
 				sx={{
@@ -45,13 +37,13 @@ export default function ProjectsTasksPage() {
 					minHeight: '60vh',
 				}}
 			>
-				{tabValue === 0 && (
+				{currentTab === 'daily' && (
 					<Box sx={{ p: 2 }}>
 						{/* Component to list specific tasks with "Start Work" buttons */}
 						<div>test</div>
 					</Box>
 				)}
-				{tabValue === 1 && (
+				{currentTab === 'projects' && (
 					<Box sx={{ p: 4, textAlign: 'center' }}>
 						<Typography sx={{ color: 'text.disabled', fontWeight: 600 }}>
 							No active infrastructure projects assigned.

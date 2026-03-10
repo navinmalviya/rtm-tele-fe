@@ -1,12 +1,12 @@
 'use client';
 
-import { Delete, Edit, Memory, Place, Power, Storage, Visibility } from '@mui/icons-material';
+import { Delete, Edit, Memory, Place, Power, Storage } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import RtmDataGrid from '@/lib/common/datagrid';
 
-export default function EquipmentTable({ equipments = [], isLoading }) {
+export default function EquipmentTable({ equipments = [], isLoading, onEdit, onDelete }) {
 	const theme = useTheme();
 	const STATUS_MAP = {
 		OPERATIONAL: {
@@ -159,34 +159,23 @@ export default function EquipmentTable({ equipments = [], isLoading }) {
 				sortable: false,
 				align: 'right',
 				renderCell: (params) => {
-					const menuOptions = [
-						{
-							label: 'View Details',
-							icon: <Visibility fontSize="small" />,
-							action: () => console.log('View:', params.row),
-						},
-						{
-							label: 'Edit Asset',
-							icon: <Edit fontSize="small" />,
-							action: () => console.log('Edit:', params.row),
-						},
-						{
-							label: 'Delete',
-							icon: <Delete fontSize="small" />,
-							action: () => console.log('Delete:', params.row.id),
-							color: 'error.main',
-						},
-					];
-
 					return (
 						<Stack direction="row" spacing={0.5} alignItems="center" sx={{ height: '100%' }}>
 							<Tooltip title="Edit Blueprint">
-								<IconButton size="small" sx={{ color: 'text.secondary' }}>
+								<IconButton
+									size="small"
+									sx={{ color: 'text.secondary' }}
+									onClick={() => onEdit?.(params.row)}
+								>
 									<Edit fontSize="small" />
 								</IconButton>
 							</Tooltip>
 							<Tooltip title="Delete">
-								<IconButton size="small" sx={{ color: 'error.light' }}>
+								<IconButton
+									size="small"
+									sx={{ color: 'error.light' }}
+									onClick={() => onDelete?.(params.row)}
+								>
 									<Delete fontSize="small" />
 								</IconButton>
 							</Tooltip>
@@ -195,7 +184,7 @@ export default function EquipmentTable({ equipments = [], isLoading }) {
 				},
 			},
 		],
-		[theme]
+		[theme, onEdit, onDelete]
 	);
 
 	return (

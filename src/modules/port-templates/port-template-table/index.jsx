@@ -3,12 +3,11 @@
 import { Bolt, Cable, Delete, Edit, Lan, Speed } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { useDeletePortTemplate, usePortTemplates } from '@/hooks/port-templates';
+import { usePortTemplates } from '@/hooks/port-templates';
 import RtmDataGrid from '@/lib/common/datagrid';
 
-export default function PortTemplateTable() {
+export default function PortTemplateTable({ onEdit, onDelete }) {
 	const { data: portTemplates = [], isLoading } = usePortTemplates();
-	const { mutate: deletePort } = useDeletePortTemplate();
 
 	const columns = [
 		{
@@ -164,7 +163,11 @@ export default function PortTemplateTable() {
 			renderCell: (params) => (
 				<Box sx={{ display: 'flex', gap: 0.5 }}>
 					<Tooltip title="Edit Port Blueprint">
-						<IconButton size="small" sx={{ color: 'text.secondary' }}>
+						<IconButton
+							size="small"
+							sx={{ color: 'text.secondary' }}
+							onClick={() => onEdit?.(params.row)}
+						>
 							<Edit fontSize="small" />
 						</IconButton>
 					</Tooltip>
@@ -172,7 +175,7 @@ export default function PortTemplateTable() {
 						<IconButton
 							size="small"
 							sx={{ color: 'error.light' }}
-							onClick={() => deletePort(params.row.id)}
+							onClick={() => onDelete?.(params.row)}
 						>
 							<Delete fontSize="small" />
 						</IconButton>

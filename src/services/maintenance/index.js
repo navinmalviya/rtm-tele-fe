@@ -3,6 +3,9 @@ import http from '../../../httpCommon';
 const listSchedules = () => {
 	return http.get('/maintenance');
 };
+const listMySummary = () => {
+	return http.get('/maintenance/my-summary');
+};
 
 const createSchedule = (payload) => {
 	return http.post('/maintenance', payload);
@@ -30,6 +33,7 @@ const completeOccurrence = (occurrenceId, payload) => {
 
 export const MaintenanceService = {
 	listSchedules,
+	listMySummary,
 	createSchedule,
 	updateSchedule,
 	toggleScheduleStatus,

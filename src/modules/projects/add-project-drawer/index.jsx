@@ -17,6 +17,7 @@ import { useDispatch } from 'react-redux';
 import { useAddProject } from '@/hooks/project';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
+import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 export default function AddProjectDrawer() {
 	const dispatch = useDispatch();
@@ -189,6 +190,8 @@ export default function AddProjectDrawer() {
 												fullWidth
 												sx={textFieldStyles}
 												InputLabelProps={{ shrink: true }}
+												onFocus={openNativeDateTimePicker}
+												onClick={openNativeDateTimePicker}
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">
@@ -210,6 +213,8 @@ export default function AddProjectDrawer() {
 												fullWidth
 												sx={textFieldStyles}
 												InputLabelProps={{ shrink: true }}
+												onFocus={openNativeDateTimePicker}
+												onClick={openNativeDateTimePicker}
 												InputProps={{
 													startAdornment: (
 														<InputAdornment position="start">

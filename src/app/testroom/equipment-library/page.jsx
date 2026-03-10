@@ -1,29 +1,41 @@
 'use client';
 
 import { Add, FilterList, Search, SettingsInputComponent } from '@mui/icons-material';
-import {
-	Box,
-	Button,
-	InputAdornment,
-	Stack,
-	Tab,
-	Tabs,
-	TextField,
-	Typography,
-} from '@mui/material';
+import { Box, Button, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useDeleteEquipmentTemplate } from '@/hooks/eqiuipment-templates';
+import { useDeletePortTemplate } from '@/hooks/port-templates';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
-import { AddEquipmentTemplateDrawer, EquipmentTemplateTable } from '@/modules/equipment-templates';
-import { AddPortTemplateDrawer, PortTemplateTable } from '@/modules/port-templates';
+import {
+	AddEquipmentTemplateDrawer,
+	DeleteEquipmentTemplateDialog,
+	EditEquipmentTemplateDrawer,
+	EquipmentTemplateTable,
+} from '@/modules/equipment-templates';
+import {
+	AddPortTemplateDrawer,
+	DeletePortTemplateDialog,
+	EditPortTemplateDrawer,
+	PortTemplateTable,
+} from '@/modules/port-templates';
+import { useTabs } from '@/hooks/common';
+import RtmTabs from '@/lib/common/tabs';
 
 export default function EquipmentLibraryPage() {
 	const dispatch = useDispatch();
-	const [activeTab, setActiveTab] = useState(0);
+	const { currentTab } = useTabs('equipmentLibrary', { currentTab: 'equipment-templates' });
+	const [editingTemplate, setEditingTemplate] = useState(null);
+	const [deleteTemplate, setDeleteTemplate] = useState(null);
+	const { mutate: deleteEquipmentTemplate, isLoading: deletingTemplate } = useDeleteEquipmentTemplate();
+	const [editingPortTemplate, setEditingPortTemplate] = useState(null);
+	const [deletePortTemplate, setDeletePortTemplate] = useState(null);
+	const { mutate: deletePortTemplateApi, isLoading: deletingPortTemplate } = useDeletePortTemplate();
 
-	const handleTabChange = (event, newValue) => {
-		setActiveTab(newValue);
-	};
+	const tabs = [
+		{ label: 'Equipment Templates', step: 'equipment-templates', icon: <SettingsInputComponent /> },
+		{ label: 'Port Templates', step: 'port-templates', icon: <SettingsInputComponent /> },
+	];
 
 	return (
 		<Box
@@ -94,7 +106,7 @@ export default function EquipmentLibraryPage() {
 								openDrawer({
 									// You can dynamically change the drawer based on tab if needed
 									drawerName:
-										activeTab === 0
+										currentTab === 'equipment-templates'
 											? 'addTemplateDrawer'
 											: 'addPortTemplateDrawer',
 								})
@@ -110,44 +122,25 @@ export default function EquipmentLibraryPage() {
 							'&:hover': { bgcolor: 'primary.dark' },
 						}}
 					>
-						{activeTab === 0
+						{currentTab === 'equipment-templates'
 							? 'Create Equipment Template'
 							: 'Create Port Type'}
 					</Button>
 				</Stack>
 
 				{/* Navigation Tabs */}
-				<Tabs
-					value={activeTab}
-					onChange={handleTabChange}
-					sx={{
-						'& .MuiTab-root': {
-							textTransform: 'none',
-							fontWeight: 700,
-							fontSize: '0.95rem',
-							minWidth: 160,
-							color: 'text.secondary',
-						},
-						'& .Mui-selected': {
-							color: 'primary.main',
-						},
-						'& .MuiTabs-indicator': {
-							height: 3,
-							borderRadius: '3px 3px 0 0',
-							bgcolor: 'primary.main',
-						},
-					}}
-				>
-					<Tab label="Equipment Templates" />
-					<Tab label="Port Templates" />
-				</Tabs>
+				<RtmTabs
+					tabs={tabs}
+					tabsName="equipmentLibrary"
+					initialState={{ currentTab: 'equipment-templates' }}
+				/>
 			</Box>
 
 			{/* Filter Bar */}
 			<Box sx={{ px: 4, py: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
 				<TextField
 					placeholder={
-						activeTab === 0
+						currentTab === 'equipment-templates'
 							? 'Search equipment...'
 							: 'Search port types...'
 					}
@@ -202,18 +195,56 @@ export default function EquipmentLibraryPage() {
 						height: '100%',
 					}}
 				>
-					{activeTab === 0 ? (
-						<EquipmentTemplateTable />
+					{currentTab === 'equipment-templates' ? (
+						<EquipmentTemplateTable
+							onEdit={(template) => {
+								setEditingTemplate(template);
+								dispatch(openDrawer({ drawerName: 'editEquipmentTemplateDrawer' }));
+							}}
+							onDelete={(template) => setDeleteTemplate(template)}
+						/>
 					) : (
-						<PortTemplateTable />
+						<PortTemplateTable
+							onEdit={(template) => {
+								setEditingPortTemplate(template);
+								dispatch(openDrawer({ drawerName: 'editPortTemplateDrawer' }));
+							}}
+							onDelete={(template) => setDeletePortTemplate(template)}
+						/>
 					)}
 				</Box>
 			</Box>
 
 			{/* Drawers */}
 			<AddEquipmentTemplateDrawer />
+			<EditEquipmentTemplateDrawer template={editingTemplate} />
+			<DeleteEquipmentTemplateDialog
+				open={!!deleteTemplate}
+				template={deleteTemplate}
+				isLoading={deletingTemplate}
+				onClose={() => setDeleteTemplate(null)}
+				onConfirm={() => {
+					if (!deleteTemplate?.id) return;
+					deleteEquipmentTemplate(deleteTemplate.id, {
+						onSuccess: () => setDeleteTemplate(null),
+					});
+				}}
+			/>
 			{/* You'll likely need a separate drawer for individual Port Type definitions */}
 			<AddPortTemplateDrawer />
+			<EditPortTemplateDrawer template={editingPortTemplate} />
+			<DeletePortTemplateDialog
+				open={!!deletePortTemplate}
+				template={deletePortTemplate}
+				isLoading={deletingPortTemplate}
+				onClose={() => setDeletePortTemplate(null)}
+				onConfirm={() => {
+					if (!deletePortTemplate?.id) return;
+					deletePortTemplateApi(deletePortTemplate.id, {
+						onSuccess: () => setDeletePortTemplate(null),
+					});
+				}}
+			/>
 		</Box>
 	);
 }

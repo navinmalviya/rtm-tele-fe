@@ -5,7 +5,7 @@ import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material
 import { useEquipmentTemplates } from '@/hooks/eqiuipment-templates';
 import RtmDataGrid from '@/lib/common/datagrid';
 
-export default function EquipmentTemplateTable() {
+export default function EquipmentTemplateTable({ onEdit, onDelete }) {
 	const { data: templates = [], isLoading } = useEquipmentTemplates();
 
 	const columns = [
@@ -125,15 +125,23 @@ export default function EquipmentTemplateTable() {
 			headerName: '',
 			width: 100,
 			sortable: false,
-			renderCell: () => (
+			renderCell: (params) => (
 				<Stack direction="row" spacing={0.5} alignItems="center" sx={{ height: '100%' }}>
 					<Tooltip title="Edit Blueprint">
-						<IconButton size="small" sx={{ color: 'text.secondary' }}>
+						<IconButton
+							size="small"
+							sx={{ color: 'text.secondary' }}
+							onClick={() => onEdit?.(params.row)}
+						>
 							<Edit fontSize="small" />
 						</IconButton>
 					</Tooltip>
 					<Tooltip title="Delete">
-						<IconButton size="small" sx={{ color: 'error.light' }}>
+						<IconButton
+							size="small"
+							sx={{ color: 'error.light' }}
+							onClick={() => onDelete?.(params.row)}
+						>
 							<Delete fontSize="small" />
 						</IconButton>
 					</Tooltip>

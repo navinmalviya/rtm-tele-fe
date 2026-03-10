@@ -15,6 +15,11 @@ export const useSubsections = () => {
 				id: sub.id,
 				name: sub.name,
 				code: sub.code,
+				startKm: sub.startKm,
+				endKm: sub.endKm,
+				fromStation: sub.fromStation,
+				toStation: sub.toStation,
+				supervisor: sub.supervisor,
 				// These are useful for React Flow edges
 				source: sub.fromStationId,
 				target: sub.toStationId,
@@ -23,6 +28,7 @@ export const useSubsections = () => {
 					sectionId: sub.sectionId,
 					fromStation: sub.fromStation?.name,
 					toStation: sub.toStation?.name,
+					supervisor: sub.supervisor?.name,
 				},
 			}));
 		},

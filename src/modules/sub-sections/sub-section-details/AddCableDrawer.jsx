@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/common';
 import { useSubSectionDetails } from '@/hooks/sub-sections';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
+import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 const CABLE_SUBTYPES = {
 	PIJF: [
@@ -352,6 +353,8 @@ export default function AddCableDrawer() {
 														label="Commissioning Date"
 														fullWidth
 														InputLabelProps={{ shrink: true }}
+														onFocus={openNativeDateTimePicker}
+														onClick={openNativeDateTimePicker}
 														sx={INPUT_STYLES}
 														InputProps={{
 															startAdornment: (
