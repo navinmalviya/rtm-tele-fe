@@ -5,10 +5,12 @@ import {
 	Box,
 	Button,
 	Divider,
+	FormControlLabel,
 	IconButton,
 	InputAdornment,
 	MenuItem,
 	Stack,
+	Switch,
 	TextField,
 	Typography,
 } from '@mui/material';
@@ -52,6 +54,9 @@ const AddTaskDrawer = () => {
 			assignedToId: '',
 			projectId: '',
 			weight: 0,
+			failureInTime: '',
+			isHqRepeated: false,
+			isIcmsRepeated: false,
 		},
 	});
 
@@ -69,6 +74,21 @@ const AddTaskDrawer = () => {
 			payload.projectId = null;
 			payload.weight = 0;
 		}
+
+		if (payload.type === 'FAILURE') {
+			payload.failureData = {
+				failureInTime: new Date(payload.failureInTime).toISOString(),
+				isHqRepeated: Boolean(payload.isHqRepeated),
+				isIcmsRepeated: Boolean(payload.isIcmsRepeated),
+			};
+		} else {
+			payload.failureData = undefined;
+		}
+
+		delete payload.failureInTime;
+		delete payload.isHqRepeated;
+		delete payload.isIcmsRepeated;
+
 		console.log('taskPayload', payload);
 		addTask(payload);
 		reset();
@@ -241,6 +261,64 @@ const AddTaskDrawer = () => {
 							</Box>
 
 							{/* 3. Conditional Project Task Metrics */}
+							{selectedType === 'FAILURE' && (
+								<Box
+									sx={(theme) => ({
+										p: 3,
+										bgcolor: alpha(theme.palette.error.main, 0.06),
+										borderRadius: 3,
+										border: '1px solid',
+										borderColor: alpha(theme.palette.error.main, 0.2),
+									})}
+								>
+									<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'error.main' }}>
+										FAILURE REPORTING
+									</Typography>
+									<Stack spacing={2}>
+										<Controller
+											name="failureInTime"
+											control={control}
+											rules={{ required: 'Failure in time is required' }}
+											render={({ field }) => (
+												<TextField
+													{...field}
+													type="datetime-local"
+													label="Failure In Time"
+													fullWidth
+													error={!!errors.failureInTime}
+													helperText={errors.failureInTime?.message}
+													InputLabelProps={{ shrink: true }}
+													sx={TEXT_FIELD_STYLES}
+												/>
+											)}
+										/>
+										<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+											<Controller
+												name="isHqRepeated"
+												control={control}
+												render={({ field }) => (
+													<FormControlLabel
+														control={<Switch checked={Boolean(field.value)} onChange={(_, checked) => field.onChange(checked)} />}
+														label="Repeated to HQ"
+													/>
+												)}
+											/>
+											<Controller
+												name="isIcmsRepeated"
+												control={control}
+												render={({ field }) => (
+													<FormControlLabel
+														control={<Switch checked={Boolean(field.value)} onChange={(_, checked) => field.onChange(checked)} />}
+														label="Repeated to ICMS"
+													/>
+												)}
+											/>
+										</Stack>
+									</Stack>
+								</Box>
+							)}
+
+							{/* 4. Conditional Project Task Metrics */}
 							{selectedType === 'PROJECT' && (
 								<Box
 									sx={(theme) => ({

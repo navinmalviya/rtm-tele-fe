@@ -9,7 +9,6 @@ import {
 	LocationOn,
 	ReportProblem,
 	Schedule,
-	SettingsInputComponent,
 	Tune,
 	Timeline,
 } from '@mui/icons-material';
@@ -19,11 +18,13 @@ import {
 	Button,
 	Divider,
 	Chip,
+	FormControlLabel,
 	IconButton,
 	InputAdornment,
 	Paper,
 	MenuItem,
 	Stack,
+	Switch,
 	TextField,
 	Typography,
 } from '@mui/material';
@@ -32,7 +33,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { useStations } from '@/hooks/stations';
 import { useStationLocations } from '@/hooks/locations';
-import { useSubsections } from '@/hooks/sub-sections';
 import { useAddTaskComment, useTask, useUpdateTaskFailure } from '@/hooks/task';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
@@ -40,11 +40,16 @@ import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 const FAILURE_TYPES = [
 	'AXLE_COUTER',
+	'FARE_TERMINAL',
+	'FCT_STD_PHONE',
+	'DATA_LOGGER',
+	'VHF',
+	'GPS_CLOCK',
 	'BLOCK',
 	'SECTION_CONTROL',
 	'TPC_CONTROL',
 	'SI_CONTROL',
-	'PRS',
+	'UTN',
 	'FOIS',
 	'AUTO_PHONE',
 	'RAILNET',
@@ -53,6 +58,14 @@ const FAILURE_TYPES = [
 	'PA_SYSTEM',
 	'MISC',
 ];
+
+const FAILURE_TYPE_LABELS = {
+	FARE_TERMINAL: 'fare terminal',
+	FCT_STD_PHONE: 'FCT/STD Phone',
+	DATA_LOGGER: 'Data logger',
+	VHF: 'VHF',
+	GPS_CLOCK: 'GPS Clock',
+};
 
 const FAILURE_CAUSES = [
 	'EQUIPMENT_FAILURE',
@@ -71,6 +84,8 @@ const formatEnumLabel = (value) =>
 		?.toLowerCase()
 		.replace(/_/g, ' ')
 		.replace(/\b\w/g, (char) => char.toUpperCase());
+
+const getFailureTypeLabel = (value) => FAILURE_TYPE_LABELS[value] || formatEnumLabel(value);
 
 const formatDateTime = (value) => {
 	if (!value) return '';
@@ -101,7 +116,6 @@ export default function TaskDetailDrawer() {
 	const { mutate: saveFailure, isLoading: isSaving } = useUpdateTaskFailure(taskId);
 	const { mutate: addComment, isLoading: isCommenting } = useAddTaskComment(taskId);
 	const { data: stations = [] } = useStations();
-	const { data: subsections = [] } = useSubsections();
 
 	const {
 		control,
@@ -114,9 +128,11 @@ export default function TaskDetailDrawer() {
 		defaultValues: {
 			type: '',
 			cause: '',
+			failureInTime: '',
+			isHqRepeated: false,
+			isIcmsRepeated: false,
 			stationId: '',
 			locationId: '',
-			subsectionId: '',
 			restorationTime: '',
 			remarks: '',
 		},
@@ -144,9 +160,13 @@ export default function TaskDetailDrawer() {
 		reset({
 			type: task.failure?.type || '',
 			cause: task.failure?.cause || '',
+			failureInTime: task.failure?.failureInTime
+				? new Date(task.failure.failureInTime).toISOString().slice(0, 16)
+				: '',
+			isHqRepeated: Boolean(task.failure?.isHqRepeated),
+			isIcmsRepeated: Boolean(task.failure?.isIcmsRepeated),
 			stationId: task.failure?.stationId || '',
 			locationId: task.failure?.locationId || '',
-			subsectionId: task.failure?.subsectionId || '',
 			restorationTime: task.failure?.restorationTime
 				? new Date(task.failure.restorationTime).toISOString().slice(0, 16)
 				: '',
@@ -181,15 +201,13 @@ export default function TaskDetailDrawer() {
 	const onSubmit = (formData) => {
 		const payload = {
 			...formData,
+			failureInTime: formData.failureInTime
+				? new Date(formData.failureInTime).toISOString()
+				: null,
 			restorationTime: formData.restorationTime
 				? new Date(formData.restorationTime).toISOString()
 				: null,
-			cctIn: formData.cctIn ? new Date(formData.cctIn).toISOString() : null,
-			cctRt: formData.cctRt ? new Date(formData.cctRt).toISOString() : null,
-			failureInAt: formData.failureInAt ? new Date(formData.failureInAt).toISOString() : null,
-			failurePrtAt: formData.failurePrtAt ? new Date(formData.failurePrtAt).toISOString() : null,
 			locationId: formData.locationId || null,
-			subsectionId: formData.subsectionId || null,
 			stationId: formData.stationId || null,
 		};
 		saveFailure(payload);
@@ -364,7 +382,7 @@ export default function TaskDetailDrawer() {
 													>
 														{FAILURE_TYPES.map((type) => (
 															<MenuItem key={type} value={type}>
-																{formatEnumLabel(type)}
+																{getFailureTypeLabel(type)}
 															</MenuItem>
 														))}
 													</TextField>
@@ -398,6 +416,70 @@ export default function TaskDetailDrawer() {
 													</TextField>
 												)}
 											/>
+										</Stack>
+
+										<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+											<Controller
+												name="failureInTime"
+												control={control}
+												rules={{ required: 'Failure in time is required' }}
+												render={({ field }) => (
+													<TextField
+														{...field}
+														label="Failure In Time"
+														type="datetime-local"
+														fullWidth
+														error={!!errors.failureInTime}
+														helperText={errors.failureInTime?.message}
+														InputLabelProps={{ shrink: true }}
+														onFocus={openNativeDateTimePicker}
+														onClick={openNativeDateTimePicker}
+														InputProps={{
+															startAdornment: (
+																<InputAdornment position="start">
+																	<Schedule sx={{ fontSize: 18, color: 'text.secondary' }} />
+																</InputAdornment>
+															),
+														}}
+													/>
+												)}
+											/>
+											<Stack
+												direction={{ xs: 'column', sm: 'row' }}
+												spacing={1}
+												sx={{ alignItems: { xs: 'flex-start', md: 'center' }, px: 1 }}
+											>
+												<Controller
+													name="isHqRepeated"
+													control={control}
+													render={({ field }) => (
+														<FormControlLabel
+															control={
+																<Switch
+																	checked={Boolean(field.value)}
+																	onChange={(_, checked) => field.onChange(checked)}
+																/>
+															}
+															label="Repeated to HQ"
+														/>
+													)}
+												/>
+												<Controller
+													name="isIcmsRepeated"
+													control={control}
+													render={({ field }) => (
+														<FormControlLabel
+															control={
+																<Switch
+																	checked={Boolean(field.value)}
+																	onChange={(_, checked) => field.onChange(checked)}
+																/>
+															}
+															label="Repeated to ICMS"
+														/>
+													)}
+												/>
+											</Stack>
 										</Stack>
 
 										<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
@@ -455,33 +537,6 @@ export default function TaskDetailDrawer() {
 												)}
 											/>
 										</Stack>
-
-										<Controller
-											name="subsectionId"
-											control={control}
-											render={({ field }) => (
-												<TextField
-													{...field}
-													select
-													label="Sub-section"
-													fullWidth
-													InputProps={{
-														startAdornment: (
-															<InputAdornment position="start">
-																<SettingsInputComponent sx={{ fontSize: 18, color: 'text.secondary' }} />
-															</InputAdornment>
-														),
-													}}
-												>
-													<MenuItem value="">None</MenuItem>
-													{subsections.map((sub) => (
-														<MenuItem key={sub.id} value={sub.id}>
-															{sub.name} ({sub.code})
-														</MenuItem>
-													))}
-												</TextField>
-											)}
-										/>
 
 										<Controller
 											name="restorationTime"

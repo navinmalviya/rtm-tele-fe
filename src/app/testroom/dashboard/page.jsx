@@ -20,7 +20,6 @@ import { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useTasks } from '@/hooks/task';
 import { useStations } from '@/hooks/stations';
-import { useSubsections } from '@/hooks/sub-sections';
 import StatCard from '@/lib/common/stat-card';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
@@ -37,7 +36,6 @@ export default function DashboardPage() {
 	// Fetching tasks which includes failures, inspections, etc.
 	const { data: allTasks = [] } = useTasks();
 	const { data: stations = [] } = useStations();
-	const { data: subsections = [] } = useSubsections();
 	// const { data: schedules = [] } = useMaintenanceSchedules();
 
 	// Logic: Filter for 'FAILURE' types specifically for the Test Room view
@@ -46,7 +44,7 @@ export default function DashboardPage() {
 		const start = dateRange.start ? new Date(dateRange.start) : null;
 		const end = dateRange.end ? new Date(dateRange.end) : null;
 		return failures.filter((task) => {
-			const dateValue = task.createdAt || task.updatedAt;
+			const dateValue = task.failure?.failureInTime || task.createdAt || task.updatedAt;
 			if (!dateValue) return false;
 			const dt = new Date(dateValue);
 			if (start && dt < start) return false;
@@ -78,10 +76,17 @@ export default function DashboardPage() {
 		return `${hours}h ${minutes}m`;
 	};
 
+	const formatEnumLabel = (value) =>
+		value
+			?.toString()
+			.toLowerCase()
+			.replace(/_/g, ' ')
+			.replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
+
 	const mttrValues = useMemo(() => {
 		return filteredFailures
 			.map((task) => {
-				const start = task.failure?.failureReportedAt || task.createdAt;
+				const start = task.failure?.failureInTime || task.createdAt;
 				const end = task.failure?.restorationTime;
 				if (!start || !end) return null;
 				const duration = new Date(end).getTime() - new Date(start).getTime();
@@ -97,7 +102,7 @@ export default function DashboardPage() {
 
 	const avgMtbfMs = useMemo(() => {
 		const points = filteredFailures
-			.map((task) => task.failure?.failureReportedAt || task.createdAt)
+			.map((task) => task.failure?.failureInTime || task.createdAt)
 			.filter(Boolean)
 			.map((value) => new Date(value).getTime())
 			.sort((a, b) => a - b);
@@ -130,28 +135,6 @@ export default function DashboardPage() {
 		}));
 	}, [filteredFailures, stations]);
 
-	const subsectionChart = useMemo(() => {
-		const subsectionMap = new Map();
-		subsections.forEach((sub) => {
-			subsectionMap.set(sub.id, sub.name || sub.code);
-		});
-
-		const counts = new Map();
-		filteredFailures.forEach((task) => {
-			const subsectionId = task.failure?.subsectionId;
-			if (!subsectionId) return;
-			const key = subsectionMap.get(subsectionId) || 'Unknown';
-			if (!counts.has(key)) counts.set(key, []);
-			counts.get(key).push(task);
-		});
-
-		return Array.from(counts.entries()).map(([label, items]) => ({
-			label,
-			value: items.length,
-			items,
-		}));
-	}, [filteredFailures, subsections]);
-
 	const failureTypeChart = useMemo(() => {
 		const counts = new Map();
 		filteredFailures.forEach((task) => {
@@ -161,7 +144,7 @@ export default function DashboardPage() {
 		});
 		return Array.from(counts.entries()).map(([label, items], index) => ({
 			id: index,
-			label,
+			label: formatEnumLabel(label),
 			value: items.length,
 			items,
 		}));
@@ -326,47 +309,6 @@ export default function DashboardPage() {
 									setDrilldown({
 										open: true,
 										title: `Station: ${target.label}`,
-										items: target.items,
-									});
-								}}
-							/>
-						</Paper>
-					</Grid>
-
-					<Grid item xs={12} lg={6}>
-						<Paper
-							variant="outlined"
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								borderColor: 'divider',
-								bgcolor: 'background.paper',
-								minHeight: 320,
-							}}
-						>
-							<Typography sx={{ fontWeight: 700, color: 'text.primary', mb: 2 }}>
-								Failures by Sub-section
-							</Typography>
-							<BarChart
-								height={240}
-								series={[
-									{
-										data: subsectionChart.map((item) => item.value),
-										color: theme.palette.warning.main,
-									},
-								]}
-								xAxis={[
-									{
-										scaleType: 'band',
-										data: subsectionChart.map((item) => item.label),
-									},
-								]}
-								onItemClick={(event, payload) => {
-									const target = subsectionChart[payload.dataIndex];
-									if (!target) return;
-									setDrilldown({
-										open: true,
-										title: `Sub-section: ${target.label}`,
 										items: target.items,
 									});
 								}}

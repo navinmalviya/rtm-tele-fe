@@ -21,7 +21,6 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { useMemo, useState } from 'react';
 import { useTasks } from '@/hooks/task';
 import { useStations } from '@/hooks/stations';
-import { useSubsections } from '@/hooks/sub-sections';
 import RtmTabs from '@/lib/common/tabs';
 import StatCard from '@/lib/common/stat-card';
 import RtmDataGrid from '@/lib/common/datagrid';
@@ -61,7 +60,6 @@ export default function ReportsPage() {
 	const { currentTab } = useTabs('reportsHub', { currentTab: 'daily-failure' });
 	const { data: tasks = [], isLoading } = useTasks();
 	const { data: stations = [] } = useStations();
-	const { data: subsections = [] } = useSubsections();
 
 	const today = new Date().toISOString().slice(0, 10);
 	const [dateRange, setDateRange] = useState({ start: today, end: today });
@@ -74,21 +72,13 @@ export default function ReportsPage() {
 		return map;
 	}, [stations]);
 
-	const subsectionMap = useMemo(() => {
-		const map = new Map();
-		subsections.forEach((sub) => {
-			map.set(sub.id, sub.name || sub.code);
-		});
-		return map;
-	}, [subsections]);
-
 	const failures = useMemo(() => tasks.filter((task) => task.type === 'FAILURE'), [tasks]);
 
 	const filteredFailures = useMemo(() => {
 		const start = dateRange.start ? new Date(dateRange.start) : null;
 		const end = dateRange.end ? new Date(dateRange.end) : null;
 		return failures.filter((task) => {
-			const dateValue = task.createdAt || task.updatedAt;
+			const dateValue = task.failure?.failureInTime || task.createdAt || task.updatedAt;
 			if (!dateValue) return false;
 			const dt = new Date(dateValue);
 			if (start && dt < start) return false;
@@ -105,7 +95,7 @@ export default function ReportsPage() {
 	const averageRestoration = useMemo(() => {
 		const durations = filteredFailures
 			.map((task) => {
-				const start = task.createdAt;
+				const start = task.failure?.failureInTime || task.createdAt;
 				const end = task.failure?.restorationTime;
 				if (!start || !end) return null;
 				const duration = new Date(end).getTime() - new Date(start).getTime();
@@ -141,12 +131,6 @@ export default function ReportsPage() {
 				headerName: 'STATION',
 				flex: 1,
 				valueGetter: (_, row) => row.station,
-			},
-			{
-				field: 'subsection',
-				headerName: 'SUB-SECTION',
-				flex: 1,
-				valueGetter: (_, row) => row.subsection,
 			},
 			{
 				field: 'type',
@@ -267,22 +251,20 @@ export default function ReportsPage() {
 			filteredFailures.map((task) => {
 				const stationId = task.failure?.stationId || task.failure?.location?.stationId;
 				const station = stationMap.get(stationId) || 'Unassigned';
-				const subsection = subsectionMap.get(task.failure?.subsectionId) || 'Not linked';
 				return {
 					id: task.id,
 					title: task.title,
 					type: task.failure?.type,
 					cause: task.failure?.cause,
 					station,
-					subsection,
-					reportedAt: task.createdAt,
+					reportedAt: task.failure?.failureInTime || task.createdAt,
 					restoredAt: task.failure?.restorationTime,
 					priority: task.priority,
 					status: task.status,
 					assignee: task.assignedTo?.name || 'Unassigned',
 				};
 			}),
-		[filteredFailures, stationMap, subsectionMap]
+		[filteredFailures, stationMap]
 	);
 
 	return (
