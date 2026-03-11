@@ -21,9 +21,16 @@ export default function OverdueMaintenanceTable({ onComplete }) {
 		station: item.schedule?.station
 			? `${item.schedule.station.name} (${item.schedule.station.code})`
 			: '-',
+		subsection: item.schedule?.subsection
+			? `${item.schedule.subsection.code} (${item.schedule.subsection.name})`
+			: '-',
 		equipment: item.schedule?.equipment?.name || '-',
 		location: item.schedule?.location?.name || '-',
+		isJointSchedule: item.schedule?.isJointSchedule || false,
+		jointDepartment: item.schedule?.jointDepartment || '-',
 		dueDate: item.dueDate,
+		escalatedAt: item.escalatedAt,
+		escalatedTo: item.escalatedTo?.name || '-',
 		status: item.status,
 		schedule: item.schedule,
 	}));
@@ -37,7 +44,7 @@ export default function OverdueMaintenanceTable({ onComplete }) {
 				<Stack spacing={0.2}>
 					<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{params.value}</Typography>
 					<Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
-						{params.row.station}
+						{params.row.subsection !== '-' ? params.row.subsection : params.row.station}
 					</Typography>
 				</Stack>
 			),
@@ -54,14 +61,32 @@ export default function OverdueMaintenanceTable({ onComplete }) {
 			),
 		},
 		{
-			field: 'equipment',
-			headerName: 'Equipment',
-			width: 180,
+			field: 'isJointSchedule',
+			headerName: 'Joint',
+			width: 110,
+			renderCell: (params) => (
+				<Chip
+					size="small"
+					label={params.value ? 'YES' : 'NO'}
+					sx={(theme) => ({
+						fontWeight: 700,
+						bgcolor: params.value
+							? alpha(theme.palette.secondary.main, 0.18)
+							: theme.palette.action.hover,
+						color: params.value ? theme.palette.secondary.main : theme.palette.text.secondary,
+					})}
+				/>
+			),
 		},
 		{
-			field: 'location',
-			headerName: 'Location',
+			field: 'jointDepartment',
+			headerName: 'Joint Dept',
 			width: 160,
+		},
+		{
+			field: 'escalatedTo',
+			headerName: 'Escalated To',
+			width: 170,
 		},
 		{
 			field: 'status',
@@ -77,10 +102,7 @@ export default function OverdueMaintenanceTable({ onComplete }) {
 							params.value === 'OVERDUE'
 								? alpha(theme.palette.error.main, 0.18)
 								: alpha(theme.palette.info.main, 0.16),
-						color:
-							params.value === 'OVERDUE'
-								? theme.palette.error.main
-								: theme.palette.info.main,
+						color: params.value === 'OVERDUE' ? theme.palette.error.main : theme.palette.info.main,
 					})}
 				/>
 			),

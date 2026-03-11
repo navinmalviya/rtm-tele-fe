@@ -1,16 +1,19 @@
 'use client';
 
-import { Engineering, MyLocation, Schedule } from '@mui/icons-material';
-import { Box, Grid, Paper, Stack, Typography } from '@mui/material';
+import { CheckCircle, Engineering, MyLocation, Schedule } from '@mui/icons-material';
+import { Box, Grid, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import { useMyMaintenanceSummary } from '@/hooks/maintenance';
 import { useTasks } from '@/hooks/task';
 import RtmDataGrid from '@/lib/common/datagrid';
 import StatCard from '@/lib/common/stat-card';
 import TaskBoard from '@/lib/common/task-board';
+import { CompleteMaintenanceDialog } from '@/modules/maintenance';
 
 export default function FieldEngineerDashboard() {
 	const { data: session } = useSession();
+	const [selectedOccurrence, setSelectedOccurrence] = useState(null);
 
 	const { data: allTasks = [], isLoading } = useTasks();
 	const { data: maintenanceSummary, isLoading: maintLoading } = useMyMaintenanceSummary();
@@ -59,7 +62,9 @@ export default function FieldEngineerDashboard() {
 					<StatCard
 						label="Completed Maintenance"
 						value={(maintenanceSummary?.completedCount || 0).toString()}
-						trend={completedSchedules[0]?.completedAt ? 'Recently updated' : 'No completed schedule'}
+						trend={
+							completedSchedules[0]?.completedAt ? 'Recently updated' : 'No completed schedule'
+						}
 						icon={<MyLocation />}
 						color="success.main"
 					/>
@@ -86,6 +91,11 @@ export default function FieldEngineerDashboard() {
 					My Maintenance Schedules
 				</Typography>
 				<Grid container spacing={3}>
+					<CompleteMaintenanceDialog
+						open={!!selectedOccurrence}
+						onClose={() => setSelectedOccurrence(null)}
+						occurrence={selectedOccurrence}
+					/>
 					<Grid item xs={12} lg={6}>
 						<Paper variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
 							<Typography sx={{ fontWeight: 700, mb: 1.5, color: 'warning.main' }}>
@@ -94,16 +104,22 @@ export default function FieldEngineerDashboard() {
 							<RtmDataGrid
 								rows={pendingSchedules.map((item) => ({
 									id: item.id,
+									occurrence: item,
 									title: item.schedule?.title || '-',
-									station: item.schedule?.station
-										? `${item.schedule.station.name} (${item.schedule.station.code})`
-										: '-',
+									target:
+										item.schedule?.targetScope === 'SUBSECTION' && item.schedule?.subsection
+											? `${item.schedule.subsection.code} (${item.schedule.subsection.name})`
+											: item.schedule?.station
+												? `${item.schedule.station.name} (${item.schedule.station.code})`
+												: '-',
 									dueDate: item.dueDate,
 									status: item.status,
+									joint: item.schedule?.isJointSchedule ? 'Joint' : 'Regular',
 								}))}
 								columns={[
 									{ field: 'title', headerName: 'Schedule', flex: 1.2 },
-									{ field: 'station', headerName: 'Station', flex: 1 },
+									{ field: 'target', headerName: 'Target', flex: 1 },
+									{ field: 'joint', headerName: 'Type', flex: 0.8 },
 									{
 										field: 'dueDate',
 										headerName: 'Due',
@@ -111,6 +127,27 @@ export default function FieldEngineerDashboard() {
 										renderCell: (params) => new Date(params.value).toLocaleDateString('en-IN'),
 									},
 									{ field: 'status', headerName: 'Status', flex: 0.8 },
+									{
+										field: 'actions',
+										headerName: 'Actions',
+										flex: 0.7,
+										sortable: false,
+										filterable: false,
+										renderCell: (params) => (
+											<Tooltip title="Mark as completed">
+												<IconButton
+													size="small"
+													onClick={() => setSelectedOccurrence(params.row.occurrence)}
+													sx={(theme) => ({
+														bgcolor: `${theme.palette.success.main}1f`,
+														color: theme.palette.success.main,
+													})}
+												>
+													<CheckCircle fontSize="small" />
+												</IconButton>
+											</Tooltip>
+										),
+									},
 								]}
 								loading={maintLoading}
 								hideFooter
@@ -127,15 +164,19 @@ export default function FieldEngineerDashboard() {
 								rows={completedSchedules.map((item) => ({
 									id: item.id,
 									title: item.schedule?.title || '-',
-									station: item.schedule?.station
-										? `${item.schedule.station.name} (${item.schedule.station.code})`
-										: '-',
+									target:
+										item.schedule?.targetScope === 'SUBSECTION' && item.schedule?.subsection
+											? `${item.schedule.subsection.code} (${item.schedule.subsection.name})`
+											: item.schedule?.station
+												? `${item.schedule.station.name} (${item.schedule.station.code})`
+												: '-',
 									completedAt: item.completedAt,
 									remarks: item.remarks || '-',
+									jointPerson: item.jointDoneWithName || '-',
 								}))}
 								columns={[
-									{ field: 'title', headerName: 'Schedule', flex: 1.1 },
-									{ field: 'station', headerName: 'Station', flex: 1 },
+									{ field: 'title', headerName: 'Schedule', flex: 1 },
+									{ field: 'target', headerName: 'Target', flex: 1 },
 									{
 										field: 'completedAt',
 										headerName: 'Completed On',
@@ -143,7 +184,8 @@ export default function FieldEngineerDashboard() {
 										renderCell: (params) =>
 											params.value ? new Date(params.value).toLocaleDateString('en-IN') : '-',
 									},
-									{ field: 'remarks', headerName: 'Remarks', flex: 1.1 },
+									{ field: 'jointPerson', headerName: 'Joint With', flex: 0.9 },
+									{ field: 'remarks', headerName: 'Remarks', flex: 1 },
 								]}
 								loading={maintLoading}
 								hideFooter

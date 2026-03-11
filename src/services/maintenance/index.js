@@ -1,7 +1,7 @@
 import http from '../../../httpCommon';
 
-const listSchedules = () => {
-	return http.get('/maintenance');
+const listSchedules = (params = {}) => {
+	return http.get('/maintenance', { params });
 };
 const listMySummary = () => {
 	return http.get('/maintenance/my-summary');
@@ -31,6 +31,10 @@ const completeOccurrence = (occurrenceId, payload) => {
 	return http.patch(`/maintenance/occurrences/${occurrenceId}/complete`, payload);
 };
 
+const getInspectionForm = (occurrenceId) => {
+	return http.get(`/maintenance/occurrences/${occurrenceId}/inspection-form`);
+};
+
 export const MaintenanceService = {
 	listSchedules,
 	listMySummary,
@@ -40,4 +44,5 @@ export const MaintenanceService = {
 	createOccurrence,
 	listOverdue,
 	completeOccurrence,
+	getInspectionForm,
 };

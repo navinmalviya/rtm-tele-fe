@@ -4,14 +4,21 @@ import { CalendarMonth, Edit, PauseCircle, PlayCircle, Refresh } from '@mui/icon
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useState } from 'react';
-import ConfirmToggleDialog from './toggle-confirm-dialog';
 import { useMaintenanceSchedules, useToggleMaintenanceSchedule } from '@/hooks/maintenance';
 import RtmDataGrid from '@/lib/common/datagrid';
+import ConfirmToggleDialog from './toggle-confirm-dialog';
 
 const formatDate = (value) => {
 	if (!value) return '-';
 	const date = new Date(value);
 	return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const typeLabel = {
+	STATION_INSPECTION_MAINTENANCE: 'Station Insp/Maint',
+	CABLE_TESTING: 'Cable Testing',
+	EC_SOCKET_TESTING: 'EC Socket Testing',
+	CUSTOM: 'Custom',
 };
 
 export default function MaintenanceScheduleTable({ onEdit }) {
@@ -21,18 +28,24 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 
 	const rows = schedules.map((item) => ({
 		id: item.id,
+		_raw: item,
 		title: item.title,
+		scheduleType: item.scheduleType,
+		targetScope: item.targetScope,
 		frequency: item.frequency,
 		nextDueDate: item.nextDueDate,
 		station: item.station ? `${item.station.name} (${item.station.code})` : '-',
+		subsection: item.subsection ? `${item.subsection.code} (${item.subsection.name})` : '-',
 		equipment: item.equipment?.name || '-',
 		location: item.location?.name || '-',
+		isJointSchedule: item.isJointSchedule,
+		jointDepartment: item.jointDepartment || '-',
+		allowedVarianceDays: item.allowedVarianceDays ?? 5,
 		status: item.status,
 		supervisor: item.supervisor?.name || '-',
-		completionState:
-			item.occurrences?.some((occ) => ['OPEN', 'OVERDUE'].includes(occ.status))
-				? 'PENDING'
-				: item.occurrences?.some((occ) => occ.status === 'COMPLETED')
+		completionState: item.occurrences?.some((occ) => ['OPEN', 'OVERDUE'].includes(occ.status))
+			? 'PENDING'
+			: item.occurrences?.some((occ) => occ.status === 'COMPLETED')
 				? 'COMPLETED'
 				: 'PENDING',
 	}));
@@ -41,14 +54,24 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 		{
 			field: 'title',
 			headerName: 'Schedule',
-			flex: 1.2,
+			flex: 1.1,
 			renderCell: (params) => (
 				<Stack spacing={0.2}>
 					<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>{params.value}</Typography>
 					<Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
-						{params.row.station}
+						{params.row.targetScope === 'SUBSECTION' ? params.row.subsection : params.row.station}
 					</Typography>
 				</Stack>
+			),
+		},
+		{
+			field: 'scheduleType',
+			headerName: 'Type',
+			width: 170,
+			renderCell: (params) => (
+				<Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.8rem' }}>
+					{typeLabel[params.value] || params.value}
+				</Typography>
 			),
 		},
 		{
@@ -79,14 +102,35 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 			),
 		},
 		{
-			field: 'equipment',
-			headerName: 'Equipment',
-			width: 180,
+			field: 'isJointSchedule',
+			headerName: 'Joint',
+			width: 130,
+			renderCell: (params) => (
+				<Chip
+					label={params.value ? 'YES' : 'NO'}
+					size="small"
+					sx={(theme) => ({
+						fontWeight: 700,
+						bgcolor: params.value
+							? alpha(theme.palette.secondary.main, 0.2)
+							: theme.palette.action.hover,
+						color: params.value ? theme.palette.secondary.main : theme.palette.text.secondary,
+					})}
+				/>
+			),
 		},
 		{
-			field: 'location',
-			headerName: 'Location',
-			width: 160,
+			field: 'jointDepartment',
+			headerName: 'Joint Dept',
+			width: 150,
+		},
+		{
+			field: 'allowedVarianceDays',
+			headerName: 'Window',
+			width: 110,
+			renderCell: (params) => (
+				<Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>± {params.value}d</Typography>
+			),
 		},
 		{
 			field: 'status',
@@ -103,9 +147,7 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 								? alpha(theme.palette.success.main, 0.18)
 								: alpha(theme.palette.error.main, 0.18),
 						color:
-							params.value === 'ACTIVE'
-								? theme.palette.success.main
-								: theme.palette.error.main,
+							params.value === 'ACTIVE' ? theme.palette.success.main : theme.palette.error.main,
 					})}
 				/>
 			),
@@ -135,7 +177,7 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 		{
 			field: 'supervisor',
 			headerName: 'Supervisor',
-			width: 180,
+			width: 170,
 		},
 		{
 			field: 'actions',
@@ -190,7 +232,7 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 										<span>
 											<IconButton
 												size="small"
-												onClick={() => params.row.status === 'ACTIVE' && onEdit?.(params.row)}
+												onClick={() => params.row.status === 'ACTIVE' && onEdit?.(params.row._raw)}
 												disabled={!isActive}
 												sx={(theme) => ({
 													bgcolor: isActive
@@ -213,9 +255,7 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 												bgcolor: isActive
 													? alpha(theme.palette.error.main, 0.16)
 													: alpha(theme.palette.success.main, 0.18),
-												color: isActive
-													? theme.palette.error.main
-													: theme.palette.success.main,
+												color: isActive ? theme.palette.error.main : theme.palette.success.main,
 											})}
 										>
 											{isActive ? (
