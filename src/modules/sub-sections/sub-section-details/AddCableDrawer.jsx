@@ -89,7 +89,8 @@ export default function AddCableDrawer() {
 	const buildKmOptions = () => {
 		const startRaw = subsection?.startKm;
 		const endRaw = subsection?.endKm;
-		if (startRaw === undefined || startRaw === null || endRaw === undefined || endRaw === null) return [];
+		if (startRaw === undefined || startRaw === null || endRaw === undefined || endRaw === null)
+			return [];
 		const start = Number.parseFloat(startRaw);
 		const end = Number.parseFloat(endRaw);
 		if (!Number.isFinite(start) || !Number.isFinite(end) || start > end) return [];
@@ -315,7 +316,7 @@ export default function AddCableDrawer() {
 									LOGISTICS & SUPPLY
 								</Typography>
 								<Stack spacing={3}>
-									{/* Track Side and Commissioning Date in One Line */}
+									{/* Track Side and Commissioning Date */}
 									<Grid container spacing={2}>
 										<Grid item xs={6}>
 											<Controller

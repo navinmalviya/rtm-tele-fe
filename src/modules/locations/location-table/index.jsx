@@ -98,6 +98,24 @@ export default function LocationTable({ locations = [], isLoading, onEdit, onDel
 				),
 			},
 			{
+				field: 'supervisor',
+				headerName: 'SUPERVISOR',
+				flex: 1.1,
+				renderCell: (params) => (
+					<Typography
+						sx={{
+							fontSize: '0.75rem',
+							fontWeight: 700,
+							color: 'text.secondary',
+							whiteSpace: 'normal',
+							lineHeight: 1.2,
+						}}
+					>
+						{params.row.supervisor?.name || '-'}
+					</Typography>
+				),
+			},
+			{
 				field: 'actions',
 				headerName: '',
 				width: 100,

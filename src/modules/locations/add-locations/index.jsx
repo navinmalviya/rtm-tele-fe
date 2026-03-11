@@ -1,12 +1,13 @@
 'use client';
 
-import { Close, Description, MapsHomeWork, PushPin } from '@mui/icons-material';
+import { Close, Description, Engineering, MapsHomeWork, PushPin } from '@mui/icons-material';
 import {
 	Box,
 	Button,
 	Divider,
 	IconButton,
 	InputAdornment,
+	MenuItem,
 	Stack,
 	TextField,
 	Typography,
@@ -16,13 +17,23 @@ import { useParams } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useAddLocation } from '@/hooks/locations';
+import { useUsers } from '@/hooks/user';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
+
+const SUPERVISOR_ROLES = [
+	'JE_SSE_TELE_SECTIONAL',
+	'SSE_TELE_INCHARGE',
+	'SSE_SNT_OFFICE',
+	'SSE_TECH',
+];
 
 export default function AddLocationForm() {
 	const dispatch = useDispatch();
 	const { mutate: addLocation } = useAddLocation();
+	const { data: users = [] } = useUsers();
 	const { stationId } = useParams();
+	const supervisors = users.filter((user) => SUPERVISOR_ROLES.includes(user.role));
 
 	const {
 		control,
@@ -33,6 +44,7 @@ export default function AddLocationForm() {
 		defaultValues: {
 			name: '',
 			description: '',
+			supervisorId: '',
 		},
 	});
 
@@ -162,6 +174,37 @@ export default function AddLocationForm() {
 													),
 												}}
 											/>
+										)}
+									/>
+
+									<Controller
+										name="supervisorId"
+										control={control}
+										rules={{ required: 'Supervisor is required' }}
+										render={({ field }) => (
+											<TextField
+												{...field}
+												select
+												label="Location Supervisor"
+												placeholder="Select JE/SSE in-charge for this location"
+												fullWidth
+												error={!!errors.supervisorId}
+												helperText={errors.supervisorId?.message}
+												sx={textFieldStyles}
+												InputProps={{
+													startAdornment: (
+														<InputAdornment position="start">
+															<Engineering sx={{ color: 'primary.main' }} />
+														</InputAdornment>
+													),
+												}}
+											>
+												{supervisors.map((user) => (
+													<MenuItem key={user.id} value={user.id}>
+														{user.name} ({user.designation || user.role})
+													</MenuItem>
+												))}
+											</TextField>
 										)}
 									/>
 								</Stack>

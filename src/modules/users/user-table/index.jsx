@@ -6,15 +6,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import { useUsers } from '@/hooks/user';
 import RtmDataGrid from '@/lib/common/datagrid';
-
-const formatRole = (value) =>
-	value
-		? value
-				.toString()
-				.replace(/_/g, ' ')
-				.toLowerCase()
-				.replace(/(^\w|\s\w)/g, (m) => m.toUpperCase())
-		: '-';
+import { formatRoleLabel } from '../role-options';
 
 export default function UserTable({ onEdit, onDelete }) {
 	const { data: users = [], isLoading } = useUsers();
@@ -84,7 +76,7 @@ export default function UserTable({ onEdit, onDelete }) {
 				flex: 0.9,
 				renderCell: (params) => (
 					<Chip
-						label={formatRole(params.value)}
+						label={formatRoleLabel(params.value)}
 						size="small"
 						icon={<Shield sx={{ fontSize: 14 }} />}
 						sx={{
@@ -115,12 +107,20 @@ export default function UserTable({ onEdit, onDelete }) {
 				renderCell: (params) => (
 					<Stack direction="row" spacing={0.5} alignItems="center">
 						<Tooltip title="Edit User">
-							<IconButton size="small" sx={{ color: 'text.secondary' }} onClick={() => onEdit?.(params.row)}>
+							<IconButton
+								size="small"
+								sx={{ color: 'text.secondary' }}
+								onClick={() => onEdit?.(params.row)}
+							>
 								<Edit fontSize="small" />
 							</IconButton>
 						</Tooltip>
 						<Tooltip title="Delete">
-							<IconButton size="small" sx={{ color: 'error.light' }} onClick={() => onDelete?.(params.row)}>
+							<IconButton
+								size="small"
+								sx={{ color: 'error.light' }}
+								onClick={() => onDelete?.(params.row)}
+							>
 								<Delete fontSize="small" />
 							</IconButton>
 						</Tooltip>

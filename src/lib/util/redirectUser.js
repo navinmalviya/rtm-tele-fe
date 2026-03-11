@@ -5,6 +5,7 @@ export const redirectUser = (session, router) => {
 			router.push('/admin/dashboard');
 			break;
 		case 'SR_DSTE_CO':
+		case 'SR_DSTE':
 			router.push('/sr-dste-co/dashboard');
 			break;
 		case 'DSTE':
@@ -26,6 +27,7 @@ export const redirectUser = (session, router) => {
 			router.push('/field-engineer/dashboard');
 			break;
 		case 'TECHNICIAN':
+		case 'TCM':
 			router.push('/technician/dashboard');
 			break;
 		case 'AUDIT_USER':

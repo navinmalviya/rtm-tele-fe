@@ -25,7 +25,7 @@ const getStructuralCounts = (subType) => {
 	}
 };
 
-export const useAddCable = () => {
+export const useAddCable = (drawerName = 'addCableDrawer') => {
 	const queryClient = useQueryClient();
 	const dispatch = useDispatch();
 	const showToast = useToast();
@@ -40,18 +40,17 @@ export const useAddCable = () => {
 		},
 
 		onSuccess: async (data) => {
-			// Accessing subsectionId from the response data structure
-			const subsectionId = data.data?.subsectionId;
+			const createdCable = data.data || {};
+			const subsectionId = createdCable.subsectionId;
 
-			// Invalidate specific subsection list
-			await queryClient.invalidateQueries({
-				queryKey: ['cables', subsectionId],
-			});
+			if (subsectionId) {
+				await queryClient.invalidateQueries({ queryKey: ['cables', subsectionId] });
+			}
 
 			showToast('New cable and all physical assets registered successfully!', 'success');
 
 			// Close the entry drawer
-			dispatch(closeDrawer({ drawerName: 'addCableDrawer' }));
+			dispatch(closeDrawer({ drawerName }));
 		},
 
 		onError: (error) => {

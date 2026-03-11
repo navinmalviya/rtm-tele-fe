@@ -1,18 +1,24 @@
 'use client';
 
-import { AddCircle, FilterAlt, Inventory2, PrecisionManufacturing, Warehouse } from '@mui/icons-material';
+import {
+	AddCircle,
+	FilterAlt,
+	Inventory2,
+	PrecisionManufacturing,
+	Warehouse,
+} from '@mui/icons-material';
 import { Box, Button, InputAdornment, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useAllEquipment } from '@/hooks/equipment';
-import RtmTabs from '@/lib/common/tabs';
-import { useTabs } from '@/hooks/common';
-import EquipmentTable from '@/modules/equipments/equipment-table';
-import RtmDataGrid from '@/lib/common/datagrid';
-import { AddTnpDrawer, DeleteTnpDialog, EditTnpDrawer, TnpTable } from '@/modules/tnp';
-import { useDeleteTnpItem } from '@/hooks/tnp';
+import { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTabs } from '@/hooks/common';
+import { useAllEquipment } from '@/hooks/equipment';
+import { useDeleteTnpItem } from '@/hooks/tnp';
+import RtmDataGrid from '@/lib/common/datagrid';
+import RtmTabs from '@/lib/common/tabs';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import EquipmentTable from '@/modules/equipments/equipment-table';
+import { AddTnpDrawer, DeleteTnpDialog, EditTnpDrawer, TnpTable } from '@/modules/tnp';
 
 const EMPTY_COLUMNS = [
 	{ field: 'name', headerName: 'ASSET NAME', flex: 1 },
@@ -22,7 +28,14 @@ const EMPTY_COLUMNS = [
 
 const EMPTY_ROWS = [];
 
-const FIELD_ROLES = ['FIELD_ENGINEER', 'JE_SSE_TELE_SECTIONAL', 'SSE_SECTIONAL', 'JE_SECTIONAL'];
+const FIELD_ROLES = [
+	'FIELD_ENGINEER',
+	'JE_SSE_TELE_SECTIONAL',
+	'SSE_SECTIONAL',
+	'JE_SECTIONAL',
+	'TCM',
+	'TECHNICIAN',
+];
 
 export default function AssetsPage({ scope = 'testroom' }) {
 	const { data: session } = useSession();
@@ -85,7 +98,8 @@ export default function AssetsPage({ scope = 'testroom' }) {
 		return scopedEquipment.filter((item) => {
 			if (filters.stationId !== 'ALL' && item.stationId !== filters.stationId) return false;
 			if (filters.category !== 'ALL' && item.template?.category !== filters.category) return false;
-			if (filters.subCategory !== 'ALL' && item.template?.subCategory !== filters.subCategory) return false;
+			if (filters.subCategory !== 'ALL' && item.template?.subCategory !== filters.subCategory)
+				return false;
 			if (filters.status !== 'ALL' && item.status !== filters.status) return false;
 			return true;
 		});
@@ -102,7 +116,14 @@ export default function AssetsPage({ scope = 'testroom' }) {
 	];
 
 	return (
-		<Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.default' }}>
+		<Box
+			sx={{
+				display: 'flex',
+				flexDirection: 'column',
+				height: '100%',
+				bgcolor: 'background.default',
+			}}
+		>
 			<Box sx={{ px: 3, pt: 3, pb: 2, bgcolor: 'background.paper' }}>
 				<Stack direction="row" spacing={1.5} alignItems="center">
 					<Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 2, display: 'flex' }}>

@@ -6,17 +6,31 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTabs } from '@/hooks/common';
 import { useDeleteEquipment, useEquipmentByStation } from '@/hooks/equipment';
 import { useDeleteLocation, useStationLocations } from '@/hooks/locations';
 import { useDeleteRack, useStationRacks } from '@/hooks/racks';
 import { useStationSummary } from '@/hooks/stations';
-import { useTabs } from '@/hooks/common';
 import RtmTabs from '@/lib/common/tabs';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
-import { AddEquipmentDrawer, DeleteEquipmentDialog, EditEquipmentDrawer, EquipmentTable } from '@/modules/equipments';
-import { AddLocationForm, DeleteLocationDialog, EditLocationDrawer, LocationTable } from '@/modules/locations';
+import {
+	AddEquipmentDrawer,
+	DeleteEquipmentDialog,
+	EditEquipmentDrawer,
+	EquipmentTable,
+} from '@/modules/equipments';
+import {
+	AddLocationForm,
+	DeleteLocationDialog,
+	EditLocationDrawer,
+	LocationTable,
+} from '@/modules/locations';
 import { AddRackForm, DeleteRackDialog, EditRackDrawer, RackTable } from '@/modules/racks';
-import { AddStationEquipmentDrawer, StationInternalTopology } from '@/modules/stations';
+import {
+	AddStationEquipmentDrawer,
+	LocationCablesPanel,
+	StationInternalTopology,
+} from '@/modules/stations';
 
 export default function StationDetailPage() {
 	const theme = useTheme();
@@ -62,6 +76,11 @@ export default function StationDetailPage() {
 			icon: <Devices />,
 			drawer: 'addEquipmentDrawer',
 		},
+		cables: {
+			label: 'Add Cable Link',
+			icon: <Hub />,
+			drawer: 'addLocationCableDrawer',
+		},
 	};
 
 	const currentAction = tabActions[currentTab] || tabActions.topology;
@@ -71,6 +90,7 @@ export default function StationDetailPage() {
 		{ label: 'Locations', step: 'locations', icon: <Room sx={{ fontSize: 18 }} /> },
 		{ label: 'Racks & Assets', step: 'racks', icon: <Storage sx={{ fontSize: 18 }} /> },
 		{ label: 'Equipments', step: 'equipments', icon: <Devices sx={{ fontSize: 18 }} /> },
+		{ label: 'Cables', step: 'cables', icon: <Hub sx={{ fontSize: 18 }} /> },
 	];
 
 	return (
@@ -164,7 +184,11 @@ export default function StationDetailPage() {
 
 			{/* 2. Uniform Navigation Tabs */}
 			<Box sx={{ px: 3, bgcolor: 'background.paper' }}>
-				<RtmTabs tabs={tabs} tabsName={`stationDetail-${stationId}`} initialState={{ currentTab: 'topology' }} />
+				<RtmTabs
+					tabs={tabs}
+					tabsName={`stationDetail-${stationId}`}
+					initialState={{ currentTab: 'topology' }}
+				/>
 				<Divider sx={{ borderColor: 'divider' }} />
 			</Box>
 
@@ -292,6 +316,20 @@ export default function StationDetailPage() {
 							}}
 							onDelete={(equipment) => setDeleteEquipmentTarget(equipment)}
 						/>
+					</Box>
+				)}
+				{currentTab === 'cables' && (
+					<Box
+						sx={{
+							bgcolor: 'background.paper',
+							borderRadius: 3,
+							border: '1px solid',
+							borderColor: 'divider',
+							overflow: 'hidden',
+							p: 2.5,
+						}}
+					>
+						<LocationCablesPanel stationId={stationId} />
 					</Box>
 				)}
 			</Box>

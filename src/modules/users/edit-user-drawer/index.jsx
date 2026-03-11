@@ -20,25 +20,13 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
-import { useEffect } from 'react';
-import { useUsers, useUpdateUser } from '@/hooks/user';
+import { useUpdateUser, useUsers } from '@/hooks/user';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
-
-const ROLE_OPTIONS = [
-	{ label: 'Admin (Division IT)', value: 'ADMIN' },
-	{ label: 'Testroom', value: 'TESTROOM' },
-	{ label: 'SSE Tele Incharge', value: 'SSE_TELE_INCHARGE' },
-	{ label: 'JE/SSE Tele Sectional', value: 'JE_SSE_TELE_SECTIONAL' },
-	{ label: 'Technician', value: 'TECHNICIAN' },
-	{ label: 'TRC', value: 'TRC' },
-	{ label: 'Viewer', value: 'VIEWER' },
-	{ label: 'SSE S&T Office', value: 'SSE_SNT_OFFICE' },
-	{ label: 'SSE Tech', value: 'SSE_TECH' },
-];
-const ADMIN_ROLES = new Set(['SUPER_ADMIN', 'ADMIN']);
+import { ADMIN_ROLES, ROLE_OPTIONS } from '../role-options';
 
 export default function EditUserDrawer({ user }) {
 	const dispatch = useDispatch();
@@ -293,7 +281,9 @@ export default function EditUserDrawer({ user }) {
 											}}
 										>
 											{users
-												.filter((candidate) => candidate.id !== user?.id && candidate.role !== 'VIEWER')
+												.filter(
+													(candidate) => candidate.id !== user?.id && candidate.role !== 'VIEWER'
+												)
 												.map((candidate) => (
 													<MenuItem key={candidate.id} value={candidate.id}>
 														{candidate.name} ({candidate.designation || candidate.role})

@@ -16,9 +16,11 @@ export const useDeleteCable = (subsectionId) => {
 
 		onSuccess: async () => {
 			// Refresh the subsection inventory
-			await queryClient.invalidateQueries({
-				queryKey: ['cables', subsectionId],
-			});
+			if (subsectionId) {
+				await queryClient.invalidateQueries({
+					queryKey: ['cables', subsectionId],
+				});
+			}
 
 			showToast('Cable removed from inventory', 'info');
 		},

@@ -49,7 +49,12 @@ export function CableDetailPanel({ cableId, onClose }) {
 
 		const rangeStart = cable.subsection?.startKm;
 		const rangeEnd = cable.subsection?.endKm;
-		if (rangeStart !== null && rangeEnd !== null && rangeStart !== undefined && rangeEnd !== undefined) {
+		if (
+			rangeStart !== null &&
+			rangeEnd !== null &&
+			rangeStart !== undefined &&
+			rangeEnd !== undefined
+		) {
 			const kmValue = parseKmValue(trimmed);
 			if (kmValue === null) {
 				setSocketError(`Enter KM within ${rangeStart}-${rangeEnd}`);
@@ -89,7 +94,14 @@ export function CableDetailPanel({ cableId, onClose }) {
 				}}
 			>
 				{/* Header Section */}
-				<Box sx={{ p: 3, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
+				<Box
+					sx={{
+						p: 3,
+						bgcolor: 'background.paper',
+						borderBottom: '1px solid',
+						borderColor: 'divider',
+					}}
+				>
 					<Stack direction="row" justifyContent="space-between" alignItems="center">
 						<Box>
 							<Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>
@@ -154,7 +166,9 @@ export function CableDetailPanel({ cableId, onClose }) {
 								bgcolor: 'background.paper',
 							}}
 						>
-							<Typography sx={{ fontSize: '0.75rem', fontWeight: 900, color: 'text.primary', mb: 1 }}>
+							<Typography
+								sx={{ fontSize: '0.75rem', fontWeight: 900, color: 'text.primary', mb: 1 }}
+							>
 								Side Segments
 							</Typography>
 							<Stack spacing={1}>
@@ -174,7 +188,9 @@ export function CableDetailPanel({ cableId, onClose }) {
 										<Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.primary' }}>
 											KM {segment.fromKm} - {segment.toKm}
 										</Typography>
-										<Typography sx={{ fontSize: '0.65rem', fontWeight: 800, color: 'text.secondary' }}>
+										<Typography
+											sx={{ fontSize: '0.65rem', fontWeight: 800, color: 'text.secondary' }}
+										>
 											{segment.side}
 										</Typography>
 									</Box>
@@ -184,7 +200,10 @@ export function CableDetailPanel({ cableId, onClose }) {
 					)}
 				</Box>
 
-				<Dialog open={connectState.open} onClose={() => setConnectState({ open: false, mediaType: null, mediaId: null })}>
+				<Dialog
+					open={connectState.open}
+					onClose={() => setConnectState({ open: false, mediaType: null, mediaId: null })}
+				>
 					<DialogTitle>Connect Equipment</DialogTitle>
 					<DialogContent sx={{ minWidth: 320 }}>
 						<TextField
@@ -197,14 +216,24 @@ export function CableDetailPanel({ cableId, onClose }) {
 						>
 							{allEquipment.map((equipment) => (
 								<MenuItem key={equipment.id} value={equipment.id}>
-									{equipment.name} ({equipment.station?.code || equipment.station?.name || 'Station'})
+									{equipment.name} (
+									{equipment.station?.code || equipment.station?.name || 'Station'})
 								</MenuItem>
 							))}
 						</TextField>
 					</DialogContent>
 					<DialogActions sx={{ px: 3, pb: 2 }}>
-						<Button onClick={() => setConnectState({ open: false, mediaType: null, mediaId: null })}>Cancel</Button>
-						<Button variant="contained" disableElevation onClick={handleConnect} disabled={isConnecting}>
+						<Button
+							onClick={() => setConnectState({ open: false, mediaType: null, mediaId: null })}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="contained"
+							disableElevation
+							onClick={handleConnect}
+							disabled={isConnecting}
+						>
 							{isConnecting ? 'Connecting...' : 'Connect'}
 						</Button>
 					</DialogActions>
@@ -260,56 +289,64 @@ const FiberList = ({ fibers = [], onConnect }) => {
 								(circuit) => circuit.equipments || []
 							);
 							return (
-							<Grid item xs={6} key={fiber.id}>
-								<Box
-									onClick={() => {
-										if (connectedEquipment.length === 0) onConnect(fiber.id);
-									}}
-									sx={{
-										p: 1.2,
-										bgcolor: 'background.default',
-										borderRadius: 2.5,
-										display: 'flex',
-										alignItems: 'center',
-										gap: 1.5,
-										border: '1px solid',
-										borderColor: 'divider',
-										cursor: connectedEquipment.length === 0 ? 'pointer' : 'default',
-									}}
-								>
-									{/* Fiber Color Circle */}
+								<Grid item xs={6} key={fiber.id}>
 									<Box
-										sx={{
-											width: 10,
-											height: 10,
-											borderRadius: '50%',
-											bgcolor: (theme) =>
-												fiber.fiberColor === 'Natural'
-													? theme.palette.action.hover
-													: fiber.fiberColor,
-											border: (theme) => `1px solid ${alpha(theme.palette.common.black, 0.1)}`,
+										onClick={() => {
+											if (connectedEquipment.length === 0) onConnect(fiber.id);
 										}}
-									/>
-									<Box sx={{ flex: 1 }}>
-										<Typography
-											sx={{ fontSize: '0.7rem', fontWeight: 900, color: 'text.primary', lineHeight: 1 }}
-										>
-											F-{fiber.fiberNo}
-										</Typography>
-										<Typography sx={{ fontSize: '0.6rem', color: 'text.secondary', fontWeight: 600 }}>
-											{connectedEquipment.length > 0
-												? connectedEquipment.map((eq) => eq.name).join(', ')
-												: 'SPARE'}
-										</Typography>
+										sx={{
+											p: 1.2,
+											bgcolor: 'background.default',
+											borderRadius: 2.5,
+											display: 'flex',
+											alignItems: 'center',
+											gap: 1.5,
+											border: '1px solid',
+											borderColor: 'divider',
+											cursor: connectedEquipment.length === 0 ? 'pointer' : 'default',
+										}}
+									>
+										{/* Fiber Color Circle */}
+										<Box
+											sx={{
+												width: 10,
+												height: 10,
+												borderRadius: '50%',
+												bgcolor: (theme) =>
+													fiber.fiberColor === 'Natural'
+														? theme.palette.action.hover
+														: fiber.fiberColor,
+												border: (theme) => `1px solid ${alpha(theme.palette.common.black, 0.1)}`,
+											}}
+										/>
+										<Box sx={{ flex: 1 }}>
+											<Typography
+												sx={{
+													fontSize: '0.7rem',
+													fontWeight: 900,
+													color: 'text.primary',
+													lineHeight: 1,
+												}}
+											>
+												F-{fiber.fiberNo}
+											</Typography>
+											<Typography
+												sx={{ fontSize: '0.6rem', color: 'text.secondary', fontWeight: 600 }}
+											>
+												{connectedEquipment.length > 0
+													? connectedEquipment.map((eq) => eq.name).join(', ')
+													: 'SPARE'}
+											</Typography>
+										</Box>
+										{connectedEquipment.length === 0 && (
+											<Button size="small" onClick={() => onConnect(fiber.id)}>
+												Connect
+											</Button>
+										)}
 									</Box>
-									{connectedEquipment.length === 0 && (
-										<Button size="small" onClick={() => onConnect(fiber.id)}>
-											Connect
-										</Button>
-									)}
-								</Box>
-							</Grid>
-						)})}
+								</Grid>
+							);
+						})}
 					</Grid>
 				</Paper>
 			))}
@@ -333,7 +370,13 @@ const QuadList = ({ pairs = [], onConnect }) => {
 				<Paper
 					key={qNo}
 					elevation={0}
-					sx={{ p: 2, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}
+					sx={{
+						p: 2,
+						borderRadius: 4,
+						border: '1px solid',
+						borderColor: 'divider',
+						bgcolor: 'background.paper',
+					}}
 				>
 					<Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
 						<Box
@@ -356,62 +399,67 @@ const QuadList = ({ pairs = [], onConnect }) => {
 								(circuit) => circuit.equipments || []
 							);
 							return (
-							<Box
-								key={pair.id}
-								onClick={() => {
-									if (connectedEquipment.length === 0) onConnect(pair.id);
-								}}
-								sx={{
-									p: 1.5,
-									bgcolor: 'background.default',
-									borderRadius: 2,
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'space-between',
-									border: '1px solid',
-									borderColor: 'divider',
-									cursor: connectedEquipment.length === 0 ? 'pointer' : 'default',
-								}}
-							>
-								<Stack direction="row" spacing={2} alignItems="center">
-									<Box
-										sx={(theme) => ({
-											px: 1,
-											py: 0.2,
-											borderRadius: 1,
-											bgcolor: alpha(theme.palette.primary.main, 0.12),
-											border: '1px solid',
-											borderColor: alpha(theme.palette.primary.main, 0.2),
-										})}
-									>
-										<Typography sx={{ fontSize: '0.65rem', fontWeight: 800, color: 'primary.main' }}>
-											P-{pair.pairNo}
+								<Box
+									key={pair.id}
+									onClick={() => {
+										if (connectedEquipment.length === 0) onConnect(pair.id);
+									}}
+									sx={{
+										p: 1.5,
+										bgcolor: 'background.default',
+										borderRadius: 2,
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'space-between',
+										border: '1px solid',
+										borderColor: 'divider',
+										cursor: connectedEquipment.length === 0 ? 'pointer' : 'default',
+									}}
+								>
+									<Stack direction="row" spacing={2} alignItems="center">
+										<Box
+											sx={(theme) => ({
+												px: 1,
+												py: 0.2,
+												borderRadius: 1,
+												bgcolor: alpha(theme.palette.primary.main, 0.12),
+												border: '1px solid',
+												borderColor: alpha(theme.palette.primary.main, 0.2),
+											})}
+										>
+											<Typography
+												sx={{ fontSize: '0.65rem', fontWeight: 800, color: 'primary.main' }}
+											>
+												P-{pair.pairNo}
+											</Typography>
+										</Box>
+										<Typography
+											sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary' }}
+										>
+											{pair.pairColor}
 										</Typography>
-									</Box>
-									<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary' }}>
-										{pair.pairColor}
-									</Typography>
-								</Stack>
-								<Stack alignItems="flex-end" spacing={0.2}>
-									<Typography
-										sx={{
-											fontSize: '0.65rem',
-											fontWeight: 800,
-											color: connectedEquipment.length > 0 ? 'success.main' : 'text.disabled',
-										}}
-									>
-										{connectedEquipment.length > 0
-											? connectedEquipment.map((eq) => eq.name).join(', ')
-											: 'SPARE'}
-									</Typography>
-									{connectedEquipment.length === 0 && (
-										<Button size="small" onClick={() => onConnect(pair.id)}>
-											Connect
-										</Button>
-									)}
-								</Stack>
-							</Box>
-						)})}
+									</Stack>
+									<Stack alignItems="flex-end" spacing={0.2}>
+										<Typography
+											sx={{
+												fontSize: '0.65rem',
+												fontWeight: 800,
+												color: connectedEquipment.length > 0 ? 'success.main' : 'text.disabled',
+											}}
+										>
+											{connectedEquipment.length > 0
+												? connectedEquipment.map((eq) => eq.name).join(', ')
+												: 'SPARE'}
+										</Typography>
+										{connectedEquipment.length === 0 && (
+											<Button size="small" onClick={() => onConnect(pair.id)}>
+												Connect
+											</Button>
+										)}
+									</Stack>
+								</Box>
+							);
+						})}
 					</Stack>
 				</Paper>
 			))}
@@ -553,7 +601,15 @@ const EcSocketList = ({
 
 const StatItem = ({ label, value }) => (
 	<Grid item xs={6}>
-		<Box sx={{ p: 1.5, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+		<Box
+			sx={{
+				p: 1.5,
+				bgcolor: 'background.default',
+				borderRadius: 2,
+				border: '1px solid',
+				borderColor: 'divider',
+			}}
+		>
 			<Typography
 				sx={{
 					fontSize: '0.6rem',
