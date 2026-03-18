@@ -1,8 +1,8 @@
 'use client';
 
 import { Tab, Tabs } from '@mui/material';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { useTabs } from '@/hooks/common';
 
 /**
@@ -14,18 +14,21 @@ import { useTabs } from '@/hooks/common';
 const RtmTabs = ({ tabs, tabsName, initialState }) => {
 	const router = useRouter();
 	const pathname = usePathname();
-	const searchParams = useSearchParams();
 	const { goTo, clear, set, currentTab } = useTabs(tabsName, initialState);
+	const [urlTab, setUrlTab] = useState('');
 
-	// Sync URL params
-	const queryTab = searchParams.get('tab');
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+		const params = new URLSearchParams(window.location.search);
+		setUrlTab(params.get('tab') || '');
+	}, [pathname]);
 
 	// Determine the active tab index for MUI
 	const activeIndex = useMemo(() => {
-		const target = currentTab || queryTab || initialState.currentTab;
+		const target = currentTab || urlTab || initialState.currentTab;
 		const index = tabs.findIndex((t) => t.step === target);
 		return index === -1 ? 0 : index;
-	}, [tabs, currentTab, queryTab, initialState.currentTab]);
+	}, [tabs, currentTab, urlTab, initialState.currentTab]);
 
 	const handleTabChange = (_, newValue) => {
 		const selectedTab = tabs[newValue].step;
@@ -34,24 +37,28 @@ const RtmTabs = ({ tabs, tabsName, initialState }) => {
 		goTo(selectedTab);
 
 		// 2. Update URL for persistence on refresh
-		const params = new URLSearchParams(searchParams);
+		const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
 		params.set('tab', selectedTab);
+		setUrlTab(selectedTab);
 		router.push(`${pathname}?${params.toString()}`, { scroll: false });
 	};
 
-	// Initialize and Cleanup
+	// Initialize default state and cleanup on unmount.
 	useEffect(() => {
-		// If URL has a tab, override the initial state in Redux
-		if (queryTab) {
-			goTo(queryTab);
-		} else {
-			set();
-		}
-
+		set();
 		return () => {
 			clear();
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [tabsName]);
+
+	// URL tab has priority over default tab.
+	useEffect(() => {
+		if (urlTab) {
+			goTo(urlTab);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [urlTab]);
 
 	return (
 		<Tabs

@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Box, CssBaseline } from '@mui/material';
@@ -48,7 +49,9 @@ export default function RootLayout({ children }) {
 							<SessionProvider>
 								<ToastProvider>
 									<StoreProvider>
-										<QueryProvider>{children}</QueryProvider>
+										<QueryProvider>
+											<Suspense fallback={null}>{children}</Suspense>
+										</QueryProvider>
 									</StoreProvider>
 								</ToastProvider>
 							</SessionProvider>

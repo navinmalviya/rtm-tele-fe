@@ -1,7 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import AssetsPage from '@/modules/assets';
 
 export default function TestroomAssetsPage() {
-	return <AssetsPage scope="testroom" />;
+	return (
+		<Suspense fallback={null}>
+			<AssetsPage scope="testroom" />
+		</Suspense>
+	);
 }
