@@ -13,12 +13,13 @@ import {
 	Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useUpdateLocation } from '@/hooks/locations';
-import { useUsers } from '@/hooks/user';
+import { useStations } from '@/hooks/stations';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 const SUPERVISOR_ROLES = [
@@ -26,35 +27,62 @@ const SUPERVISOR_ROLES = [
 	'SSE_TELE_INCHARGE',
 	'SSE_SNT_OFFICE',
 	'SSE_TECH',
+	'TCM',
 ];
 
 export default function EditLocationDrawer({ location, stationId }) {
 	const dispatch = useDispatch();
 	const { mutate: updateLocation, isLoading } = useUpdateLocation(stationId);
-	const { data: users = [] } = useUsers();
-	const supervisors = users.filter((user) => SUPERVISOR_ROLES.includes(user.role));
+	const { data: stations = [] } = useStations();
+	const station = useMemo(
+		() => stations.find((row) => row.id === stationId),
+		[stations, stationId]
+	);
+	const stationPrimarySupervisorId = station?.supervisor?.id || station?.supervisorId || '';
+	const supervisors = useMemo(() => {
+		const stationSupervisors =
+			station?.stationSupervisors?.length > 0
+				? station.stationSupervisors
+				: station?.supervisor
+					? [station.supervisor]
+					: [];
+		return stationSupervisors.filter((user) => SUPERVISOR_ROLES.includes(user.role));
+	}, [station]);
 
 	const {
 		control,
 		handleSubmit,
 		reset,
+		setValue,
+		watch,
 		formState: { errors, isDirty },
 	} = useForm({
 		defaultValues: {
 			name: '',
 			description: '',
+			useStationDefaultSupervisor: true,
 			supervisorId: '',
 		},
 	});
+	const useStationDefaultSupervisor = watch('useStationDefaultSupervisor');
 
 	useEffect(() => {
 		if (!location) return;
+		const currentSupervisorId = location.supervisor?.id || location.supervisorId || '';
 		reset({
 			name: location.name || '',
 			description: location.description || '',
-			supervisorId: location.supervisor?.id || location.supervisorId || '',
+			useStationDefaultSupervisor:
+				Boolean(stationPrimarySupervisorId) && currentSupervisorId === stationPrimarySupervisorId,
+			supervisorId: currentSupervisorId,
 		});
-	}, [location, reset]);
+	}, [location, reset, stationPrimarySupervisorId]);
+
+	useEffect(() => {
+		if (useStationDefaultSupervisor) {
+			setValue('supervisorId', '');
+		}
+	}, [useStationDefaultSupervisor, setValue]);
 
 	const handleLocationSubmit = (data) => {
 		if (!location?.id) return;
@@ -177,17 +205,43 @@ export default function EditLocationDrawer({ location, stationId }) {
 									/>
 
 									<Controller
+										name="useStationDefaultSupervisor"
+										control={control}
+										render={({ field }) => (
+											<TextField
+												{...field}
+												select
+												label="Supervisor Source"
+												fullWidth
+												sx={textFieldStyles}
+											>
+												<MenuItem value={true}>Use Station Primary Supervisor</MenuItem>
+												<MenuItem value={false}>Select Different Supervisor</MenuItem>
+											</TextField>
+										)}
+									/>
+
+									<Controller
 										name="supervisorId"
 										control={control}
-										rules={{ required: 'Supervisor is required' }}
+										rules={{
+											validate: (value) =>
+												useStationDefaultSupervisor || Boolean(value) || 'Supervisor is required',
+										}}
 										render={({ field }) => (
 											<TextField
 												{...field}
 												select
 												label="Location Supervisor"
 												fullWidth
+												disabled={useStationDefaultSupervisor}
 												error={!!errors.supervisorId}
-												helperText={errors.supervisorId?.message}
+												helperText={
+													errors.supervisorId?.message ||
+													(useStationDefaultSupervisor
+														? 'Location will use station primary supervisor'
+														: '')
+												}
 												sx={textFieldStyles}
 												InputProps={{
 													startAdornment: (
@@ -202,6 +256,11 @@ export default function EditLocationDrawer({ location, stationId }) {
 														{user.name} ({user.designation || user.role})
 													</MenuItem>
 												))}
+												{!supervisors.length && (
+													<MenuItem disabled value="">
+														No station supervisors configured
+													</MenuItem>
+												)}
 											</TextField>
 										)}
 									/>
@@ -240,13 +299,15 @@ export default function EditLocationDrawer({ location, stationId }) {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="location-edit-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={!isDirty || isLoading}
+							loading={isLoading}
+							loadingText="Saving..."
+							disabled={!isDirty}
 							sx={{
 								bgcolor: 'primary.main',
 								py: 1.5,
@@ -256,7 +317,7 @@ export default function EditLocationDrawer({ location, stationId }) {
 							}}
 						>
 							Save Changes
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

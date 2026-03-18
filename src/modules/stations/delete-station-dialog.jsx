@@ -1,6 +1,15 @@
 'use client';
 
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
+import {
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	Stack,
+	Typography,
+} from '@mui/material';
+import RtmLoadingButton from '@/lib/common/loading-button';
 
 export default function DeleteStationDialog({ open, station, onClose, onConfirm, isLoading }) {
 	if (!station) return null;
@@ -17,7 +26,8 @@ export default function DeleteStationDialog({ open, station, onClose, onConfirm,
 						You are about to delete <strong>{stationName}</strong> ({stationCode}).
 					</Typography>
 					<Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-						This action is permanent. If dependent locations, racks, or equipment exist, deletion may be blocked.
+						This action is permanent. If dependent locations, racks, or equipment exist, deletion
+						may be blocked.
 					</Typography>
 				</Stack>
 			</DialogContent>
@@ -25,15 +35,16 @@ export default function DeleteStationDialog({ open, station, onClose, onConfirm,
 				<Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700 }}>
 					Cancel
 				</Button>
-				<Button
+				<RtmLoadingButton
 					variant="contained"
 					color="error"
 					onClick={onConfirm}
-					disabled={isLoading}
+					loading={isLoading}
+					loadingText="Deleting..."
 					sx={{ textTransform: 'none', fontWeight: 800 }}
 				>
 					Delete
-				</Button>
+				</RtmLoadingButton>
 			</DialogActions>
 		</Dialog>
 	);

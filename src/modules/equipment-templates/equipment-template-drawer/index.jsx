@@ -36,6 +36,7 @@ import { useDispatch } from 'react-redux';
 import { useAddEquipmentTemplate } from '@/hooks/eqiuipment-templates';
 import { usePortTemplates } from '@/hooks/port-templates';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 export default function AddEquipmentTemplateDrawer() {
@@ -108,14 +109,14 @@ export default function AddEquipmentTemplateDrawer() {
 		const payload = {
 			...formData,
 			layer: autoLayer,
-			uHeight: formData.category === 'SIGNALLING' ? null : Number.parseInt(formData.uHeight),
-			codalLifeYears: Number.parseInt(formData.codalLifeYears),
+			uHeight: formData.category === 'SIGNALLING' ? null : Number.parseInt(formData.uHeight, 10),
+			codalLifeYears: Number.parseInt(formData.codalLifeYears, 10),
 			switchingCapacity: formData.switchingCapacity
 				? Number.parseFloat(formData.switchingCapacity)
 				: null,
 			capacityKva: formData.capacityKva ? Number.parseFloat(formData.capacityKva) : null,
 			capacityAh: formData.capacityAh ? Number.parseFloat(formData.capacityAh) : null,
-			defaultCellCount: Number.parseInt(formData.defaultCellCount),
+			defaultCellCount: Number.parseInt(formData.defaultCellCount, 10),
 			nominalCellVolt: Number.parseFloat(formData.nominalCellVolt),
 		};
 		addTemplate(payload);
@@ -182,7 +183,10 @@ export default function AddEquipmentTemplateDrawer() {
 							<Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
 								New Template
 							</Typography>
-							<Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mt: 0.5 }}>
+							<Typography
+								variant="body2"
+								sx={{ fontWeight: 600, color: 'text.secondary', mt: 0.5 }}
+							>
 								Standard IR-Telecom Asset Blueprints
 							</Typography>
 						</Box>
@@ -603,14 +607,14 @@ export default function AddEquipmentTemplateDrawer() {
 												label="Power Supply"
 												fullWidth
 												sx={textFieldStyles}
-													InputProps={{
-														startAdornment: (
-															<InputAdornment position="start">
-																<ElectricBolt sx={{ color: 'warning.main' }} />
-															</InputAdornment>
-														),
-													}}
-												>
+												InputProps={{
+													startAdornment: (
+														<InputAdornment position="start">
+															<ElectricBolt sx={{ color: 'warning.main' }} />
+														</InputAdornment>
+													),
+												}}
+											>
 												<MenuItem value="230V AC">230V AC</MenuItem>
 												<MenuItem value="110V AC">110V AC</MenuItem>
 												<MenuItem value="-48V DC">-48V DC</MenuItem>
@@ -636,12 +640,14 @@ export default function AddEquipmentTemplateDrawer() {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="template-form"
 							variant="contained"
 							fullWidth
 							disableElevation
+							loading={isLoading}
+							loadingText="Saving..."
 							sx={{
 								bgcolor: 'primary.main',
 								py: 2,
@@ -651,8 +657,8 @@ export default function AddEquipmentTemplateDrawer() {
 								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
-							{isLoading ? 'Saving...' : 'Create Template'}
-						</Button>
+							Create Template
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

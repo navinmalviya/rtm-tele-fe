@@ -12,7 +12,6 @@ import {
 import {
 	Box,
 	Button,
-	CircularProgress,
 	Divider,
 	IconButton,
 	InputAdornment,
@@ -27,6 +26,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDeletePortLink, usePortLinkDetails, useUpdatePortLink } from '@/hooks/port-links';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoader from '@/lib/common/loader';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 const MEDIA_TYPES = [
@@ -146,9 +146,7 @@ export default function LinkDetailDrawer({ stationId }) {
 
 				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto' }}>
 					{isLoading ? (
-						<Stack alignItems="center" sx={{ py: 10 }}>
-							<CircularProgress size={24} />
-						</Stack>
+						<RtmLoader label="Loading link details..." minHeight={220} />
 					) : (
 						<form id="link-detail-form" onSubmit={handleSubmit(onFormSubmit)}>
 							<Stack spacing={4}>

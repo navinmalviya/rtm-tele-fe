@@ -26,36 +26,32 @@ export default function StatCard({ label, value, trend, icon, color }) {
 			}}
 		>
 			<Box sx={{ p: 3 }}>
-				<Stack
-					direction="row"
-					justifyContent="space-between"
-					alignItems="center"
-				>
+				<Stack direction="row" justifyContent="space-between" alignItems="center">
 					<Box>
-						<Typography
-							variant="body2"
-							color="text.secondary"
-							sx={{ fontWeight: 700, mb: 1 }}
-						>
+						<Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700, mb: 1 }}>
 							{label}
 						</Typography>
-						<Typography
-							variant="h3"
-							sx={{ fontWeight: 800, mb: 1 }}
-						>
+						<Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
 							{value}
 						</Typography>
 						<Box
 							component="span"
 							sx={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								maxWidth: '100%',
 								fontSize: '0.75rem',
 								fontWeight: 700,
 								px: 1,
 								py: 0.3,
 								borderRadius: 1,
+								whiteSpace: 'nowrap',
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
 								bgcolor: alpha(trendColor, 0.16),
 								color: trendColor,
 							}}
+							title={trend}
 						>
 							{trend}
 						</Box>

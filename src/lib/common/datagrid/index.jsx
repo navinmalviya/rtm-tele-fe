@@ -1,9 +1,14 @@
 'use client';
 
 import Box from '@mui/material/Box';
-import { DataGrid } from '@mui/x-data-grid';
 import { alpha } from '@mui/material/styles';
+import { DataGrid } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
+import RtmLoader from '@/lib/common/loader';
+
+const DataGridLoadingOverlay = () => (
+	<RtmLoader label="Loading records..." size={24} minHeight={220} />
+);
 
 /**
  * RtmDataGrid - Common Table Component
@@ -17,6 +22,8 @@ export default function RtmDataGrid({
 	onSelectionChange,
 	checkboxSelection = false,
 	hideFooter: hideFooterProp,
+	slots: customSlots,
+	slotProps: customSlotProps,
 	sx = {},
 	...rest
 }) {
@@ -123,7 +130,7 @@ export default function RtmDataGrid({
 					theme.palette.mode === 'dark'
 						? 'none'
 						: `0 1px 3px 0 ${alpha(theme.palette.common.black, 0.05)}`,
-				})}
+			})}
 		>
 			{isClientMounted ? (
 				<DataGrid
@@ -136,6 +143,8 @@ export default function RtmDataGrid({
 					checkboxSelection={checkboxSelection}
 					onRowSelectionModelChange={handleSelectionChange}
 					loading={loading}
+					slots={{ loadingOverlay: DataGridLoadingOverlay, ...customSlots }}
+					slotProps={customSlotProps}
 					disableRowSelectionOnClick
 					disableColumnMenu
 					density="comfortable"

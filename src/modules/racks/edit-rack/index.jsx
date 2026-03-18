@@ -17,6 +17,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useUpdateRack } from '@/hooks/racks';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 const RACK_TYPE_OPTIONS = [
@@ -317,13 +318,15 @@ export default function EditRackDrawer({ rack, stationId, locations = [] }) {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="rack-edit-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={!isDirty || isLoading}
+							loading={isLoading}
+							loadingText="Saving..."
+							disabled={!isDirty}
 							sx={{
 								bgcolor: 'primary.main',
 								py: 1.5,
@@ -333,7 +336,7 @@ export default function EditRackDrawer({ rack, stationId, locations = [] }) {
 							}}
 						>
 							Save Changes
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

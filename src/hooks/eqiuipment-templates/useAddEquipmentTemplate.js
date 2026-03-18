@@ -24,7 +24,7 @@ export const useAddEquipmentTemplate = () => {
 				portConfigs:
 					templateData.portConfigs?.map((cfg) => ({
 						portTemplateId: cfg.portTemplateId,
-						quantity: Number.parseInt(cfg.quantity || 1),
+						quantity: Number.parseInt(cfg.quantity || 1, 10),
 					})) || [],
 			};
 

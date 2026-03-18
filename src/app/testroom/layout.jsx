@@ -10,22 +10,18 @@ import {
 	Hub,
 	Inventory,
 	LibraryBooks,
+	WorkOutline,
 } from '@mui/icons-material';
 import { Box } from '@mui/material';
-// import { Navbar } from '@/lib/common/layout';
-// import { ADMIN_NAV_LINKS } from '@/lib/constants';
 import { SideMenu } from '@/modules/testroom';
-import { store } from '../../lib/store';
-export default function Layout({ children }) {
-	store.subscribe(() => {
-		console.log('Store=>', store.getState());
-	});
 
+export default function Layout({ children }) {
 	const menuItems = [
 		{ text: 'Dashboard', icon: <Dashboard />, path: '/testroom/dashboard' },
 		{ text: 'Topology', icon: <Hub />, path: '/testroom/topology' },
 		{ text: 'Reports', icon: <Assessment />, path: '/testroom/reports' },
 		{ text: 'Maintenance', icon: <BuildCircle />, path: '/testroom/maintenance' },
+		{ text: 'Work Execution', icon: <WorkOutline />, path: '/testroom/work-execution' },
 		{ text: 'Circuits', icon: <ElectricalServices />, path: '/testroom/circuits' },
 		{ text: 'Asset Management', icon: <Inventory />, path: '/testroom/assets' },
 		{ text: 'Equipment Library', icon: <LibraryBooks />, path: '/testroom/equipment-library' },
@@ -43,7 +39,7 @@ export default function Layout({ children }) {
 				display: 'flex',
 				bgcolor: 'background.default',
 				minHeight: '100vh',
-				width: '100vw', // Occupy full viewport width
+				width: '100%',
 				overflowX: 'hidden',
 			}}
 		>
@@ -53,12 +49,13 @@ export default function Layout({ children }) {
 				component="main"
 				sx={{
 					flexGrow: 1,
-					// p: 4,
-					ml: '280px', // Fixed Sidebar width
-					width: `calc(100% - 280px)`, // Dynamic calculation for the rest
+					ml: { xs: 0, md: '280px' },
+					width: { xs: '100%', md: 'calc(100% - 280px)' },
 					display: 'flex',
 					flexDirection: 'column',
 					bgcolor: 'background.default',
+					pt: { xs: '64px', md: 0 },
+					minWidth: 0,
 				}}
 			>
 				{children}

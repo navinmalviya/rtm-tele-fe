@@ -17,7 +17,7 @@ export const useAddEquipment = () => {
 			const refinedData = {
 				...equipmentData,
 				// Ensure uPosition is a number or null
-				uPosition: equipmentData.uPosition ? Number.parseInt(equipmentData.uPosition) : null,
+				uPosition: equipmentData.uPosition ? Number.parseInt(equipmentData.uPosition, 10) : null,
 				mapX: null,
 				mapY: null,
 				// Ensure the date is valid or null

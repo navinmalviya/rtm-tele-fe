@@ -4,7 +4,6 @@ import { Close } from '@mui/icons-material';
 import {
 	Box,
 	Button,
-	CircularProgress,
 	Dialog,
 	DialogContent,
 	DialogTitle,
@@ -19,6 +18,8 @@ import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useInspectionForm } from '@/hooks/maintenance';
 import { useCompleteMaintenance } from '@/hooks/maintenance/useCompleteMaintenance';
+import RtmLoader from '@/lib/common/loader';
+import RtmLoadingButton from '@/lib/common/loading-button';
 
 const buildFieldName = (stationCircuitId, key) => `circuit_${stationCircuitId}__${key}`;
 
@@ -154,12 +155,7 @@ export default function CompleteMaintenanceDialog({ open, onClose, occurrence })
 					onSubmit={handleSubmit(onSubmit)}
 				>
 					{loadingInspectionForm || fetchingInspectionForm ? (
-						<Stack direction="row" spacing={1} alignItems="center">
-							<CircularProgress size={16} />
-							<Typography sx={{ color: 'text.secondary' }}>
-								Loading inspection checklist...
-							</Typography>
-						</Stack>
+						<RtmLoader variant="inline" size={16} label="Loading inspection checklist..." />
 					) : (
 						inspectionSections.map((section) => (
 							<Box
@@ -265,15 +261,17 @@ export default function CompleteMaintenanceDialog({ open, onClose, occurrence })
 					>
 						Cancel
 					</Button>
-					<Button
+					<RtmLoadingButton
 						variant="contained"
 						type="submit"
 						form="complete-maintenance-form"
-						disabled={isLoading || loadingInspectionForm || fetchingInspectionForm}
+						loading={isLoading}
+						loadingText="Submitting..."
+						disabled={loadingInspectionForm || fetchingInspectionForm}
 						sx={{ textTransform: 'none', fontWeight: 800 }}
 					>
 						Mark Completed
-					</Button>
+					</RtmLoadingButton>
 				</Box>
 			</DialogContent>
 		</Dialog>

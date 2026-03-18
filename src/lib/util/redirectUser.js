@@ -17,6 +17,9 @@ export const redirectUser = (session, router) => {
 		case 'SSE_INCHARGE':
 			router.push('/sse-ic/dashboard');
 			break;
+		case 'SSE_TELE_INCHARGE':
+			router.push('/sse-tele-incharge/dashboard');
+			break;
 		case 'SSE_SECTIONAL':
 			router.push('/field-engineer/dashboard');
 			break;

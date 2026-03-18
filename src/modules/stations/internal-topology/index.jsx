@@ -34,9 +34,11 @@ const defaultEdgeOptions = {
 
 function TopologyCanvas({ stationId }) {
 	const theme = useTheme();
+	const darkEdgeColor =
+		theme.palette.mode === 'dark' ? theme.palette.info.light : theme.palette.primary.dark;
 	const EDGE_COLORS = {
-		SFP: theme.palette.text.primary,
-		RJ45: theme.palette.text.primary,
+		SFP: darkEdgeColor,
+		RJ45: darkEdgeColor,
 		DEFAULT: theme.palette.text.secondary,
 	};
 
@@ -179,6 +181,9 @@ function TopologyCanvas({ stationId }) {
 				width: '100%',
 				height: '100%',
 				'& .react-flow__edgelayer': { zIndex: '10 !important' },
+				'& .react-flow__edge-path': {
+					stroke: `${darkEdgeColor} !important`,
+				},
 				'& .react-flow__node': { zIndex: '5 !important' },
 				'& .react-flow__edge-animation': {
 					stroke: theme.palette.text.disabled,
@@ -196,7 +201,11 @@ function TopologyCanvas({ stationId }) {
 				onEdgesChange={onEdgesChange}
 				onConnect={onConnect}
 				onNodeDragStop={onNodeDragStop}
-				onEdgesDelete={(deleted) => (deleted || []).forEach((e) => deleteLink(e.id))}
+				onEdgesDelete={(deleted) => {
+					(deleted || []).forEach((edge) => {
+						deleteLink(edge.id);
+					});
+				}}
 				defaultEdgeOptions={defaultEdgeOptions}
 				fitView
 				colorMode={theme.palette.mode}

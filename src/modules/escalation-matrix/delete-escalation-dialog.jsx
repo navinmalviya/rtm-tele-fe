@@ -8,6 +8,7 @@ import {
 	DialogTitle,
 	Typography,
 } from '@mui/material';
+import RtmLoadingButton from '@/lib/common/loading-button';
 
 export default function DeleteEscalationDialog({ open, row, onClose, onConfirm, isLoading }) {
 	if (!row) return null;
@@ -25,16 +26,17 @@ export default function DeleteEscalationDialog({ open, row, onClose, onConfirm, 
 				<Button onClick={onClose} sx={{ fontWeight: 700, textTransform: 'none' }}>
 					Cancel
 				</Button>
-				<Button
+				<RtmLoadingButton
 					onClick={onConfirm}
 					variant="contained"
 					color="error"
 					disableElevation
-					disabled={isLoading}
+					loading={isLoading}
+					loadingText="Deleting..."
 					sx={{ fontWeight: 700, textTransform: 'none' }}
 				>
 					Delete
-				</Button>
+				</RtmLoadingButton>
 			</DialogActions>
 		</Dialog>
 	);

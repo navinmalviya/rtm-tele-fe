@@ -29,6 +29,7 @@ import { useEquipmentTemplates } from '@/hooks/eqiuipment-templates';
 import { useAddEquipment } from '@/hooks/equipment';
 import { useStationRacks } from '@/hooks/racks';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
@@ -64,7 +65,7 @@ export default function AddEquipmentDrawer() {
 		const payload = {
 			...data,
 			stationId,
-			uPosition: data.uPosition ? Number.parseInt(data.uPosition) : null,
+			uPosition: data.uPosition ? Number.parseInt(data.uPosition, 10) : null,
 		};
 		console.log('pay', payload);
 		addEquipment(payload);
@@ -282,12 +283,12 @@ export default function AddEquipmentDrawer() {
 													sx={textFieldStyles}
 													slotProps={{
 														input: {
-														startAdornment: (
-															<InputAdornment position="start">
-																<Pin sx={{ color: 'text.secondary' }} />
-															</InputAdornment>
-														),
-													},
+															startAdornment: (
+																<InputAdornment position="start">
+																	<Pin sx={{ color: 'text.secondary' }} />
+																</InputAdornment>
+															),
+														},
 													}}
 												/>
 											)}
@@ -303,12 +304,12 @@ export default function AddEquipmentDrawer() {
 													sx={textFieldStyles}
 													slotProps={{
 														input: {
-														startAdornment: (
-															<InputAdornment position="start">
-																<Business sx={{ color: 'text.secondary' }} />
-															</InputAdornment>
-														),
-													},
+															startAdornment: (
+																<InputAdornment position="start">
+																	<Business sx={{ color: 'text.secondary' }} />
+																</InputAdornment>
+															),
+														},
 													}}
 												/>
 											)}
@@ -395,13 +396,14 @@ export default function AddEquipmentDrawer() {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="equipment-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={isSaving}
+							loading={isSaving}
+							loadingText="Deploying..."
 							sx={{
 								bgcolor: 'primary.main',
 								py: 1.5,
@@ -410,8 +412,8 @@ export default function AddEquipmentDrawer() {
 								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
-							{isSaving ? 'Deploying...' : 'Deploy Asset'}
-						</Button>
+							Deploy Asset
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

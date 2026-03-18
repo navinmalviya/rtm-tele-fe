@@ -1,6 +1,6 @@
 'use client';
 
-import { Close, Inventory2, Numbers, Notes, Place } from '@mui/icons-material';
+import { Close, Inventory2, Notes, Numbers, Place } from '@mui/icons-material';
 import {
 	Box,
 	Button,
@@ -12,13 +12,14 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
-import { useEffect } from 'react';
 import { useStationLocations } from '@/hooks/locations';
 import { useStations } from '@/hooks/stations';
 import { useCreateTnpItem } from '@/hooks/tnp';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 const TNP_TYPES = [
@@ -73,7 +74,14 @@ export default function AddTnpDrawer() {
 
 	return (
 		<RtmDrawer drawerName="addTnpDrawer">
-			<Box sx={{ width: { xs: '100vw', sm: 520 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
+			<Box
+				sx={{
+					width: { xs: '100vw', sm: 520 },
+					display: 'flex',
+					flexDirection: 'column',
+					height: '100%',
+				}}
+			>
 				<Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 					<Box>
 						<Typography variant="h6" sx={{ fontWeight: 800 }}>
@@ -83,7 +91,10 @@ export default function AddTnpDrawer() {
 							Tools & Plants inventory
 						</Typography>
 					</Box>
-					<IconButton onClick={() => dispatch(closeDrawer({ drawerName: 'addTnpDrawer' }))} sx={{ bgcolor: 'action.hover' }}>
+					<IconButton
+						onClick={() => dispatch(closeDrawer({ drawerName: 'addTnpDrawer' }))}
+						sx={{ bgcolor: 'action.hover' }}
+					>
 						<Close fontSize="small" />
 					</IconButton>
 				</Box>
@@ -227,17 +238,18 @@ export default function AddTnpDrawer() {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="tnp-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={isLoading}
+							loading={isLoading}
+							loadingText="Creating..."
 							sx={{ bgcolor: 'primary.main', fontWeight: 700, borderRadius: 2 }}
 						>
 							Create
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

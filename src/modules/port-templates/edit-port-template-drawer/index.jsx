@@ -27,6 +27,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useUpdatePortTemplate } from '@/hooks/port-templates';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 const SPEED_OPTIONS = ['2Mb', '100 Mbps', '1 Gbps', '10 Gbps', '40 Gbps', '100 Gbps'];
@@ -145,7 +146,10 @@ export default function EditPortTemplateDrawer({ template }) {
 							<Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
 								Edit Port Blueprint
 							</Typography>
-							<Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mt: 0.5 }}>
+							<Typography
+								variant="body2"
+								sx={{ fontWeight: 600, color: 'text.secondary', mt: 0.5 }}
+							>
 								Update port template attributes
 							</Typography>
 						</Box>
@@ -238,7 +242,13 @@ export default function EditPortTemplateDrawer({ template }) {
 										control={control}
 										rules={{ required: 'Required' }}
 										render={({ field }) => (
-											<TextField select label="Interface Type" fullWidth sx={textFieldStyles} {...field}>
+											<TextField
+												select
+												label="Interface Type"
+												fullWidth
+												sx={textFieldStyles}
+												{...field}
+											>
 												{selectedCategory === 'NETWORK' &&
 													NETWORK_TYPES.map((opt) => (
 														<MenuItem key={opt.value} value={opt.value}>
@@ -273,7 +283,12 @@ export default function EditPortTemplateDrawer({ template }) {
 										borderColor: alpha(theme.palette.primary.main, 0.2),
 									})}
 								>
-									<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+									<Stack
+										direction="row"
+										justifyContent="space-between"
+										alignItems="center"
+										sx={{ mb: 3 }}
+									>
 										<Typography
 											variant="subtitle2"
 											sx={{
@@ -293,7 +308,9 @@ export default function EditPortTemplateDrawer({ template }) {
 												borderRadius: '8px',
 											})}
 										>
-											<Typography sx={{ fontSize: '0.65rem', fontWeight: 900, color: 'primary.main' }}>
+											<Typography
+												sx={{ fontSize: '0.65rem', fontWeight: 900, color: 'primary.main' }}
+											>
 												PHY: {selectedType}
 											</Typography>
 										</Box>
@@ -405,13 +422,15 @@ export default function EditPortTemplateDrawer({ template }) {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="port-template-edit-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={!isDirty || isLoading}
+							loading={isLoading}
+							loadingText="Saving..."
+							disabled={!isDirty}
 							sx={{
 								bgcolor: 'primary.main',
 								py: 2,
@@ -423,7 +442,7 @@ export default function EditPortTemplateDrawer({ template }) {
 							}}
 						>
 							Save Changes
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

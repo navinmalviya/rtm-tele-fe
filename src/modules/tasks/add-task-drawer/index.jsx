@@ -22,6 +22,7 @@ import { useAddTask } from '@/hooks/task/useAddTask';
 import { useUsers } from '@/hooks/user/useUsers';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
+import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 const TEXT_FIELD_STYLES = {
 	bgcolor: 'background.paper',
@@ -271,7 +272,10 @@ const AddTaskDrawer = () => {
 										borderColor: alpha(theme.palette.error.main, 0.2),
 									})}
 								>
-									<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'error.main' }}>
+									<Typography
+										variant="subtitle2"
+										sx={{ fontWeight: 700, mb: 2, color: 'error.main' }}
+									>
 										FAILURE REPORTING
 									</Typography>
 									<Stack spacing={2}>
@@ -288,6 +292,8 @@ const AddTaskDrawer = () => {
 													error={!!errors.failureInTime}
 													helperText={errors.failureInTime?.message}
 													InputLabelProps={{ shrink: true }}
+													onFocus={openNativeDateTimePicker}
+													onClick={openNativeDateTimePicker}
 													sx={TEXT_FIELD_STYLES}
 												/>
 											)}
@@ -298,7 +304,12 @@ const AddTaskDrawer = () => {
 												control={control}
 												render={({ field }) => (
 													<FormControlLabel
-														control={<Switch checked={Boolean(field.value)} onChange={(_, checked) => field.onChange(checked)} />}
+														control={
+															<Switch
+																checked={Boolean(field.value)}
+																onChange={(_, checked) => field.onChange(checked)}
+															/>
+														}
 														label="Repeated to HQ"
 													/>
 												)}
@@ -308,7 +319,12 @@ const AddTaskDrawer = () => {
 												control={control}
 												render={({ field }) => (
 													<FormControlLabel
-														control={<Switch checked={Boolean(field.value)} onChange={(_, checked) => field.onChange(checked)} />}
+														control={
+															<Switch
+																checked={Boolean(field.value)}
+																onChange={(_, checked) => field.onChange(checked)}
+															/>
+														}
 														label="Repeated to ICMS"
 													/>
 												)}
@@ -329,7 +345,10 @@ const AddTaskDrawer = () => {
 										borderColor: alpha(theme.palette.primary.main, 0.2),
 									})}
 								>
-									<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'primary.dark' }}>
+									<Typography
+										variant="subtitle2"
+										sx={{ fontWeight: 700, mb: 2, color: 'primary.dark' }}
+									>
 										PROJECT STRATEGY
 									</Typography>
 									<Stack direction="row" spacing={2}>
@@ -398,7 +417,13 @@ const AddTaskDrawer = () => {
 							variant="contained"
 							fullWidth
 							disableElevation
-							sx={{ bgcolor: 'primary.main', py: 1.5, fontWeight: 700, borderRadius: 2, '&:hover': { bgcolor: 'primary.dark' } }}
+							sx={{
+								bgcolor: 'primary.main',
+								py: 1.5,
+								fontWeight: 700,
+								borderRadius: 2,
+								'&:hover': { bgcolor: 'primary.dark' },
+							}}
 						>
 							Dispatch Work
 						</Button>

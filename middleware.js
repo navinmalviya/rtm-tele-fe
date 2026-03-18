@@ -20,20 +20,48 @@ export default withAuth(
 			{ prefix: '/testroom', roles: ['TESTROOM'] },
 			{
 				prefix: '/field-engineer',
-				roles: ['FIELD_ENGINEER', 'JE_SSE_TELE_SECTIONAL', 'SSE_SECTIONAL', 'JE_SECTIONAL'],
+				roles: [
+					'FIELD_ENGINEER',
+					'JE_SSE_TELE_SECTIONAL',
+					'SSE_SECTIONAL',
+					'JE_SECTIONAL',
+					'SSE_TELE_INCHARGE',
+				],
 			},
+			{ prefix: '/sse-tele-incharge', roles: ['SSE_TELE_INCHARGE'] },
 			{ prefix: '/super-admin', roles: ['SUPER_ADMIN'] },
 			{ prefix: '/viewer', roles: ['VIEWER'] },
+			{
+				prefix: '/cable',
+				roles: [
+					'SUPER_ADMIN',
+					'ADMIN',
+					'SR_DSTE_CO',
+					'SR_DSTE',
+					'DSTE',
+					'ADSTE',
+					'SSE_INCHARGE',
+					'SSE_TELE_INCHARGE',
+					'SSE_SECTIONAL',
+					'JE_SECTIONAL',
+					'JE_SSE_TELE_SECTIONAL',
+					'FIELD_ENGINEER',
+					'TECHNICIAN',
+					'TCM',
+					'TRC',
+					'AUDIT_USER',
+					'TESTROOM',
+					'VIEWER',
+					'SSE_SNT_OFFICE',
+					'SSE_TECH',
+				],
+			},
 		];
 
-		const matchedRule = accessRules.find((rule) =>
-			pathname.startsWith(rule.prefix)
-		);
+		const matchedRule = accessRules.find((rule) => pathname.startsWith(rule.prefix));
 
 		if (matchedRule && !matchedRule.roles.includes(role)) {
-			return NextResponse.rewrite(
-				new URL('/?message=You Are Not Authorized!', req.url)
-			);
+			return NextResponse.rewrite(new URL('/?message=You Are Not Authorized!', req.url));
 		}
 	},
 	{
@@ -56,7 +84,9 @@ export const config = {
 		'/audit/:path*',
 		'/testroom/:path*',
 		'/field-engineer/:path*',
+		'/sse-tele-incharge/:path*',
 		'/super-admin/:path*',
 		'/viewer/:path*',
+		'/cable/:path*',
 	],
 };

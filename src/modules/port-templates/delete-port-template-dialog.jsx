@@ -1,8 +1,23 @@
 'use client';
 
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
+import {
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	Stack,
+	Typography,
+} from '@mui/material';
+import RtmLoadingButton from '@/lib/common/loading-button';
 
-export default function DeletePortTemplateDialog({ open, template, onClose, onConfirm, isLoading }) {
+export default function DeletePortTemplateDialog({
+	open,
+	template,
+	onClose,
+	onConfirm,
+	isLoading,
+}) {
 	if (!template) return null;
 
 	return (
@@ -22,15 +37,16 @@ export default function DeletePortTemplateDialog({ open, template, onClose, onCo
 				<Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700 }}>
 					Cancel
 				</Button>
-				<Button
+				<RtmLoadingButton
 					variant="contained"
 					color="error"
 					onClick={onConfirm}
-					disabled={isLoading}
+					loading={isLoading}
+					loadingText="Deleting..."
 					sx={{ textTransform: 'none', fontWeight: 800 }}
 				>
 					Delete
-				</Button>
+				</RtmLoadingButton>
 			</DialogActions>
 		</Dialog>
 	);

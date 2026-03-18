@@ -29,6 +29,7 @@ import { useEquipmentTemplates } from '@/hooks/eqiuipment-templates';
 import { useUpdateEquipment } from '@/hooks/equipment';
 import { useStationRacks } from '@/hooks/racks';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
@@ -436,13 +437,15 @@ export default function EditEquipmentDrawer({ equipment, stationId }) {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="equipment-edit-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={!isDirty || isLoading}
+							loading={isLoading}
+							loadingText="Saving..."
+							disabled={!isDirty}
 							sx={{
 								bgcolor: 'primary.main',
 								py: 1.5,
@@ -452,7 +455,7 @@ export default function EditEquipmentDrawer({ equipment, stationId }) {
 							}}
 						>
 							Save Changes
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

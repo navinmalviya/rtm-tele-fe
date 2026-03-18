@@ -4,6 +4,7 @@ import {
 	AdminPanelSettings,
 	Apartment,
 	Badge,
+	Business,
 	Close,
 	Lock,
 	MailOutline,
@@ -25,8 +26,14 @@ import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useUpdateUser, useUsers } from '@/hooks/user';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
-import { ADMIN_ROLES, ROLE_OPTIONS } from '../role-options';
+import {
+	ADMIN_ROLES,
+	getReportingCandidates,
+	OPTIONAL_REPORTING_ROLES,
+	ROLE_OPTIONS,
+} from '../role-options';
 
 export default function EditUserDrawer({ user }) {
 	const dispatch = useDispatch();
@@ -36,7 +43,9 @@ export default function EditUserDrawer({ user }) {
 	const {
 		control,
 		handleSubmit,
+		getValues,
 		reset,
+		setValue,
 		watch,
 		formState: { errors, isDirty },
 	} = useForm({
@@ -46,6 +55,7 @@ export default function EditUserDrawer({ user }) {
 			username: '',
 			password: '',
 			designation: '',
+			unit: '',
 			role: 'JE_SSE_TELE_SECTIONAL',
 			inchargeId: '',
 		},
@@ -59,17 +69,35 @@ export default function EditUserDrawer({ user }) {
 			username: user.username || '',
 			password: '',
 			designation: user.designation || '',
+			unit: user.unit || '',
 			role: user.role || 'JE_SSE_TELE_SECTIONAL',
 			inchargeId: user.inchargeId || '',
 		});
 	}, [user, reset]);
 	const selectedRole = watch('role');
-	const requiresReportingOfficer = !ADMIN_ROLES.has(selectedRole);
+	const selectedInchargeId = watch('inchargeId');
+	const requiresReportingOfficer =
+		!ADMIN_ROLES.has(selectedRole) && !OPTIONAL_REPORTING_ROLES.has(selectedRole);
+	const reportingCandidates = getReportingCandidates({
+		users,
+		selectedRole,
+		currentUserId: user?.id,
+	});
+
+	useEffect(() => {
+		if (!requiresReportingOfficer) return;
+		if (!selectedInchargeId) return;
+		const exists = reportingCandidates.some((candidate) => candidate.id === selectedInchargeId);
+		if (exists) return;
+		if (!getValues('inchargeId')) return;
+		setValue('inchargeId', '', { shouldDirty: true, shouldTouch: true });
+	}, [requiresReportingOfficer, reportingCandidates, selectedInchargeId, setValue, getValues]);
 
 	const handleUpdate = (data) => {
 		if (!user?.id) return;
 		const payload = { ...data };
 		if (!payload.password) delete payload.password;
+		payload.unit = payload.unit || null;
 		payload.inchargeId = requiresReportingOfficer ? payload.inchargeId : null;
 		updateUser({ id: user.id, data: payload });
 		dispatch(closeDrawer({ drawerName: 'editUserDrawer' }));
@@ -235,6 +263,29 @@ export default function EditUserDrawer({ user }) {
 									)}
 								/>
 								<Controller
+									name="unit"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											label="Unit / Office"
+											placeholder="e.g. SSE/Tele/Exch/RTM"
+											fullWidth
+											sx={textFieldStyles}
+											InputProps={{
+												startAdornment: (
+													<InputAdornment position="start">
+														<Business sx={{ color: 'text.secondary' }} />
+													</InputAdornment>
+												),
+											}}
+										/>
+									)}
+								/>
+							</Stack>
+
+							<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+								<Controller
 									name="role"
 									control={control}
 									rules={{ required: 'Role is required' }}
@@ -280,18 +331,24 @@ export default function EditUserDrawer({ user }) {
 												),
 											}}
 										>
-											{users
-												.filter(
-													(candidate) => candidate.id !== user?.id && candidate.role !== 'VIEWER'
-												)
-												.map((candidate) => (
-													<MenuItem key={candidate.id} value={candidate.id}>
-														{candidate.name} ({candidate.designation || candidate.role})
-													</MenuItem>
-												))}
+											{reportingCandidates.map((candidate) => (
+												<MenuItem key={candidate.id} value={candidate.id}>
+													{candidate.name} ({candidate.designation || candidate.role})
+												</MenuItem>
+											))}
+											{reportingCandidates.length === 0 && (
+												<MenuItem disabled value="">
+													No valid reporting officers for selected role
+												</MenuItem>
+											)}
 										</TextField>
 									)}
 								/>
+							)}
+							{!requiresReportingOfficer && OPTIONAL_REPORTING_ROLES.has(selectedRole) && (
+								<Typography sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+									`reporting_to` is optional for this role.
+								</Typography>
 							)}
 						</Stack>
 					</form>
@@ -309,13 +366,15 @@ export default function EditUserDrawer({ user }) {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="edit-user-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={!isDirty || isLoading}
+							loading={isLoading}
+							loadingText="Saving..."
+							disabled={!isDirty}
 							sx={{
 								bgcolor: 'primary.main',
 								py: 1.5,
@@ -325,7 +384,7 @@ export default function EditUserDrawer({ user }) {
 							}}
 						>
 							Save Changes
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

@@ -21,6 +21,8 @@ import { useState } from 'react';
 import { useAddEcSocket, useCableDetails, useConnectMedia } from '@/hooks/cable';
 import { useAllEquipment } from '@/hooks/equipment';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoader from '@/lib/common/loader';
+import RtmLoadingButton from '@/lib/common/loading-button';
 
 export function CableDetailPanel({ cableId, onClose }) {
 	const { data: cable, isLoading } = useCableDetails(cableId);
@@ -32,7 +34,13 @@ export function CableDetailPanel({ cableId, onClose }) {
 	const [connectState, setConnectState] = useState({ open: false, mediaType: null, mediaId: null });
 	const [selectedEquipmentId, setSelectedEquipmentId] = useState('');
 
-	if (isLoading || !cable) return null;
+	if (isLoading || !cable) {
+		return (
+			<RtmDrawer drawerName="cableDetailPanel" onCancel={onClose}>
+				<RtmLoader label="Loading cable details..." minHeight="100%" />
+			</RtmDrawer>
+		);
+	}
 
 	const parseKmValue = (value) => {
 		const match = String(value || '').match(/^\s*(\d+(\.\d+)?)/);
@@ -83,7 +91,7 @@ export function CableDetailPanel({ cableId, onClose }) {
 	};
 
 	return (
-		<RtmDrawer drawerName="cableDetailPanel">
+		<RtmDrawer drawerName="cableDetailPanel" onCancel={onClose}>
 			<Box
 				sx={{
 					width: 420,
@@ -119,6 +127,7 @@ export function CableDetailPanel({ cableId, onClose }) {
 					<Grid container spacing={1.5} sx={{ mt: 2 }}>
 						<StatItem label="Total Length" value={`${cable.length}m`} />
 						<StatItem label="Track Side" value={cable.side} />
+						<StatItem label="Supervisor" value={cable.supervisor?.name || '—'} />
 					</Grid>
 				</Box>
 
@@ -228,14 +237,15 @@ export function CableDetailPanel({ cableId, onClose }) {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							variant="contained"
 							disableElevation
 							onClick={handleConnect}
-							disabled={isConnecting}
+							loading={isConnecting}
+							loadingText="Connecting..."
 						>
-							{isConnecting ? 'Connecting...' : 'Connect'}
-						</Button>
+							Connect
+						</RtmLoadingButton>
 					</DialogActions>
 				</Dialog>
 			</Box>
@@ -522,9 +532,15 @@ const EcSocketList = ({
 								helperText={socketError || ' '}
 								fullWidth
 							/>
-							<Button type="submit" variant="contained" disableElevation disabled={isAdding}>
-								{isAdding ? 'Adding...' : 'Add'}
-							</Button>
+							<RtmLoadingButton
+								type="submit"
+								variant="contained"
+								disableElevation
+								loading={isAdding}
+								loadingText="Adding..."
+							>
+								Add
+							</RtmLoadingButton>
 						</Stack>
 					</form>
 				</Stack>
@@ -566,9 +582,15 @@ const EcSocketList = ({
 							helperText={socketError || ' '}
 							fullWidth
 						/>
-						<Button type="submit" variant="contained" disableElevation disabled={isAdding}>
-							{isAdding ? 'Adding...' : 'Add'}
-						</Button>
+						<RtmLoadingButton
+							type="submit"
+							variant="contained"
+							disableElevation
+							loading={isAdding}
+							loadingText="Adding..."
+						>
+							Add
+						</RtmLoadingButton>
 					</Stack>
 				</form>
 				<Stack spacing={1}>

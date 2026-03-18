@@ -4,6 +4,7 @@ import {
 	AdminPanelSettings,
 	Apartment,
 	Badge,
+	Business,
 	Close,
 	Lock,
 	MailOutline,
@@ -22,12 +23,19 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useCreateUser, useUsers } from '@/hooks/user';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
-import { ADMIN_ROLES, ROLE_OPTIONS } from '../role-options';
+import {
+	ADMIN_ROLES,
+	getReportingCandidates,
+	OPTIONAL_REPORTING_ROLES,
+	ROLE_OPTIONS,
+} from '../role-options';
 
 export default function AddUserDrawer() {
 	const dispatch = useDispatch();
@@ -40,6 +48,7 @@ export default function AddUserDrawer() {
 		control,
 		handleSubmit,
 		reset,
+		setValue,
 		watch,
 		formState: { errors, isDirty },
 	} = useForm({
@@ -49,12 +58,28 @@ export default function AddUserDrawer() {
 			username: '',
 			password: '',
 			designation: '',
+			unit: '',
 			role: 'JE_SSE_TELE_SECTIONAL',
 			inchargeId: '',
 		},
 	});
 	const selectedRole = watch('role');
-	const requiresReportingOfficer = !ADMIN_ROLES.has(selectedRole);
+	const selectedInchargeId = watch('inchargeId');
+	const requiresReportingOfficer =
+		!ADMIN_ROLES.has(selectedRole) && !OPTIONAL_REPORTING_ROLES.has(selectedRole);
+	const reportingCandidates = useMemo(
+		() => getReportingCandidates({ users, selectedRole }),
+		[users, selectedRole]
+	);
+
+	useEffect(() => {
+		if (!requiresReportingOfficer) return;
+		if (!selectedInchargeId) return;
+		const exists = reportingCandidates.some((candidate) => candidate.id === selectedInchargeId);
+		if (!exists) {
+			setValue('inchargeId', '', { shouldDirty: true, shouldTouch: true });
+		}
+	}, [requiresReportingOfficer, selectedInchargeId, reportingCandidates, setValue]);
 
 	const handleCreateUser = (formData) => {
 		if (!divisionId) return;
@@ -62,6 +87,7 @@ export default function AddUserDrawer() {
 			{
 				...formData,
 				divisionId,
+				unit: formData.unit || null,
 				inchargeId: requiresReportingOfficer ? formData.inchargeId : null,
 			},
 			{
@@ -236,6 +262,29 @@ export default function AddUserDrawer() {
 									)}
 								/>
 								<Controller
+									name="unit"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											label="Unit / Office"
+											placeholder="e.g. SSE/Tele/Exch/RTM"
+											fullWidth
+											sx={textFieldStyles}
+											InputProps={{
+												startAdornment: (
+													<InputAdornment position="start">
+														<Business sx={{ color: 'text.secondary' }} />
+													</InputAdornment>
+												),
+											}}
+										/>
+									)}
+								/>
+							</Stack>
+
+							<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+								<Controller
 									name="role"
 									control={control}
 									rules={{ required: 'Role is required' }}
@@ -281,16 +330,24 @@ export default function AddUserDrawer() {
 												),
 											}}
 										>
-											{users
-												.filter((user) => user.role !== 'VIEWER')
-												.map((user) => (
-													<MenuItem key={user.id} value={user.id}>
-														{user.name} ({user.designation || user.role})
-													</MenuItem>
-												))}
+											{reportingCandidates.map((candidate) => (
+												<MenuItem key={candidate.id} value={candidate.id}>
+													{candidate.name} ({candidate.designation || candidate.role})
+												</MenuItem>
+											))}
+											{reportingCandidates.length === 0 && (
+												<MenuItem disabled value="">
+													No valid reporting officers for selected role
+												</MenuItem>
+											)}
 										</TextField>
 									)}
 								/>
+							)}
+							{!requiresReportingOfficer && OPTIONAL_REPORTING_ROLES.has(selectedRole) && (
+								<Typography sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+									`reporting_to` is optional for this role.
+								</Typography>
 							)}
 
 							<Box
@@ -323,13 +380,15 @@ export default function AddUserDrawer() {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="create-user-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={!divisionId || !isDirty || isLoading}
+							loading={isLoading}
+							loadingText="Creating..."
+							disabled={!divisionId || !isDirty}
 							sx={{
 								bgcolor: 'primary.main',
 								py: 1.5,
@@ -339,7 +398,7 @@ export default function AddUserDrawer() {
 							}}
 						>
 							Create User
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

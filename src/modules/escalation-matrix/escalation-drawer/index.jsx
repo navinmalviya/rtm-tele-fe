@@ -25,6 +25,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useCreateEscalationMatrix, useUpdateEscalationMatrix } from '@/hooks/escalation-matrix';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { ESCALATION_ROLE_OPTIONS, formatRoleLabel } from '@/modules/users/role-options';
 
@@ -32,6 +33,7 @@ export default function EscalationDrawer({ drawerName, mode = 'create', row = nu
 	const dispatch = useDispatch();
 	const { mutate: createEscalation, isLoading: creating } = useCreateEscalationMatrix();
 	const { mutate: updateEscalation, isLoading: updating } = useUpdateEscalationMatrix();
+	const isSubmitting = mode === 'edit' ? updating : creating;
 
 	const {
 		control,
@@ -296,13 +298,15 @@ export default function EscalationDrawer({ drawerName, mode = 'create', row = nu
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form={`${drawerName}-form`}
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={mode === 'edit' ? !isDirty || updating : creating}
+							loading={isSubmitting}
+							loadingText={mode === 'edit' ? 'Saving...' : 'Adding...'}
+							disabled={!isDirty}
 							sx={{
 								bgcolor: 'primary.main',
 								py: 1.5,
@@ -312,7 +316,7 @@ export default function EscalationDrawer({ drawerName, mode = 'create', row = nu
 							}}
 						>
 							{mode === 'edit' ? 'Save Changes' : 'Add Level'}
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

@@ -6,6 +6,7 @@ import {
 	Close,
 	DeleteOutline,
 	Engineering,
+	PersonOutline,
 	Public,
 	Straighten,
 } from '@mui/icons-material';
@@ -22,12 +23,15 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useParams } from 'next/navigation';
+import { useEffect, useMemo } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useAddCable } from '@/hooks/cable';
 import { useToast } from '@/hooks/common';
 import { useSubSectionDetails } from '@/hooks/sub-sections';
+import { useUsers } from '@/hooks/user';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
@@ -41,6 +45,14 @@ const CABLE_SUBTYPES = {
 		{ value: 'OFC_48', label: '48 Fiber' },
 	],
 };
+
+const SUPERVISOR_ROLES = [
+	'JE_SSE_TELE_SECTIONAL',
+	'SSE_TELE_INCHARGE',
+	'SSE_SNT_OFFICE',
+	'SSE_TECH',
+	'TCM',
+];
 
 const INPUT_STYLES = {
 	'& .MuiOutlinedInput-root': {
@@ -61,11 +73,17 @@ export default function AddCableDrawer() {
 	const params = useParams();
 	const { mutate: addCable, isLoading } = useAddCable();
 	const { data: subsection } = useSubSectionDetails(params.subsectionId);
+	const { data: users = [] } = useUsers();
 	const showToast = useToast();
+	const supervisorUsers = useMemo(
+		() => users.filter((user) => SUPERVISOR_ROLES.includes(user.role)),
+		[users]
+	);
 
 	const {
 		control,
 		handleSubmit,
+		setValue,
 		watch,
 		reset,
 		formState: { errors },
@@ -74,6 +92,7 @@ export default function AddCableDrawer() {
 			type: 'PIJF',
 			subType: 'QUAD_6',
 			maintenanceBy: '',
+			supervisorId: '',
 			length: '',
 			side: 'UP',
 			dateOfCommissioning: '',
@@ -105,6 +124,14 @@ export default function AddCableDrawer() {
 	const kmOptions = buildKmOptions();
 
 	const selectedType = watch('type');
+	const selectedSupervisorId = watch('supervisorId');
+
+	const subsectionSupervisorId = subsection?.supervisor?.id || subsection?.supervisorId || '';
+
+	useEffect(() => {
+		if (!subsectionSupervisorId || selectedSupervisorId) return;
+		setValue('supervisorId', subsectionSupervisorId);
+	}, [subsectionSupervisorId, selectedSupervisorId, setValue]);
 
 	const handleClose = () => {
 		dispatch(closeDrawer({ drawerName: 'addCableDrawer' }));
@@ -534,6 +561,35 @@ export default function AddCableDrawer() {
 											/>
 										)}
 									/>
+									<Controller
+										name="supervisorId"
+										control={control}
+										rules={{ required: 'Supervisor is required' }}
+										render={({ field }) => (
+											<TextField
+												{...field}
+												select
+												label="Cable Supervisor"
+												fullWidth
+												error={!!errors.supervisorId}
+												helperText={errors.supervisorId?.message}
+												sx={INPUT_STYLES}
+												InputProps={{
+													startAdornment: (
+														<InputAdornment position="start">
+															<PersonOutline sx={{ color: 'primary.main', fontSize: 18, mr: 1 }} />
+														</InputAdornment>
+													),
+												}}
+											>
+												{supervisorUsers.map((user) => (
+													<MenuItem key={user.id} value={user.id}>
+														{user.name} ({user.designation || user.role})
+													</MenuItem>
+												))}
+											</TextField>
+										)}
+									/>
 								</Stack>
 							</Box>
 						</Stack>
@@ -553,13 +609,14 @@ export default function AddCableDrawer() {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="cable-asset-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={isLoading}
+							loading={isLoading}
+							loadingText="Processing..."
 							sx={{
 								bgcolor: 'primary.main',
 								borderRadius: '100px', // Full Pill Radius
@@ -570,8 +627,8 @@ export default function AddCableDrawer() {
 								'&:hover': { bgcolor: 'primary.dark' },
 							}}
 						>
-							{isLoading ? 'Processing...' : 'Create Cable Asset'}
-						</Button>
+							Create Cable Asset
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

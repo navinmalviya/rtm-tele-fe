@@ -6,7 +6,7 @@ import { alpha } from '@mui/material/styles';
 import { useSections } from '@/hooks/sections';
 import RtmDataGrid from '@/lib/common/datagrid';
 
-export function SectionTable() {
+export function SectionTable({ readOnly = false }) {
 	const { data: sections = [], isLoading } = useSections();
 
 	const columns = [
@@ -63,9 +63,11 @@ export function SectionTable() {
 							<Hub fontSize="small" />
 						</IconButton>
 					</Tooltip>
-					<IconButton size="small" sx={{ color: 'text.secondary' }}>
-						<Edit fontSize="small" />
-					</IconButton>
+					{!readOnly && (
+						<IconButton size="small" sx={{ color: 'text.secondary' }}>
+							<Edit fontSize="small" />
+						</IconButton>
+					)}
 				</Box>
 			),
 		},

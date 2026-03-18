@@ -1,8 +1,23 @@
 'use client';
 
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
+import {
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	Stack,
+	Typography,
+} from '@mui/material';
+import RtmLoadingButton from '@/lib/common/loading-button';
 
-export default function DeleteEquipmentTemplateDialog({ open, template, onClose, onConfirm, isLoading }) {
+export default function DeleteEquipmentTemplateDialog({
+	open,
+	template,
+	onClose,
+	onConfirm,
+	isLoading,
+}) {
 	if (!template) return null;
 
 	return (
@@ -14,7 +29,8 @@ export default function DeleteEquipmentTemplateDialog({ open, template, onClose,
 						You are about to delete <strong>{template.modelName}</strong>.
 					</Typography>
 					<Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-						This will remove the blueprint. If the template is used by live devices, deletion will be blocked.
+						This will remove the blueprint. If the template is used by live devices, deletion will
+						be blocked.
 					</Typography>
 				</Stack>
 			</DialogContent>
@@ -22,15 +38,16 @@ export default function DeleteEquipmentTemplateDialog({ open, template, onClose,
 				<Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700 }}>
 					Cancel
 				</Button>
-				<Button
+				<RtmLoadingButton
 					variant="contained"
 					color="error"
 					onClick={onConfirm}
-					disabled={isLoading}
+					loading={isLoading}
+					loadingText="Deleting..."
 					sx={{ textTransform: 'none', fontWeight: 800 }}
 				>
 					Delete
-				</Button>
+				</RtmLoadingButton>
 			</DialogActions>
 		</Dialog>
 	);

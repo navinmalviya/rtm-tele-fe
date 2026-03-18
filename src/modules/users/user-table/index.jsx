@@ -90,6 +90,16 @@ export default function UserTable({ onEdit, onDelete }) {
 				),
 			},
 			{
+				field: 'unit',
+				headerName: 'UNIT',
+				flex: 1,
+				renderCell: (params) => (
+					<Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', fontWeight: 700 }}>
+						{params.value || '—'}
+					</Typography>
+				),
+			},
+			{
 				field: 'incharge',
 				headerName: 'REPORTING_TO',
 				flex: 1.1,

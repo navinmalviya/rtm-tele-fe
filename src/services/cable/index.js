@@ -31,6 +31,20 @@ const addEcSocket = (cableId, payload) => {
 };
 
 /**
+ * Adds a joint/EC joint entry to a cable.
+ */
+const addJoint = (cableId, payload) => {
+	return http.post(`/cable/${cableId}/joint`, payload);
+};
+
+/**
+ * Adds a cable test report with section + measured values.
+ */
+const addCableTestReport = (cableId, payload) => {
+	return http.post(`/cable/${cableId}/test-report`, payload);
+};
+
+/**
  * Connects a pair or fiber to an equipment by creating a circuit.
  */
 const connectMedia = (payload) => {
@@ -56,6 +70,8 @@ export const CableService = {
 	getCableDetails,
 	addCable,
 	addEcSocket,
+	addJoint,
+	addCableTestReport,
 	connectMedia,
 	updateCable,
 	deleteCable,

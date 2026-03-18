@@ -1,21 +1,28 @@
 'use client';
 
-import { Add, Cable, South, ViewInAr, North } from '@mui/icons-material';
-import { Box, Button, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
+import { Add, Cable, North, South, ViewInAr } from '@mui/icons-material';
+import { Box, Button, Container, Paper, Stack, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useCablesBySubsection } from '@/hooks/sub-sections';
+import RtmLoader from '@/lib/common/loader';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import AddCableDrawer from './AddCableDrawer';
+import AddJointDrawer, { ADD_CABLE_JOINT_DRAWER } from './AddJointDrawer';
 import { CableDetailPanel } from './CableDetailPanel';
+import EditCableDrawer from './EditCableDrawer';
 import { TrackLayout } from './TrackLayout';
 
-export default function SubSectionDetails({ subsectionId }) {
+export default function SubSectionDetails({ subsectionId, routeBasePath = '/testroom' }) {
 	const theme = useTheme();
+	const router = useRouter();
 	const dispatch = useDispatch();
 	const [selectedCableId, setSelectedCableId] = useState(null);
-	console.log('selectedCableId', selectedCableId);
+	const [editingCableId, setEditingCableId] = useState(null);
+	const [jointDrawerCableId, setJointDrawerCableId] = useState(null);
+	const [jointDrawerType, setJointDrawerType] = useState('NORMAL');
 	const { data: cables, isLoading } = useCablesBySubsection(subsectionId);
 
 	const handleAddCable = () => {
@@ -27,11 +34,7 @@ export default function SubSectionDetails({ subsectionId }) {
 	};
 
 	if (isLoading) {
-		return (
-			<Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-				<CircularProgress size={32} sx={{ color: 'primary.main' }} />
-			</Box>
-		);
+		return <RtmLoader label="Loading subsection cables..." minHeight={280} />;
 	}
 
 	const mappedCables = (cables || []).map((cable) => {
@@ -43,23 +46,64 @@ export default function SubSectionDetails({ subsectionId }) {
 		return { ...cable, hasUp, hasDown, sideLabel };
 	});
 
-	const segmentedCables = mappedCables.filter((cable) => cable.hasUp && cable.hasDown);
-	const upSideCables = mappedCables.filter((cable) => cable.hasUp);
-	const downSideCables = mappedCables.filter((cable) => cable.hasDown);
-
 	const totalCables = mappedCables.length;
 	const upCount = mappedCables.filter((cable) => cable.hasUp).length;
 	const downCount = mappedCables.filter((cable) => cable.hasDown).length;
+	const editingCable = mappedCables.find((cable) => cable.id === editingCableId) || null;
+
+	const handleViewCable = (cableId) => {
+		setSelectedCableId(cableId);
+		dispatch(openDrawer({ drawerName: 'cableDetailPanel' }));
+	};
+
+	const handleEditCable = (cableId) => {
+		setEditingCableId(cableId);
+		dispatch(openDrawer({ drawerName: 'editCableDrawer' }));
+	};
+
+	const handleOpenCablePage = (cableId) => {
+		router.push(`${routeBasePath}/cable/${cableId}`);
+	};
+
+	const openJointDrawer = (cableId, type) => {
+		setJointDrawerCableId(cableId);
+		setJointDrawerType(type);
+		dispatch(openDrawer({ drawerName: ADD_CABLE_JOINT_DRAWER }));
+	};
+
+	const closeJointDrawer = () => {
+		setJointDrawerCableId(null);
+		setJointDrawerType('NORMAL');
+	};
 
 	return (
-		<Box sx={{ display: 'flex', height: 'calc(100vh - 64px)', bgcolor: 'background.default', overflow: 'hidden' }}>
+		<Box
+			sx={{
+				display: 'flex',
+				height: 'calc(100vh - 64px)',
+				bgcolor: 'background.default',
+				overflow: 'hidden',
+			}}
+		>
 			<AddCableDrawer />
+			<EditCableDrawer cable={editingCable} />
 			<Box sx={{ flex: 1, p: 4, overflowY: 'auto' }}>
-				<Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 4 }}>
+				<Stack
+					direction="row"
+					justifyContent="space-between"
+					alignItems="flex-start"
+					sx={{ mb: 4 }}
+				>
 					<Box>
 						<Typography
 							variant="h5"
-							sx={{ fontWeight: 800, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1.5 }}
+							sx={{
+								fontWeight: 800,
+								color: 'text.primary',
+								display: 'flex',
+								alignItems: 'center',
+								gap: 1.5,
+							}}
 						>
 							<ViewInAr sx={{ color: 'primary.main' }} /> Subsection Track Layout
 						</Typography>
@@ -71,7 +115,13 @@ export default function SubSectionDetails({ subsectionId }) {
 					<Stack direction="row" spacing={2} alignItems="center">
 						<Paper
 							elevation={0}
-							sx={{ p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 3, bgcolor: 'background.paper' }}
+							sx={{
+								p: 1.5,
+								border: '1px solid',
+								borderColor: 'divider',
+								borderRadius: 3,
+								bgcolor: 'background.paper',
+							}}
 						>
 							<Stack direction="row" spacing={2}>
 								<LegendItem color={theme.palette.primary.main} label="PIJF / Quad" />
@@ -92,7 +142,10 @@ export default function SubSectionDetails({ subsectionId }) {
 								px: 3,
 								py: 1,
 								boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.25)}`,
-								'&:hover': { bgcolor: 'primary.dark', boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.35)}` },
+								'&:hover': {
+									bgcolor: 'primary.dark',
+									boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.35)}`,
+								},
 							}}
 						>
 							Add Cable
@@ -218,6 +271,11 @@ export default function SubSectionDetails({ subsectionId }) {
 						cables={mappedCables}
 						selectedId={selectedCableId}
 						onCableSelect={setSelectedCableId}
+						onViewCable={handleViewCable}
+						onEditCable={handleEditCable}
+						onOpenCablePage={handleOpenCablePage}
+						onAddJoint={(cableId) => openJointDrawer(cableId, 'NORMAL')}
+						onAddEcJoint={(cableId) => openJointDrawer(cableId, 'EC')}
 					/>
 				</Container>
 			</Box>
@@ -225,6 +283,11 @@ export default function SubSectionDetails({ subsectionId }) {
 			{selectedCableId && (
 				<CableDetailPanel cableId={selectedCableId} onClose={() => setSelectedCableId(null)} />
 			)}
+			<AddJointDrawer
+				cableId={jointDrawerCableId}
+				jointType={jointDrawerType}
+				onClose={closeJointDrawer}
+			/>
 		</Box>
 	);
 }
@@ -232,6 +295,8 @@ export default function SubSectionDetails({ subsectionId }) {
 const LegendItem = ({ color, label }) => (
 	<Stack direction="row" spacing={1} alignItems="center">
 		<Box sx={{ width: 12, height: 12, borderRadius: '3px', bgcolor: color }} />
-		<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary' }}>{label}</Typography>
+		<Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary' }}>
+			{label}
+		</Typography>
 	</Stack>
 );

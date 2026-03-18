@@ -11,7 +11,7 @@ import { AddSectionForm, SectionTable } from '@/modules/sections';
 import { AddStationForm, StationTable } from '@/modules/stations';
 import { AddSubSectionForm, SubSectionTable } from '@/modules/sub-sections';
 
-export default function HierarchyManagementPage() {
+export default function HierarchyManagementPage({ readOnly = false, routeBasePath = '/testroom' }) {
 	const dispatch = useDispatch();
 	const { currentTab } = useTabs('hierarchyHub', { currentTab: 'stations' });
 
@@ -63,20 +63,22 @@ export default function HierarchyManagementPage() {
 						</Typography>
 					</Box>
 				</Stack>
-				<Button
-					variant="contained"
-					startIcon={currentAction.icon}
-					onClick={() => dispatch(openDrawer({ drawerName: currentAction.drawer }))}
-					sx={{
-						bgcolor: 'primary.main',
-						borderRadius: 2.5,
-						fontWeight: 800,
-						textTransform: 'none',
-						'&:hover': { bgcolor: 'primary.dark' },
-					}}
-				>
-					{currentAction.label}
-				</Button>
+				{!readOnly && (
+					<Button
+						variant="contained"
+						startIcon={currentAction.icon}
+						onClick={() => dispatch(openDrawer({ drawerName: currentAction.drawer }))}
+						sx={{
+							bgcolor: 'primary.main',
+							borderRadius: 2.5,
+							fontWeight: 800,
+							textTransform: 'none',
+							'&:hover': { bgcolor: 'primary.dark' },
+						}}
+					>
+						{currentAction.label}
+					</Button>
+				)}
 			</Box>
 
 			{/* Tabs */}
@@ -87,9 +89,9 @@ export default function HierarchyManagementPage() {
 
 			{/* Tables Area */}
 			<Box sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
-				<AddStationForm />
-				<AddSubSectionForm />
-				<AddSectionForm />
+				{!readOnly && <AddStationForm />}
+				{!readOnly && <AddSubSectionForm />}
+				{!readOnly && <AddSectionForm />}
 
 				<Box
 					sx={{
@@ -100,9 +102,13 @@ export default function HierarchyManagementPage() {
 						overflow: 'hidden',
 					}}
 				>
-					{currentTab === 'stations' && <StationTable />}
-					{currentTab === 'subsections' && <SubSectionTable />}
-					{currentTab === 'sections' && <SectionTable />}
+					{currentTab === 'stations' && (
+						<StationTable readOnly={readOnly} routeBasePath={routeBasePath} />
+					)}
+					{currentTab === 'subsections' && (
+						<SubSectionTable readOnly={readOnly} routeBasePath={routeBasePath} />
+					)}
+					{currentTab === 'sections' && <SectionTable readOnly={readOnly} />}
 				</Box>
 			</Box>
 		</Box>

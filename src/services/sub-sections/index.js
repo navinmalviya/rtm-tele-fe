@@ -10,6 +10,10 @@ const addSubSection = (subSectionData) => {
 	return http.post(`/subsection/create`, subSectionData);
 };
 
+const updateSubSection = (subId, subSectionData) => {
+	return http.put(`/subsection/update/${subId}`, subSectionData);
+};
+
 const subSectionDetails = (subId) => {
 	return http.get(`/subsection/${subId}`);
 };
@@ -21,6 +25,7 @@ const deleteSubSection = (subId) => {
 export const SubSectionService = {
 	allSubSections,
 	addSubSection,
+	updateSubSection,
 	subSectionDetails,
 	deleteSubSection,
 };

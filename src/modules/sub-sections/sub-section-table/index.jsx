@@ -4,12 +4,21 @@ import { Delete, East, Edit, LinearScale } from '@mui/icons-material';
 import { Box, IconButton, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/navigation'; // Added for navigation
-import { useSubsections } from '@/hooks/sub-sections';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useDeleteSubSection, useSubsections } from '@/hooks/sub-sections';
 import RtmDataGrid from '@/lib/common/datagrid';
+import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import DeleteSubSectionDialog from '../delete-subsection-dialog';
+import EditSubSectionDrawer from '../edit-subsection';
 
-export function SubSectionTable() {
+export function SubSectionTable({ readOnly = false, routeBasePath = '/testroom' }) {
 	const router = useRouter(); // Initialize the router
+	const dispatch = useDispatch();
 	const { data: subsections = [], isLoading } = useSubsections();
+	const { mutate: deleteSubSection, isLoading: isDeleting } = useDeleteSubSection();
+	const [editTarget, setEditTarget] = useState(null);
+	const [deleteTarget, setDeleteTarget] = useState(null);
 
 	/**
 	 * Navigates to the Subsection Details page on double click.
@@ -17,7 +26,7 @@ export function SubSectionTable() {
 	 */
 	const handleRowDoubleClick = (params) => {
 		const subsectionId = params.row.id;
-		router.push(`/testroom/sub-section/${subsectionId}`);
+		router.push(`${routeBasePath}/sub-section/${subsectionId}`);
 	};
 
 	const columns = [
@@ -94,14 +103,29 @@ export function SubSectionTable() {
 			headerName: '',
 			width: 100,
 			sortable: false,
-			renderCell: () => (
+			renderCell: (params) => (
 				<Box sx={{ display: 'flex', gap: 0.5 }} onClick={(e) => e.stopPropagation()}>
-					<IconButton size="small" sx={{ color: 'text.secondary' }}>
-						<Edit fontSize="small" />
-					</IconButton>
-					<IconButton size="small" sx={{ color: 'error.light' }}>
-						<Delete fontSize="small" />
-					</IconButton>
+					{!readOnly && (
+						<>
+							<IconButton
+								size="small"
+								sx={{ color: 'text.secondary' }}
+								onClick={() => {
+									setEditTarget(params.row);
+									dispatch(openDrawer({ drawerName: 'editSubSectionDrawer' }));
+								}}
+							>
+								<Edit fontSize="small" />
+							</IconButton>
+							<IconButton
+								size="small"
+								sx={{ color: 'error.light' }}
+								onClick={() => setDeleteTarget(params.row)}
+							>
+								<Delete fontSize="small" />
+							</IconButton>
+						</>
+					)}
 				</Box>
 			),
 		},
@@ -122,6 +146,21 @@ export function SubSectionTable() {
 					'& .MuiDataGrid-row:hover': { bgcolor: 'action.hover' },
 				}}
 			/>
+			{!readOnly && <EditSubSectionDrawer subSection={editTarget} />}
+			{!readOnly && (
+				<DeleteSubSectionDialog
+					open={!!deleteTarget}
+					subSection={deleteTarget}
+					isLoading={isDeleting}
+					onClose={() => setDeleteTarget(null)}
+					onConfirm={() => {
+						if (!deleteTarget?.id) return;
+						deleteSubSection(deleteTarget.id, {
+							onSuccess: () => setDeleteTarget(null),
+						});
+					}}
+				/>
+			)}
 		</Box>
 	);
 }

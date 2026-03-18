@@ -27,7 +27,6 @@ import SaveIcon from '@mui/icons-material/Save';
 import {
 	Box,
 	Button,
-	CircularProgress,
 	Divider,
 	IconButton,
 	ListItemIcon,
@@ -46,6 +45,7 @@ import { useDispatch } from 'react-redux';
 // Hooks & State
 import { useAvailablePorts, useCreatePortLink, usePortLinks } from '@/hooks/port-links';
 import { useBulkUpdateStations, useStations } from '@/hooks/stations';
+import RtmLoader from '@/lib/common/loader';
 import { StationNode } from '@/lib/common/nodes';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 
@@ -58,12 +58,14 @@ const nodeTypes = {
 	station: StationNode,
 };
 
-export default function TopLayerTopology() {
+export default function TopLayerTopology({ readOnly = false, routeBasePath = '/testroom' }) {
 	const theme = useTheme();
+	const edgeStroke =
+		theme.palette.mode === 'dark' ? theme.palette.info.light : theme.palette.primary.dark;
 	const EDGE_STYLE = {
 		type: 'smoothstep',
 		animated: true,
-		style: { stroke: theme.palette.text.primary, strokeWidth: 2 },
+		style: { stroke: edgeStroke, strokeWidth: 2.5 },
 		zIndex: 1000,
 	};
 
@@ -97,12 +99,12 @@ export default function TopLayerTopology() {
 					...node.data,
 					label: node.data.label || node.name,
 					code: node.data.code || node.code,
-					onDoubleClick: () => router.push(`/testroom/station/${node.id}`),
+					onDoubleClick: () => router.push(`${routeBasePath}/station/${node.id}`),
 				},
 			}));
 			setNodes(formattedNodes);
 		}
-	}, [stationNodes, setNodes, router]);
+	}, [stationNodes, setNodes, router, readOnly, routeBasePath]);
 
 	useEffect(() => {
 		if (linkData.length > 0 && nodes.length > 0) {
@@ -144,12 +146,12 @@ export default function TopLayerTopology() {
 
 	const onNodeClick = useCallback(
 		(event, node) => {
-			if (!isEditMode) return;
+			if (readOnly || !isEditMode) return;
 			if (pendingConnection && pendingConnection.stationId === node.id) return;
 			setActiveStationId(node.id);
 			setPortMenuAnchor(event.currentTarget);
 		},
-		[isEditMode, pendingConnection]
+		[isEditMode, pendingConnection, readOnly]
 	);
 
 	const handlePortSelect = (port) => {
@@ -173,7 +175,7 @@ export default function TopLayerTopology() {
 				sourcePortId: pendingConnection.portId,
 				targetPortId: port.id,
 				mediaType: 'OFC',
-				cableColor: theme.palette.text.primary,
+				cableColor: edgeStroke,
 			});
 
 			setPendingConnection(null);
@@ -183,6 +185,7 @@ export default function TopLayerTopology() {
 	};
 
 	const handleSavePositions = () => {
+		if (readOnly) return;
 		const payload = Object.values(movedNodes);
 		if (payload.length > 0) bulkUpdateStations({ stations: payload });
 		setIsEditMode(false);
@@ -202,11 +205,15 @@ export default function TopLayerTopology() {
 				bgcolor: 'background.default',
 				p: 2,
 				'& .react-flow__edgelayer': { zIndex: '10 !important' },
+				'& .react-flow__edge-path': {
+					stroke: `${edgeStroke} !important`,
+					strokeWidth: '2.5px !important',
+				},
 			}}
 		>
-			<AddStationForm />
-			<AddSubSectionForm />
-			<AddSectionForm />
+			{!readOnly && <AddStationForm />}
+			{!readOnly && <AddSubSectionForm />}
+			{!readOnly && <AddSectionForm />}
 
 			<ReactFlow
 				nodes={nodes}
@@ -216,12 +223,14 @@ export default function TopLayerTopology() {
 				onEdgesChange={onEdgesChange}
 				onNodeClick={onNodeClick}
 				onNodeDragStop={(_, node) => {
+					if (readOnly) return;
 					setMovedNodes((prev) => ({
 						...prev,
 						[node.id]: { id: node.id, mapX: node.position.x, mapY: node.position.y },
 					}));
 				}}
 				nodesDraggable={isEditMode}
+				nodesConnectable={!readOnly && isEditMode}
 				zoomOnDoubleClick={false}
 				fitView
 			>
@@ -251,9 +260,12 @@ export default function TopLayerTopology() {
 					</Box>
 					<Divider />
 					{loadingPorts ? (
-						<Stack alignItems="center" sx={{ p: 4 }}>
-							<CircularProgress size={20} />
-						</Stack>
+						<RtmLoader
+							variant="inline"
+							label="Loading ports..."
+							size={20}
+							sx={{ p: 4, justifyContent: 'center' }}
+						/>
 					) : stationPorts.length > 0 ? (
 						stationPorts.map((port) => (
 							<MenuItem key={port.id} onClick={() => handlePortSelect(port)} sx={{ py: 1.2 }}>
@@ -276,7 +288,7 @@ export default function TopLayerTopology() {
 					)}
 				</Menu>
 
-				{pendingConnection && (
+				{!readOnly && pendingConnection && (
 					<Panel position="bottom-center">
 						<Paper
 							elevation={4}
@@ -315,85 +327,89 @@ export default function TopLayerTopology() {
 					</Panel>
 				)}
 
-				<Panel position="top-right" style={{ top: '20px', right: '20px' }}>
-					<Paper
-						elevation={0}
-						sx={{
-							p: 0.8,
-							borderRadius: '16px',
-							border: '1px solid',
-							borderColor: 'divider',
-							bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
-						}}
-					>
-						<Stack direction="row" spacing={1} alignItems="center">
-							{!isEditMode ? (
-								<>
-									<Tooltip title="Add Asset">
-										<IconButton
-											onClick={(e) => setAssetMenuAnchor(e.currentTarget)}
-											sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}
+				{!readOnly && (
+					<Panel position="top-right" style={{ top: '20px', right: '20px' }}>
+						<Paper
+							elevation={0}
+							sx={{
+								p: 0.8,
+								borderRadius: '16px',
+								border: '1px solid',
+								borderColor: 'divider',
+								bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
+							}}
+						>
+							<Stack direction="row" spacing={1} alignItems="center">
+								{!isEditMode ? (
+									<>
+										<Tooltip title="Add Asset">
+											<IconButton
+												onClick={(e) => setAssetMenuAnchor(e.currentTarget)}
+												sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}
+											>
+												<AddIcon fontSize="small" />
+											</IconButton>
+										</Tooltip>
+										<Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+										<Tooltip title="Modify Layout">
+											<IconButton onClick={() => setIsEditMode(true)}>
+												<EditIcon fontSize="small" />
+											</IconButton>
+										</Tooltip>
+									</>
+								) : (
+									<>
+										<Typography
+											variant="caption"
+											sx={{ fontWeight: 800, color: 'primary.main', px: 1 }}
 										>
-											<AddIcon fontSize="small" />
+											TOPOLOGY EDITING
+										</Typography>
+										<IconButton
+											onClick={handleSavePositions}
+											sx={{ bgcolor: 'success.main', color: 'success.contrastText' }}
+										>
+											<SaveIcon fontSize="small" />
 										</IconButton>
-									</Tooltip>
-									<Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-									<Tooltip title="Modify Layout">
-										<IconButton onClick={() => setIsEditMode(true)}>
-											<EditIcon fontSize="small" />
+										<IconButton
+											onClick={() => setIsEditMode(false)}
+											sx={{ bgcolor: 'error.main', color: 'error.contrastText' }}
+										>
+											<CancelIcon fontSize="small" />
 										</IconButton>
-									</Tooltip>
-								</>
-							) : (
-								<>
-									<Typography
-										variant="caption"
-										sx={{ fontWeight: 800, color: 'primary.main', px: 1 }}
-									>
-										TOPOLOGY EDITING
-									</Typography>
-									<IconButton
-										onClick={handleSavePositions}
-										sx={{ bgcolor: 'success.main', color: 'success.contrastText' }}
-									>
-										<SaveIcon fontSize="small" />
-									</IconButton>
-									<IconButton
-										onClick={() => setIsEditMode(false)}
-										sx={{ bgcolor: 'error.main', color: 'error.contrastText' }}
-									>
-										<CancelIcon fontSize="small" />
-									</IconButton>
-								</>
-							)}
-						</Stack>
-					</Paper>
-				</Panel>
+									</>
+								)}
+							</Stack>
+						</Paper>
+					</Panel>
+				)}
 
-				<Menu
-					anchorEl={assetMenuAnchor}
-					open={Boolean(assetMenuAnchor)}
-					onClose={() => setAssetMenuAnchor(null)}
-				>
-					<MenuItem onClick={() => handleDrawerAction('addSectionDrawer')}>
-						<ListItemIcon>
-							<AccountTreeIcon fontSize="small" />
-						</ListItemIcon>
-						<ListItemText primary="Add Section" />
-					</MenuItem>
-					<MenuItem onClick={() => handleDrawerAction('addSubSectionDrawer')}>
-						<ListItemIcon>
-							<LinearScaleIcon fontSize="small" />
-						</ListItemIcon>
-						<ListItemText primary="Add Sub-section" />
-					</MenuItem>
-					<MenuItem onClick={() => handleDrawerAction('addStationDrawer')}>
-						<ListItemIcon>
-							<PlaceIcon fontSize="small" />
-						</ListItemIcon>
-						<ListItemText primary="Add Station" />
-					</MenuItem>
-				</Menu>
+				{!readOnly && (
+					<Menu
+						anchorEl={assetMenuAnchor}
+						open={Boolean(assetMenuAnchor)}
+						onClose={() => setAssetMenuAnchor(null)}
+					>
+						<MenuItem onClick={() => handleDrawerAction('addSectionDrawer')}>
+							<ListItemIcon>
+								<AccountTreeIcon fontSize="small" />
+							</ListItemIcon>
+							<ListItemText primary="Add Section" />
+						</MenuItem>
+						<MenuItem onClick={() => handleDrawerAction('addSubSectionDrawer')}>
+							<ListItemIcon>
+								<LinearScaleIcon fontSize="small" />
+							</ListItemIcon>
+							<ListItemText primary="Add Sub-section" />
+						</MenuItem>
+						<MenuItem onClick={() => handleDrawerAction('addStationDrawer')}>
+							<ListItemIcon>
+								<PlaceIcon fontSize="small" />
+							</ListItemIcon>
+							<ListItemText primary="Add Station" />
+						</MenuItem>
+					</Menu>
+				)}
 
 				<Controls position="bottom-right" />
 				<MiniMap position="bottom-left" zoomable pannable />

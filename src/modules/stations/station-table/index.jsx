@@ -12,7 +12,7 @@ import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import DeleteStationDialog from '../delete-station-dialog';
 import EditStationDrawer from '../edit-station';
 
-export function StationTable() {
+export function StationTable({ readOnly = false, routeBasePath = '/testroom' }) {
 	const router = useRouter();
 	const dispatch = useDispatch();
 	const { data: stations = [], isLoading } = useStations();
@@ -85,32 +85,36 @@ export function StationTable() {
 						<IconButton
 							size="small"
 							sx={{ color: 'text.secondary' }}
-							onClick={() => router.push(`/testroom/station/${params.row.id}`)}
+							onClick={() => router.push(`${routeBasePath}/station/${params.row.id}`)}
 						>
 							<Visibility fontSize="small" />
 						</IconButton>
 					</Tooltip>
-					<Tooltip title="Edit">
-						<IconButton
-							size="small"
-							sx={{ color: 'text.secondary' }}
-							onClick={() => {
-								setEditTarget(params.row);
-								dispatch(openDrawer({ drawerName: 'editStationDrawer' }));
-							}}
-						>
-							<Edit fontSize="small" />
-						</IconButton>
-					</Tooltip>
-					<Tooltip title="Delete">
-						<IconButton
-							size="small"
-							sx={{ color: 'error.light' }}
-							onClick={() => setDeleteTarget(params.row)}
-						>
-							<Delete fontSize="small" />
-						</IconButton>
-					</Tooltip>
+					{!readOnly && (
+						<>
+							<Tooltip title="Edit">
+								<IconButton
+									size="small"
+									sx={{ color: 'text.secondary' }}
+									onClick={() => {
+										setEditTarget(params.row);
+										dispatch(openDrawer({ drawerName: 'editStationDrawer' }));
+									}}
+								>
+									<Edit fontSize="small" />
+								</IconButton>
+							</Tooltip>
+							<Tooltip title="Delete">
+								<IconButton
+									size="small"
+									sx={{ color: 'error.light' }}
+									onClick={() => setDeleteTarget(params.row)}
+								>
+									<Delete fontSize="small" />
+								</IconButton>
+							</Tooltip>
+						</>
+					)}
 				</Box>
 			),
 		},
@@ -125,19 +129,21 @@ export function StationTable() {
 				getRowId={(row) => row.id}
 				rowHeight={70}
 			/>
-			<EditStationDrawer station={editTarget} />
-			<DeleteStationDialog
-				open={!!deleteTarget}
-				station={deleteTarget}
-				isLoading={isDeleting}
-				onClose={() => setDeleteTarget(null)}
-				onConfirm={() => {
-					if (!deleteTarget?.id) return;
-					deleteStation(deleteTarget.id, {
-						onSuccess: () => setDeleteTarget(null),
-					});
-				}}
-			/>
+			{!readOnly && <EditStationDrawer station={editTarget} />}
+			{!readOnly && (
+				<DeleteStationDialog
+					open={!!deleteTarget}
+					station={deleteTarget}
+					isLoading={isDeleting}
+					onClose={() => setDeleteTarget(null)}
+					onConfirm={() => {
+						if (!deleteTarget?.id) return;
+						deleteStation(deleteTarget.id, {
+							onSuccess: () => setDeleteTarget(null),
+						});
+					}}
+				/>
+			)}
 		</Box>
 	);
 }

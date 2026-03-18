@@ -9,20 +9,20 @@ import {
 	LocationOn,
 	ReportProblem,
 	Schedule,
-	Tune,
 	Timeline,
+	Tune,
 } from '@mui/icons-material';
 import {
 	Avatar,
 	Box,
 	Button,
-	Divider,
 	Chip,
+	Divider,
 	FormControlLabel,
 	IconButton,
 	InputAdornment,
-	Paper,
 	MenuItem,
+	Paper,
 	Stack,
 	Switch,
 	TextField,
@@ -31,10 +31,12 @@ import {
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { useStations } from '@/hooks/stations';
 import { useStationLocations } from '@/hooks/locations';
+import { useStations } from '@/hooks/stations';
 import { useAddTaskComment, useTask, useUpdateTaskFailure } from '@/hooks/task';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoader from '@/lib/common/loader';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
@@ -201,9 +203,7 @@ export default function TaskDetailDrawer() {
 	const onSubmit = (formData) => {
 		const payload = {
 			...formData,
-			failureInTime: formData.failureInTime
-				? new Date(formData.failureInTime).toISOString()
-				: null,
+			failureInTime: formData.failureInTime ? new Date(formData.failureInTime).toISOString() : null,
 			restorationTime: formData.restorationTime
 				? new Date(formData.restorationTime).toISOString()
 				: null,
@@ -248,7 +248,7 @@ export default function TaskDetailDrawer() {
 
 				<Box sx={{ p: 3, flexGrow: 1, overflowY: 'auto' }}>
 					{isLoading || !task ? (
-						<Typography sx={{ color: 'text.secondary' }}>Loading details...</Typography>
+						<RtmLoader label="Loading task details..." minHeight={240} />
 					) : (
 						<>
 							<Paper
@@ -299,7 +299,9 @@ export default function TaskDetailDrawer() {
 												{item.icon}
 											</Box>
 											<Box sx={{ minWidth: 0 }}>
-												<Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: 'text.secondary' }}>
+												<Typography
+													sx={{ fontSize: '0.65rem', fontWeight: 700, color: 'text.secondary' }}
+												>
 													{item.label}
 												</Typography>
 												<Typography
@@ -503,7 +505,8 @@ export default function TaskDetailDrawer() {
 														<MenuItem value="">None</MenuItem>
 														{stations.map((station) => (
 															<MenuItem key={station.id} value={station.id}>
-																{station.data?.label || station.name} ({station.data?.code || station.code})
+																{station.data?.label || station.name} (
+																{station.data?.code || station.code})
 															</MenuItem>
 														))}
 													</TextField>
@@ -590,7 +593,10 @@ export default function TaskDetailDrawer() {
 							<Stack spacing={2}>
 								<Stack spacing={2}>
 									<Stack direction="row" justifyContent="space-between" alignItems="center">
-										<Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>
+										<Typography
+											variant="subtitle2"
+											sx={{ fontWeight: 800, color: 'text.secondary' }}
+										>
 											Activity History
 										</Typography>
 										<Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -618,7 +624,9 @@ export default function TaskDetailDrawer() {
 																label={formatHistoryAction(entry.action)}
 																sx={{ fontWeight: 700 }}
 															/>
-															<Typography sx={{ fontSize: '0.78rem', color: 'text.primary', fontWeight: 700 }}>
+															<Typography
+																sx={{ fontSize: '0.78rem', color: 'text.primary', fontWeight: 700 }}
+															>
 																{entry.actor?.name || 'System'}
 															</Typography>
 														</Stack>
@@ -685,15 +693,16 @@ export default function TaskDetailDrawer() {
 													/>
 												)}
 											/>
-											<Button
+											<RtmLoadingButton
 												type="submit"
 												variant="contained"
 												disableElevation
-												disabled={isCommenting}
+												loading={isCommenting}
+												loadingText="Posting..."
 												sx={{ alignSelf: 'flex-start' }}
 											>
-												{isCommenting ? 'Posting...' : 'Post Comment'}
-											</Button>
+												Post Comment
+											</RtmLoadingButton>
 										</Stack>
 									</form>
 								</Paper>
@@ -748,16 +757,18 @@ export default function TaskDetailDrawer() {
 						<Button variant="text" fullWidth onClick={handleClose} sx={{ fontWeight: 700 }}>
 							Close
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="failure-task-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={task?.type !== 'FAILURE' || isSaving || !isDirty}
+							loading={isSaving}
+							loadingText="Saving..."
+							disabled={task?.type !== 'FAILURE' || !isDirty}
 						>
-							{isSaving ? 'Saving...' : 'Save Failure Details'}
-						</Button>
+							Save Failure Details
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

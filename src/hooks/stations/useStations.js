@@ -14,6 +14,8 @@ export const useStations = () => {
 
 			return stations.map((station) => ({
 				id: station.id,
+				name: station.name,
+				code: station.code,
 				// React Flow expects position as an object
 				position: {
 					x: station.mapX,
@@ -29,6 +31,13 @@ export const useStations = () => {
 					supervisor: station.supervisor?.name,
 				},
 				supervisor: station.supervisor,
+				supervisorId: station.supervisorId || station.supervisor?.id || '',
+				stationSupervisors: (station.supervisors || [])
+					.map((row) => row.supervisor)
+					.filter(Boolean),
+				supervisorIds: (station.supervisors || []).map((row) => row.supervisorId).filter(Boolean),
+				mapX: station.mapX,
+				mapY: station.mapY,
 				createdAt: station.createdAt,
 				// You can define node types based on your logic
 				type: 'default',

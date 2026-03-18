@@ -79,7 +79,7 @@ export default function SettingsPage() {
 								User Management
 							</Typography>
 							<Typography sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
-								Add staff to the testroom hierarchy and manage access.
+								Add staff to the Divisional hierarchy and manage access.
 							</Typography>
 						</Box>
 					</Stack>

@@ -27,6 +27,7 @@ export const useCablesBySubsection = (subsectionId) => {
 				maintenanceBy: cable.maintenanceBy,
 				dateOfCommissioning: cable.dateOfCommissioning,
 				sideSegments: cable.sideSegments || [],
+				joints: cable.joints || [],
 				_count: cable._count || {},
 				// Metadata for graphical rendering and counts
 				meta: {

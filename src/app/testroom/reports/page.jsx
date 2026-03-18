@@ -1,36 +1,29 @@
 'use client';
 
-import {
-	Assessment,
-	AssignmentLate,
-	CheckCircle,
-	ContentCut,
-	FactCheck,
-} from '@mui/icons-material';
-import {
-	Box,
-	Button,
-	Chip,
-	Grid,
-	Paper,
-	Stack,
-	TextField,
-	Typography,
-} from '@mui/material';
+import { Assessment, ContentCut, FactCheck } from '@mui/icons-material';
+import { Box, Button, Chip, Paper, Stack, TextField, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
+import { PieChart } from '@mui/x-charts';
 import { useMemo, useState } from 'react';
-import { useTasks } from '@/hooks/task';
-import { useStations } from '@/hooks/stations';
-import RtmTabs from '@/lib/common/tabs';
-import StatCard from '@/lib/common/stat-card';
-import RtmDataGrid from '@/lib/common/datagrid';
 import { useTabs } from '@/hooks/common';
+import { useStations } from '@/hooks/stations';
+import { useTasks } from '@/hooks/task';
+import RtmDataGrid from '@/lib/common/datagrid';
+import RtmTabs from '@/lib/common/tabs';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 const REPORT_TABS = [
-	{ label: 'Daily Failure Report', step: 'daily-failure', icon: <Assessment sx={{ fontSize: 18 }} /> },
+	{
+		label: 'Daily Failure Report',
+		step: 'daily-failure',
+		icon: <Assessment sx={{ fontSize: 18 }} />,
+	},
 	{ label: 'Cable Cut Reports', step: 'cable-cut', icon: <ContentCut sx={{ fontSize: 18 }} /> },
-	{ label: 'Cable Testing Reports', step: 'cable-testing', icon: <FactCheck sx={{ fontSize: 18 }} /> },
+	{
+		label: 'Cable Testing Reports',
+		step: 'cable-testing',
+		icon: <FactCheck sx={{ fontSize: 18 }} />,
+	},
 ];
 
 const formatEnumLabel = (value) =>
@@ -92,6 +85,9 @@ export default function ReportsPage() {
 	}, [failures, dateRange]);
 
 	const resolvedCount = filteredFailures.filter((task) => task.status === 'RESOLVED').length;
+	const openCount = filteredFailures.filter((task) => task.status === 'OPEN').length;
+	const inProgressCount = filteredFailures.filter((task) => task.status === 'IN_PROGRESS').length;
+	const closedCount = filteredFailures.filter((task) => task.status === 'CLOSED').length;
 	const averageRestoration = useMemo(() => {
 		const durations = filteredFailures
 			.map((task) => {
@@ -108,6 +104,39 @@ export default function ReportsPage() {
 		const minutes = Math.floor((avgMs % (1000 * 60 * 60)) / (1000 * 60));
 		return `${hours}h ${minutes}m`;
 	}, [filteredFailures]);
+
+	const statusChartData = useMemo(
+		() => [
+			{ id: 'open', value: openCount, label: 'Open', color: theme.palette.warning.main },
+			{
+				id: 'inProgress',
+				value: inProgressCount,
+				label: 'In Progress',
+				color: theme.palette.info.main,
+			},
+			{
+				id: 'resolved',
+				value: resolvedCount,
+				label: 'Resolved',
+				color: theme.palette.success.main,
+			},
+			{ id: 'closed', value: closedCount, label: 'Closed', color: theme.palette.text.secondary },
+		],
+		[openCount, inProgressCount, resolvedCount, closedCount, theme]
+	);
+
+	const hasFailuresInRange = filteredFailures.length > 0;
+	const chartData = hasFailuresInRange
+		? statusChartData
+		: [
+				{
+					id: 'no-data',
+					value: 1,
+					label: 'No Data',
+					color: alpha(theme.palette.text.secondary, 0.25),
+				},
+			];
+	const nonZeroSlices = chartData.filter((item) => item.value > 0).length;
 
 	const columns = useMemo(
 		() => [
@@ -268,7 +297,14 @@ export default function ReportsPage() {
 	);
 
 	return (
-		<Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.default' }}>
+		<Box
+			sx={{
+				display: 'flex',
+				flexDirection: 'column',
+				height: '100%',
+				bgcolor: 'background.default',
+			}}
+		>
 			<Box
 				sx={{
 					px: 3,
@@ -291,7 +327,10 @@ export default function ReportsPage() {
 						<Assessment sx={{ color: 'text.secondary' }} />
 					</Box>
 					<Box>
-						<Typography variant="h5" sx={{ fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em' }}>
+						<Typography
+							variant="h5"
+							sx={{ fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em' }}
+						>
 							Reports Center
 						</Typography>
 						<Typography
@@ -310,106 +349,123 @@ export default function ReportsPage() {
 			</Box>
 
 			<Box sx={{ px: 3, bgcolor: 'background.paper' }}>
-				<RtmTabs tabs={REPORT_TABS} tabsName="reportsHub" initialState={{ currentTab: 'daily-failure' }} />
+				<RtmTabs
+					tabs={REPORT_TABS}
+					tabsName="reportsHub"
+					initialState={{ currentTab: 'daily-failure' }}
+				/>
 			</Box>
 
 			<Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 3 }}>
 				{currentTab === 'daily-failure' && (
-					<Stack spacing={3}>
-						<Paper
-							variant="outlined"
-							sx={{
-								p: 3,
-								borderRadius: 4,
-								bgcolor: 'background.paper',
-								borderColor: 'divider',
-							}}
+					<Stack spacing={2.25}>
+						<Stack
+							direction={{ xs: 'column', lg: 'row' }}
+							spacing={2}
+							justifyContent="space-between"
+							alignItems={{ xs: 'flex-start', lg: 'center' }}
+							sx={{ px: 0.25 }}
 						>
-							<Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }}>
-								<Stack flex={1} spacing={0.5}>
-									<Typography sx={{ fontWeight: 800, color: 'text.primary' }}>
-										Daily Failure Report
+							<Box sx={{ minWidth: 0 }}>
+								<Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.6 }}>
+									<Typography variant="h5" sx={{ fontWeight: 900, color: 'text.primary' }}>
+										Failure Overview
 									</Typography>
-									<Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', fontWeight: 600 }}>
-										Filter failures by report date range.
-									</Typography>
+									<Chip
+										size="small"
+										label={`${filteredFailures.length} failures`}
+										sx={{
+											bgcolor: alpha(theme.palette.primary.main, 0.18),
+											color: 'primary.main',
+											fontWeight: 800,
+										}}
+									/>
 								</Stack>
+								<Typography sx={{ color: 'text.secondary', fontWeight: 600 }}>
+									Avg Restoration: {averageRestoration}
+								</Typography>
+							</Box>
 
-								<Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-									<TextField
-										label="Start Date"
-										type="date"
-										value={dateRange.start}
-										onChange={(event) => setDateRange((prev) => ({ ...prev, start: event.target.value }))}
-										InputLabelProps={{ shrink: true }}
-										onFocus={openNativeDateTimePicker}
-										onClick={openNativeDateTimePicker}
-										size="small"
-										sx={{ minWidth: 160 }}
-									/>
-									<TextField
-										label="End Date"
-										type="date"
-										value={dateRange.end}
-										onChange={(event) => setDateRange((prev) => ({ ...prev, end: event.target.value }))}
-										InputLabelProps={{ shrink: true }}
-										onFocus={openNativeDateTimePicker}
-										onClick={openNativeDateTimePicker}
-										size="small"
-										sx={{ minWidth: 160 }}
-									/>
-									<Button
-										variant="outlined"
-										onClick={() => setDateRange({ start: today, end: today })}
-										sx={{ textTransform: 'none', fontWeight: 700 }}
-									>
-										Today
-									</Button>
+							<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.2} alignItems="center">
+								<PieChart
+									height={150}
+									width={150}
+									hideLegend
+									margin={{ top: 6, right: 6, bottom: 6, left: 6 }}
+									series={[
+										{
+											data: chartData,
+											innerRadius: 40,
+											paddingAngle: nonZeroSlices > 1 ? 2 : 0,
+											cornerRadius: nonZeroSlices > 1 ? 4 : 0,
+										},
+									]}
+								/>
+								<Stack spacing={0.65}>
+									<Typography sx={{ fontWeight: 800, color: 'text.primary' }}>
+										{hasFailuresInRange
+											? `${Math.round((resolvedCount / filteredFailures.length) * 100)}% Resolved`
+											: 'No data in range'}
+									</Typography>
+									{statusChartData.map((item) => (
+										<Stack key={item.id} direction="row" spacing={0.8} alignItems="center">
+											<Box
+												sx={{
+													width: 9,
+													height: 9,
+													borderRadius: '50%',
+													bgcolor: item.color,
+												}}
+											/>
+											<Typography
+												sx={{ fontSize: '0.78rem', color: 'text.secondary', minWidth: 95 }}
+											>
+												{item.label}
+											</Typography>
+											<Typography sx={{ fontSize: '0.78rem', fontWeight: 800 }}>
+												{item.value}
+											</Typography>
+										</Stack>
+									))}
 								</Stack>
 							</Stack>
-						</Paper>
+						</Stack>
 
-						<Grid container spacing={3}>
-							<Grid item xs={12} md={4}>
-								<StatCard
-									label="Total Failures"
-									value={filteredFailures.length}
-									trend="Filtered by date"
-									icon={<AssignmentLate />}
-									color="warning.main"
-								/>
-							</Grid>
-							<Grid item xs={12} md={4}>
-								<StatCard
-									label="Resolved Failures"
-									value={resolvedCount}
-									trend="Resolved status"
-									icon={<CheckCircle />}
-									color="success.main"
-								/>
-							</Grid>
-							<Grid item xs={12} md={4}>
-								<StatCard
-									label="Average Restoration"
-									value={averageRestoration}
-									trend="From report time"
-									icon={<Assessment />}
-									color="info.main"
-								/>
-							</Grid>
-						</Grid>
+						<Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+							<TextField
+								label="Start Date"
+								type="date"
+								value={dateRange.start}
+								onChange={(event) =>
+									setDateRange((prev) => ({ ...prev, start: event.target.value }))
+								}
+								InputLabelProps={{ shrink: true }}
+								onFocus={openNativeDateTimePicker}
+								onClick={openNativeDateTimePicker}
+								size="small"
+								sx={{ minWidth: 160 }}
+							/>
+							<TextField
+								label="End Date"
+								type="date"
+								value={dateRange.end}
+								onChange={(event) => setDateRange((prev) => ({ ...prev, end: event.target.value }))}
+								InputLabelProps={{ shrink: true }}
+								onFocus={openNativeDateTimePicker}
+								onClick={openNativeDateTimePicker}
+								size="small"
+								sx={{ minWidth: 160 }}
+							/>
+							<Button
+								variant="outlined"
+								onClick={() => setDateRange({ start: today, end: today })}
+								sx={{ textTransform: 'none', fontWeight: 700 }}
+							>
+								Today
+							</Button>
+						</Stack>
 
-						<Paper
-							variant="outlined"
-							sx={{
-								p: 2,
-								borderRadius: 4,
-								bgcolor: 'background.paper',
-								borderColor: 'divider',
-							}}
-						>
-							<RtmDataGrid rows={rows} columns={columns} loading={isLoading} />
-						</Paper>
+						<RtmDataGrid rows={rows} columns={columns} loading={isLoading} />
 					</Stack>
 				)}
 
@@ -422,7 +478,8 @@ export default function ReportsPage() {
 							Cable Cut Reports
 						</Typography>
 						<Typography sx={{ color: 'text.secondary', mt: 1 }}>
-							Coming soon. This report will summarize cable cuts with locations, penalties, and approvals.
+							Coming soon. This report will summarize cable cuts with locations, penalties, and
+							approvals.
 						</Typography>
 					</Paper>
 				)}
@@ -436,7 +493,8 @@ export default function ReportsPage() {
 							Cable Testing Reports
 						</Typography>
 						<Typography sx={{ color: 'text.secondary', mt: 1 }}>
-							Coming soon. This report will track OTDR tests, periodic testing outcomes, and compliance.
+							Coming soon. This report will track OTDR tests, periodic testing outcomes, and
+							compliance.
 						</Typography>
 					</Paper>
 				)}

@@ -2,21 +2,30 @@
 
 import {
 	Add,
+	Category,
 	CheckCircle,
+	CheckCircleOutline,
+	Close,
 	DeleteOutline,
 	EditOutlined,
 	ElectricalServices,
+	FormatListBulleted,
+	LabelOutlined,
+	NotesOutlined,
 	PlaylistAddCheckCircle,
+	Straighten,
+	Tag,
+	Title,
 	VisibilityOutlined,
+	VpnKey,
 } from '@mui/icons-material';
 import {
 	Box,
 	Button,
 	Chip,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
+	Divider,
 	IconButton,
+	InputAdornment,
 	MenuItem,
 	Stack,
 	TextField,
@@ -36,7 +45,8 @@ import {
 } from '@/hooks/circuits';
 import { useTabs } from '@/hooks/common';
 import RtmDataGrid from '@/lib/common/datagrid';
-import { RtmDialog } from '@/lib/common/layout';
+import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import RtmTabs from '@/lib/common/tabs';
 import { closeDrawer, openDrawer } from '@/lib/store/slices/drawer-slice';
 
@@ -56,6 +66,7 @@ const CIRCUIT_TABS = [
 const VIEW_CIRCUIT_MASTER_DIALOG = 'viewCircuitMasterDialog';
 const EDIT_CIRCUIT_MASTER_DIALOG = 'editCircuitMasterDialog';
 const REJECT_CIRCUIT_DIALOG = 'rejectStationCircuitDialog';
+const ADD_CIRCUIT_MASTER_DIALOG = 'addCircuitMasterDialog';
 
 const emptyField = () => ({
 	key: '',
@@ -95,6 +106,10 @@ const fieldsToSchema = (fields = []) =>
 							.filter(Boolean)
 					: [],
 		}));
+
+const withFieldIcon = (icon) => ({
+	startAdornment: <InputAdornment position="start">{icon}</InputAdornment>,
+});
 
 export default function CircuitsPage() {
 	const dispatch = useDispatch();
@@ -198,9 +213,24 @@ export default function CircuitsPage() {
 						description: '',
 						fields: [emptyField()],
 					});
+					dispatch(closeDrawer({ drawerName: ADD_CIRCUIT_MASTER_DIALOG }));
 				},
 			}
 		);
+	};
+
+	const openAddDialog = () => {
+		dispatch(openDrawer({ drawerName: ADD_CIRCUIT_MASTER_DIALOG }));
+	};
+
+	const closeAddDialog = () => {
+		dispatch(closeDrawer({ drawerName: ADD_CIRCUIT_MASTER_DIALOG }));
+		setFormState({
+			code: '',
+			name: '',
+			description: '',
+			fields: [emptyField()],
+		});
 	};
 
 	const openEditDialog = (masterId) => {
@@ -336,121 +366,11 @@ export default function CircuitsPage() {
 
 			{currentTab === 'masters' && (
 				<>
-					<Box
-						sx={{
-							p: 2.5,
-							border: '1px solid',
-							borderColor: 'divider',
-							borderRadius: 3,
-							bgcolor: 'background.paper',
-						}}
-					>
-						<Stack spacing={1.5}>
-							<Typography sx={{ fontWeight: 800, color: 'text.primary' }}>
-								Add Circuit Master
-							</Typography>
-							<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-								<TextField
-									label="Code"
-									value={formState.code}
-									onChange={(e) => setFormState((prev) => ({ ...prev, code: e.target.value }))}
-									fullWidth
-								/>
-								<TextField
-									label="Name"
-									value={formState.name}
-									onChange={(e) => setFormState((prev) => ({ ...prev, name: e.target.value }))}
-									fullWidth
-								/>
-							</Stack>
-							<TextField
-								label="Description"
-								value={formState.description}
-								onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
-								fullWidth
-							/>
-
-							<Typography sx={{ fontWeight: 700, color: 'text.secondary', mt: 1 }}>
-								Checklist Fields
-							</Typography>
-							{formState.fields.map((field, index) => (
-								<Stack key={`field-${index}`} direction={{ xs: 'column', md: 'row' }} spacing={1.2}>
-									<TextField
-										label="Label"
-										value={field.label}
-										onChange={(e) => onChangeField(setFormState, index, 'label', e.target.value)}
-										fullWidth
-									/>
-									<TextField
-										label="Key (optional)"
-										value={field.key}
-										onChange={(e) => onChangeField(setFormState, index, 'key', e.target.value)}
-										fullWidth
-									/>
-									<TextField
-										select
-										label="Type"
-										value={field.type}
-										onChange={(e) => onChangeField(setFormState, index, 'type', e.target.value)}
-										sx={{ minWidth: 140 }}
-									>
-										<MenuItem value="TEXT">Text</MenuItem>
-										<MenuItem value="NUMBER">Number</MenuItem>
-										<MenuItem value="BOOLEAN">Yes/No</MenuItem>
-										<MenuItem value="SELECT">Select</MenuItem>
-									</TextField>
-									<TextField
-										label="Unit"
-										value={field.unit}
-										onChange={(e) => onChangeField(setFormState, index, 'unit', e.target.value)}
-										sx={{ minWidth: 120 }}
-									/>
-									<TextField
-										select
-										label="Required"
-										value={field.required ? 'yes' : 'no'}
-										onChange={(e) =>
-											onChangeField(setFormState, index, 'required', e.target.value === 'yes')
-										}
-										sx={{ minWidth: 120 }}
-									>
-										<MenuItem value="yes">Yes</MenuItem>
-										<MenuItem value="no">No</MenuItem>
-									</TextField>
-									<TextField
-										label="Options (CSV)"
-										value={field.options}
-										onChange={(e) => onChangeField(setFormState, index, 'options', e.target.value)}
-										disabled={field.type !== 'SELECT'}
-										fullWidth
-									/>
-									<IconButton
-										onClick={() => onRemoveField(setFormState, index)}
-										disabled={formState.fields.length === 1}
-										sx={{ alignSelf: 'center' }}
-									>
-										<DeleteOutline />
-									</IconButton>
-								</Stack>
-							))}
-							<Stack direction="row" spacing={1.2}>
-								<Button
-									variant="outlined"
-									startIcon={<Add />}
-									onClick={() => onAddField(setFormState)}
-								>
-									Add Field
-								</Button>
-								<Button
-									variant="contained"
-									onClick={submitMaster}
-									disabled={creatingMaster || !formState.name.trim() || !hasCreateFields}
-								>
-									Save Circuit Master
-								</Button>
-							</Stack>
-						</Stack>
-					</Box>
+					<Stack direction="row" justifyContent="flex-end">
+						<Button variant="contained" startIcon={<Add />} onClick={openAddDialog}>
+							Add Circuit Master
+						</Button>
+					</Stack>
 
 					<RtmDataGrid
 						rows={masterRows}
@@ -557,272 +477,538 @@ export default function CircuitsPage() {
 				/>
 			)}
 
-			<RtmDialog drawerName={VIEW_CIRCUIT_MASTER_DIALOG} maxWidth="md" fullWidth>
-				<DialogTitle>Circuit Master Details</DialogTitle>
-				<DialogContent>
-					{viewedMaster && (
-						<Stack spacing={2} sx={{ pt: 1 }}>
-							<Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2}>
+			<RtmDrawer drawerName={VIEW_CIRCUIT_MASTER_DIALOG} onCancel={closeViewDialog}>
+				<Box
+					sx={{
+						width: { xs: '100vw', md: 980 },
+						height: '100%',
+						display: 'flex',
+						flexDirection: 'column',
+						bgcolor: 'background.paper',
+					}}
+				>
+					<Box
+						sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+					>
+						<Typography variant="h6" sx={{ fontWeight: 800 }}>
+							Circuit Master Details
+						</Typography>
+						<IconButton onClick={closeViewDialog} sx={{ bgcolor: 'action.hover' }}>
+							<Close fontSize="small" />
+						</IconButton>
+					</Box>
+					<Divider />
+					<Box sx={{ p: 3, flex: 1, overflowY: 'auto', bgcolor: 'background.default' }}>
+						{viewedMaster && (
+							<Stack spacing={2}>
+								<Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2}>
+									<TextField
+										label="Code"
+										value={viewedMaster.code || '-'}
+										fullWidth
+										InputProps={{
+											readOnly: true,
+											...withFieldIcon(<Tag sx={{ color: 'primary.main' }} fontSize="small" />),
+										}}
+									/>
+									<TextField
+										label="Name"
+										value={viewedMaster.name || '-'}
+										fullWidth
+										InputProps={{
+											readOnly: true,
+											...withFieldIcon(<Title sx={{ color: 'primary.main' }} fontSize="small" />),
+										}}
+									/>
+									<TextField
+										label="Status"
+										value={viewedMaster.isActive ? 'ACTIVE' : 'INACTIVE'}
+										sx={{ minWidth: 160 }}
+										InputProps={{
+											readOnly: true,
+											...withFieldIcon(
+												<CheckCircleOutline sx={{ color: 'text.secondary' }} fontSize="small" />
+											),
+										}}
+									/>
+								</Stack>
+								<TextField
+									label="Description"
+									value={viewedMaster.description || '-'}
+									fullWidth
+									InputProps={{
+										readOnly: true,
+										...withFieldIcon(
+											<NotesOutlined sx={{ color: 'text.secondary' }} fontSize="small" />
+										),
+									}}
+								/>
+								<Stack direction="row" spacing={1.2} alignItems="center">
+									<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
+										Checklist Fields
+									</Typography>
+									<Chip
+										size="small"
+										label={`${Array.isArray(viewedMaster.checklistSchema) ? viewedMaster.checklistSchema.length : 0} fields`}
+									/>
+								</Stack>
+								<Stack spacing={1}>
+									{Array.isArray(viewedMaster.checklistSchema) &&
+									viewedMaster.checklistSchema.length > 0 ? (
+										viewedMaster.checklistSchema.map((field, index) => (
+											<Box
+												key={`view-field-${index}`}
+												sx={{
+													p: 1.2,
+													border: '1px solid',
+													borderColor: 'divider',
+													borderRadius: 2,
+													bgcolor: 'background.paper',
+												}}
+											>
+												<Stack direction={{ xs: 'column', md: 'row' }} spacing={1}>
+													<Typography
+														sx={{ fontWeight: 700, color: 'text.primary', minWidth: 180 }}
+													>
+														{field?.label || `Field ${index + 1}`}
+													</Typography>
+													<Typography sx={{ color: 'text.secondary', minWidth: 150 }}>
+														Type: {field?.type || '-'}
+													</Typography>
+													<Typography sx={{ color: 'text.secondary', minWidth: 150 }}>
+														Key: {field?.key || '-'}
+													</Typography>
+													<Typography sx={{ color: 'text.secondary', minWidth: 120 }}>
+														Required: {field?.required ? 'Yes' : 'No'}
+													</Typography>
+													{field?.unit && (
+														<Typography sx={{ color: 'text.secondary', minWidth: 120 }}>
+															Unit: {field.unit}
+														</Typography>
+													)}
+												</Stack>
+												{Array.isArray(field?.options) && field.options.length > 0 && (
+													<Typography sx={{ color: 'text.secondary', mt: 0.5 }}>
+														Options: {field.options.join(', ')}
+													</Typography>
+												)}
+											</Box>
+										))
+									) : (
+										<Typography sx={{ color: 'text.secondary' }}>
+											No checklist fields found.
+										</Typography>
+									)}
+								</Stack>
+							</Stack>
+						)}
+					</Box>
+					<Divider />
+					<Stack direction="row" justifyContent="flex-end" sx={{ p: 2 }}>
+						<Button onClick={closeViewDialog}>Close</Button>
+					</Stack>
+				</Box>
+			</RtmDrawer>
+
+			<RtmDrawer drawerName={ADD_CIRCUIT_MASTER_DIALOG} onCancel={closeAddDialog}>
+				<Box
+					sx={{
+						width: { xs: '100vw', lg: 1120 },
+						height: '100%',
+						display: 'flex',
+						flexDirection: 'column',
+						bgcolor: 'background.paper',
+					}}
+				>
+					<Box
+						sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+					>
+						<Typography variant="h6" sx={{ fontWeight: 800 }}>
+							Add Circuit Master
+						</Typography>
+						<IconButton onClick={closeAddDialog} sx={{ bgcolor: 'action.hover' }}>
+							<Close fontSize="small" />
+						</IconButton>
+					</Box>
+					<Divider />
+					<Box sx={{ p: 3, flex: 1, overflowY: 'auto', bgcolor: 'background.default' }}>
+						<Stack spacing={1.5}>
+							<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
 								<TextField
 									label="Code"
-									value={viewedMaster.code || '-'}
+									value={formState.code}
+									onChange={(e) => setFormState((prev) => ({ ...prev, code: e.target.value }))}
 									fullWidth
-									InputProps={{ readOnly: true }}
+									InputProps={withFieldIcon(
+										<Tag sx={{ color: 'primary.main' }} fontSize="small" />
+									)}
 								/>
 								<TextField
 									label="Name"
-									value={viewedMaster.name || '-'}
+									value={formState.name}
+									onChange={(e) => setFormState((prev) => ({ ...prev, name: e.target.value }))}
 									fullWidth
-									InputProps={{ readOnly: true }}
-								/>
-								<TextField
-									label="Status"
-									value={viewedMaster.isActive ? 'ACTIVE' : 'INACTIVE'}
-									sx={{ minWidth: 160 }}
-									InputProps={{ readOnly: true }}
+									InputProps={withFieldIcon(
+										<Title sx={{ color: 'primary.main' }} fontSize="small" />
+									)}
 								/>
 							</Stack>
 							<TextField
 								label="Description"
-								value={viewedMaster.description || '-'}
+								value={formState.description}
+								onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
 								fullWidth
-								InputProps={{ readOnly: true }}
-							/>
-							<Stack direction="row" spacing={1.2} alignItems="center">
-								<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
-									Checklist Fields
-								</Typography>
-								<Chip
-									size="small"
-									label={`${Array.isArray(viewedMaster.checklistSchema) ? viewedMaster.checklistSchema.length : 0} fields`}
-								/>
-							</Stack>
-							<Stack spacing={1}>
-								{Array.isArray(viewedMaster.checklistSchema) &&
-								viewedMaster.checklistSchema.length > 0 ? (
-									viewedMaster.checklistSchema.map((field, index) => (
-										<Box
-											key={`view-field-${index}`}
-											sx={{
-												p: 1.2,
-												border: '1px solid',
-												borderColor: 'divider',
-												borderRadius: 2,
-												bgcolor: 'background.default',
-											}}
-										>
-											<Stack direction={{ xs: 'column', md: 'row' }} spacing={1}>
-												<Typography sx={{ fontWeight: 700, color: 'text.primary', minWidth: 180 }}>
-													{field?.label || `Field ${index + 1}`}
-												</Typography>
-												<Typography sx={{ color: 'text.secondary', minWidth: 150 }}>
-													Type: {field?.type || '-'}
-												</Typography>
-												<Typography sx={{ color: 'text.secondary', minWidth: 150 }}>
-													Key: {field?.key || '-'}
-												</Typography>
-												<Typography sx={{ color: 'text.secondary', minWidth: 120 }}>
-													Required: {field?.required ? 'Yes' : 'No'}
-												</Typography>
-												{field?.unit && (
-													<Typography sx={{ color: 'text.secondary', minWidth: 120 }}>
-														Unit: {field.unit}
-													</Typography>
-												)}
-											</Stack>
-											{Array.isArray(field?.options) && field.options.length > 0 && (
-												<Typography sx={{ color: 'text.secondary', mt: 0.5 }}>
-													Options: {field.options.join(', ')}
-												</Typography>
-											)}
-										</Box>
-									))
-								) : (
-									<Typography sx={{ color: 'text.secondary' }}>
-										No checklist fields found.
-									</Typography>
+								InputProps={withFieldIcon(
+									<NotesOutlined sx={{ color: 'text.secondary' }} fontSize="small" />
 								)}
-							</Stack>
-						</Stack>
-					)}
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={closeViewDialog}>Close</Button>
-				</DialogActions>
-			</RtmDialog>
-
-			<RtmDialog
-				drawerName={EDIT_CIRCUIT_MASTER_DIALOG}
-				onCancel={resetEditForm}
-				maxWidth="lg"
-				fullWidth
-			>
-				<DialogTitle>Edit Circuit Master</DialogTitle>
-				<DialogContent>
-					<Stack spacing={1.5} sx={{ pt: 1 }}>
-						<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-							<TextField
-								label="Code"
-								value={editForm.code}
-								onChange={(e) => setEditForm((prev) => ({ ...prev, code: e.target.value }))}
-								fullWidth
 							/>
-							<TextField
-								label="Name"
-								value={editForm.name}
-								onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-								fullWidth
-							/>
-							<TextField
-								select
-								label="Status"
-								value={editForm.isActive ? 'ACTIVE' : 'INACTIVE'}
-								onChange={(e) =>
-									setEditForm((prev) => ({ ...prev, isActive: e.target.value === 'ACTIVE' }))
-								}
-								sx={{ minWidth: 170 }}
-							>
-								<MenuItem value="ACTIVE">Active</MenuItem>
-								<MenuItem value="INACTIVE">Inactive</MenuItem>
-							</TextField>
-						</Stack>
-						<TextField
-							label="Description"
-							value={editForm.description}
-							onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
-							fullWidth
-						/>
 
-						<Typography sx={{ fontWeight: 700, color: 'text.secondary', mt: 1 }}>
-							Checklist Fields
-						</Typography>
-						{editForm.fields.map((field, index) => (
-							<Stack
-								key={`edit-field-${index}`}
-								direction={{ xs: 'column', md: 'row' }}
-								spacing={1.2}
+							<Typography sx={{ fontWeight: 700, color: 'text.secondary', mt: 1 }}>
+								Checklist Fields
+							</Typography>
+							{formState.fields.map((field, index) => (
+								<Stack key={`field-${index}`} direction={{ xs: 'column', md: 'row' }} spacing={1.2}>
+									<TextField
+										label="Label"
+										value={field.label}
+										onChange={(e) => onChangeField(setFormState, index, 'label', e.target.value)}
+										fullWidth
+										InputProps={withFieldIcon(
+											<LabelOutlined sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									/>
+									<TextField
+										label="Key (optional)"
+										value={field.key}
+										onChange={(e) => onChangeField(setFormState, index, 'key', e.target.value)}
+										fullWidth
+										InputProps={withFieldIcon(
+											<VpnKey sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									/>
+									<TextField
+										select
+										label="Type"
+										value={field.type}
+										onChange={(e) => onChangeField(setFormState, index, 'type', e.target.value)}
+										sx={{ minWidth: 140 }}
+										InputProps={withFieldIcon(
+											<Category sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									>
+										<MenuItem value="TEXT">Text</MenuItem>
+										<MenuItem value="NUMBER">Number</MenuItem>
+										<MenuItem value="BOOLEAN">Yes/No</MenuItem>
+										<MenuItem value="SELECT">Select</MenuItem>
+									</TextField>
+									<TextField
+										label="Unit"
+										value={field.unit}
+										onChange={(e) => onChangeField(setFormState, index, 'unit', e.target.value)}
+										sx={{ minWidth: 120 }}
+										InputProps={withFieldIcon(
+											<Straighten sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									/>
+									<TextField
+										select
+										label="Required"
+										value={field.required ? 'yes' : 'no'}
+										onChange={(e) =>
+											onChangeField(setFormState, index, 'required', e.target.value === 'yes')
+										}
+										sx={{ minWidth: 120 }}
+										InputProps={withFieldIcon(
+											<CheckCircleOutline sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									>
+										<MenuItem value="yes">Yes</MenuItem>
+										<MenuItem value="no">No</MenuItem>
+									</TextField>
+									<TextField
+										label="Options (CSV)"
+										value={field.options}
+										onChange={(e) => onChangeField(setFormState, index, 'options', e.target.value)}
+										disabled={field.type !== 'SELECT'}
+										fullWidth
+										InputProps={withFieldIcon(
+											<FormatListBulleted sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									/>
+									<IconButton
+										onClick={() => onRemoveField(setFormState, index)}
+										disabled={formState.fields.length === 1}
+										sx={{ alignSelf: 'center' }}
+									>
+										<DeleteOutline />
+									</IconButton>
+								</Stack>
+							))}
+							<Button
+								variant="outlined"
+								startIcon={<Add />}
+								onClick={() => onAddField(setFormState)}
+								sx={{ width: 'fit-content' }}
 							>
-								<TextField
-									label="Label"
-									value={field.label}
-									onChange={(e) => onChangeField(setEditForm, index, 'label', e.target.value)}
-									fullWidth
-								/>
-								<TextField
-									label="Key (optional)"
-									value={field.key}
-									onChange={(e) => onChangeField(setEditForm, index, 'key', e.target.value)}
-									fullWidth
-								/>
-								<TextField
-									select
-									label="Type"
-									value={field.type}
-									onChange={(e) => onChangeField(setEditForm, index, 'type', e.target.value)}
-									sx={{ minWidth: 140 }}
-								>
-									<MenuItem value="TEXT">Text</MenuItem>
-									<MenuItem value="NUMBER">Number</MenuItem>
-									<MenuItem value="BOOLEAN">Yes/No</MenuItem>
-									<MenuItem value="SELECT">Select</MenuItem>
-								</TextField>
-								<TextField
-									label="Unit"
-									value={field.unit}
-									onChange={(e) => onChangeField(setEditForm, index, 'unit', e.target.value)}
-									sx={{ minWidth: 120 }}
-								/>
-								<TextField
-									select
-									label="Required"
-									value={field.required ? 'yes' : 'no'}
-									onChange={(e) =>
-										onChangeField(setEditForm, index, 'required', e.target.value === 'yes')
-									}
-									sx={{ minWidth: 120 }}
-								>
-									<MenuItem value="yes">Yes</MenuItem>
-									<MenuItem value="no">No</MenuItem>
-								</TextField>
-								<TextField
-									label="Options (CSV)"
-									value={field.options}
-									onChange={(e) => onChangeField(setEditForm, index, 'options', e.target.value)}
-									disabled={field.type !== 'SELECT'}
-									fullWidth
-								/>
-								<IconButton
-									onClick={() => onRemoveField(setEditForm, index)}
-									disabled={editForm.fields.length === 1}
-									sx={{ alignSelf: 'center' }}
-								>
-									<DeleteOutline />
-								</IconButton>
-							</Stack>
-						))}
-						<Button
-							variant="outlined"
-							startIcon={<Add />}
-							onClick={() => onAddField(setEditForm)}
-							sx={{ width: 'fit-content' }}
+								Add Field
+							</Button>
+						</Stack>
+					</Box>
+					<Divider />
+					<Stack direction="row" spacing={1.2} justifyContent="flex-end" sx={{ p: 2 }}>
+						<Button onClick={closeAddDialog}>Cancel</Button>
+						<RtmLoadingButton
+							variant="contained"
+							onClick={submitMaster}
+							loading={creatingMaster}
+							loadingText="Saving..."
+							disabled={!formState.name.trim() || !hasCreateFields}
 						>
-							Add Field
+							Save Circuit Master
+						</RtmLoadingButton>
+					</Stack>
+				</Box>
+			</RtmDrawer>
+
+			<RtmDrawer drawerName={EDIT_CIRCUIT_MASTER_DIALOG} onCancel={closeEditDialog}>
+				<Box
+					sx={{
+						width: { xs: '100vw', lg: 1120 },
+						height: '100%',
+						display: 'flex',
+						flexDirection: 'column',
+						bgcolor: 'background.paper',
+					}}
+				>
+					<Box
+						sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+					>
+						<Typography variant="h6" sx={{ fontWeight: 800 }}>
+							Edit Circuit Master
+						</Typography>
+						<IconButton onClick={closeEditDialog} sx={{ bgcolor: 'action.hover' }}>
+							<Close fontSize="small" />
+						</IconButton>
+					</Box>
+					<Divider />
+					<Box sx={{ p: 3, flex: 1, overflowY: 'auto', bgcolor: 'background.default' }}>
+						<Stack spacing={1.5}>
+							<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+								<TextField
+									label="Code"
+									value={editForm.code}
+									onChange={(e) => setEditForm((prev) => ({ ...prev, code: e.target.value }))}
+									fullWidth
+									InputProps={withFieldIcon(
+										<Tag sx={{ color: 'primary.main' }} fontSize="small" />
+									)}
+								/>
+								<TextField
+									label="Name"
+									value={editForm.name}
+									onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+									fullWidth
+									InputProps={withFieldIcon(
+										<Title sx={{ color: 'primary.main' }} fontSize="small" />
+									)}
+								/>
+								<TextField
+									select
+									label="Status"
+									value={editForm.isActive ? 'ACTIVE' : 'INACTIVE'}
+									onChange={(e) =>
+										setEditForm((prev) => ({ ...prev, isActive: e.target.value === 'ACTIVE' }))
+									}
+									sx={{ minWidth: 170 }}
+									InputProps={withFieldIcon(
+										<CheckCircleOutline sx={{ color: 'text.secondary' }} fontSize="small" />
+									)}
+								>
+									<MenuItem value="ACTIVE">Active</MenuItem>
+									<MenuItem value="INACTIVE">Inactive</MenuItem>
+								</TextField>
+							</Stack>
+							<TextField
+								label="Description"
+								value={editForm.description}
+								onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+								fullWidth
+								InputProps={withFieldIcon(
+									<NotesOutlined sx={{ color: 'text.secondary' }} fontSize="small" />
+								)}
+							/>
+
+							<Typography sx={{ fontWeight: 700, color: 'text.secondary', mt: 1 }}>
+								Checklist Fields
+							</Typography>
+							{editForm.fields.map((field, index) => (
+								<Stack
+									key={`edit-field-${index}`}
+									direction={{ xs: 'column', md: 'row' }}
+									spacing={1.2}
+								>
+									<TextField
+										label="Label"
+										value={field.label}
+										onChange={(e) => onChangeField(setEditForm, index, 'label', e.target.value)}
+										fullWidth
+										InputProps={withFieldIcon(
+											<LabelOutlined sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									/>
+									<TextField
+										label="Key (optional)"
+										value={field.key}
+										onChange={(e) => onChangeField(setEditForm, index, 'key', e.target.value)}
+										fullWidth
+										InputProps={withFieldIcon(
+											<VpnKey sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									/>
+									<TextField
+										select
+										label="Type"
+										value={field.type}
+										onChange={(e) => onChangeField(setEditForm, index, 'type', e.target.value)}
+										sx={{ minWidth: 140 }}
+										InputProps={withFieldIcon(
+											<Category sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									>
+										<MenuItem value="TEXT">Text</MenuItem>
+										<MenuItem value="NUMBER">Number</MenuItem>
+										<MenuItem value="BOOLEAN">Yes/No</MenuItem>
+										<MenuItem value="SELECT">Select</MenuItem>
+									</TextField>
+									<TextField
+										label="Unit"
+										value={field.unit}
+										onChange={(e) => onChangeField(setEditForm, index, 'unit', e.target.value)}
+										sx={{ minWidth: 120 }}
+										InputProps={withFieldIcon(
+											<Straighten sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									/>
+									<TextField
+										select
+										label="Required"
+										value={field.required ? 'yes' : 'no'}
+										onChange={(e) =>
+											onChangeField(setEditForm, index, 'required', e.target.value === 'yes')
+										}
+										sx={{ minWidth: 120 }}
+										InputProps={withFieldIcon(
+											<CheckCircleOutline sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									>
+										<MenuItem value="yes">Yes</MenuItem>
+										<MenuItem value="no">No</MenuItem>
+									</TextField>
+									<TextField
+										label="Options (CSV)"
+										value={field.options}
+										onChange={(e) => onChangeField(setEditForm, index, 'options', e.target.value)}
+										disabled={field.type !== 'SELECT'}
+										fullWidth
+										InputProps={withFieldIcon(
+											<FormatListBulleted sx={{ color: 'text.secondary' }} fontSize="small" />
+										)}
+									/>
+									<IconButton
+										onClick={() => onRemoveField(setEditForm, index)}
+										disabled={editForm.fields.length === 1}
+										sx={{ alignSelf: 'center' }}
+									>
+										<DeleteOutline />
+									</IconButton>
+								</Stack>
+							))}
+							<Button
+								variant="outlined"
+								startIcon={<Add />}
+								onClick={() => onAddField(setEditForm)}
+								sx={{ width: 'fit-content' }}
+							>
+								Add Field
+							</Button>
+						</Stack>
+					</Box>
+					<Divider />
+					<Stack direction="row" spacing={1.2} justifyContent="flex-end" sx={{ p: 2 }}>
+						<Button onClick={closeEditDialog}>Cancel</Button>
+						<RtmLoadingButton
+							variant="contained"
+							onClick={submitEditMaster}
+							loading={updatingMaster}
+							loadingText="Saving..."
+							disabled={!editForm.name.trim() || !hasEditFields}
+						>
+							Update
+						</RtmLoadingButton>
+					</Stack>
+				</Box>
+			</RtmDrawer>
+
+			<RtmDrawer drawerName={REJECT_CIRCUIT_DIALOG} onCancel={closeRejectDialog}>
+				<Box
+					sx={{
+						width: { xs: '100vw', sm: 560 },
+						height: '100%',
+						display: 'flex',
+						flexDirection: 'column',
+						bgcolor: 'background.paper',
+					}}
+				>
+					<Box
+						sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+					>
+						<Typography variant="h6" sx={{ fontWeight: 800 }}>
+							Reject Circuit Request
+						</Typography>
+						<IconButton onClick={closeRejectDialog} sx={{ bgcolor: 'action.hover' }}>
+							<Close fontSize="small" />
+						</IconButton>
+					</Box>
+					<Divider />
+					<Box sx={{ p: 3, flex: 1, overflowY: 'auto', bgcolor: 'background.default' }}>
+						<Typography sx={{ color: 'text.secondary', mb: 1 }}>
+							{rejectingCircuit
+								? `${rejectingCircuit.circuit} • ${rejectingCircuit.station}`
+								: 'Selected circuit request'}
+						</Typography>
+						<TextField
+							label="Rejection reason"
+							fullWidth
+							multiline
+							rows={3}
+							value={rejectReason}
+							onChange={(e) => setRejectReason(e.target.value)}
+							InputProps={withFieldIcon(
+								<NotesOutlined sx={{ color: 'text.secondary' }} fontSize="small" />
+							)}
+						/>
+					</Box>
+					<Divider />
+					<Stack direction="row" spacing={1.2} justifyContent="flex-end" sx={{ p: 2 }}>
+						<Button onClick={closeRejectDialog}>Cancel</Button>
+						<Button
+							color="error"
+							variant="contained"
+							onClick={() => {
+								if (!rejectingCircuit?.id) return;
+								rejectCircuit(
+									{ id: rejectingCircuit.id, payload: { reason: rejectReason } },
+									{
+										onSuccess: closeRejectDialog,
+									}
+								);
+							}}
+						>
+							Reject
 						</Button>
 					</Stack>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={closeEditDialog}>Cancel</Button>
-					<Button
-						variant="contained"
-						onClick={submitEditMaster}
-						disabled={updatingMaster || !editForm.name.trim() || !hasEditFields}
-					>
-						Update
-					</Button>
-				</DialogActions>
-			</RtmDialog>
-
-			<RtmDialog
-				drawerName={REJECT_CIRCUIT_DIALOG}
-				onCancel={resetRejectDialog}
-				maxWidth="sm"
-				fullWidth
-			>
-				<DialogTitle>Reject Circuit Request</DialogTitle>
-				<DialogContent>
-					<Typography sx={{ color: 'text.secondary', mb: 1 }}>
-						{rejectingCircuit
-							? `${rejectingCircuit.circuit} • ${rejectingCircuit.station}`
-							: 'Selected circuit request'}
-					</Typography>
-					<TextField
-						label="Rejection reason"
-						fullWidth
-						multiline
-						rows={3}
-						value={rejectReason}
-						onChange={(e) => setRejectReason(e.target.value)}
-					/>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={closeRejectDialog}>Cancel</Button>
-					<Button
-						color="error"
-						variant="contained"
-						onClick={() => {
-							if (!rejectingCircuit?.id) return;
-							rejectCircuit(
-								{ id: rejectingCircuit.id, payload: { reason: rejectReason } },
-								{
-									onSuccess: closeRejectDialog,
-								}
-							);
-						}}
-					>
-						Reject
-					</Button>
-				</DialogActions>
-			</RtmDialog>
+				</Box>
+			</RtmDrawer>
 		</Box>
 	);
 }

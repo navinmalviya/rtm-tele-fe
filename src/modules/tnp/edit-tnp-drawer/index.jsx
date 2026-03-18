@@ -1,6 +1,6 @@
 'use client';
 
-import { Close, Inventory2, Numbers, Notes, Place } from '@mui/icons-material';
+import { Close, Inventory2, Notes, Numbers, Place } from '@mui/icons-material';
 import {
 	Box,
 	Button,
@@ -12,13 +12,14 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
-import { useEffect } from 'react';
 import { useStationLocations } from '@/hooks/locations';
 import { useStations } from '@/hooks/stations';
 import { useUpdateTnpItem } from '@/hooks/tnp';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 const TNP_TYPES = [
@@ -78,7 +79,14 @@ export default function EditTnpDrawer({ item }) {
 
 	return (
 		<RtmDrawer drawerName="editTnpDrawer">
-			<Box sx={{ width: { xs: '100vw', sm: 520 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
+			<Box
+				sx={{
+					width: { xs: '100vw', sm: 520 },
+					display: 'flex',
+					flexDirection: 'column',
+					height: '100%',
+				}}
+			>
 				<Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 					<Box>
 						<Typography variant="h6" sx={{ fontWeight: 800 }}>
@@ -88,7 +96,10 @@ export default function EditTnpDrawer({ item }) {
 							Update tools & plants
 						</Typography>
 					</Box>
-					<IconButton onClick={() => dispatch(closeDrawer({ drawerName: 'editTnpDrawer' }))} sx={{ bgcolor: 'action.hover' }}>
+					<IconButton
+						onClick={() => dispatch(closeDrawer({ drawerName: 'editTnpDrawer' }))}
+						sx={{ bgcolor: 'action.hover' }}
+					>
 						<Close fontSize="small" />
 					</IconButton>
 				</Box>
@@ -241,17 +252,19 @@ export default function EditTnpDrawer({ item }) {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="tnp-edit-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={!isDirty || isLoading}
+							loading={isLoading}
+							loadingText="Saving..."
+							disabled={!isDirty}
 							sx={{ bgcolor: 'primary.main', fontWeight: 700, borderRadius: 2 }}
 						>
 							Save
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

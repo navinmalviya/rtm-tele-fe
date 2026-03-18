@@ -5,12 +5,24 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
-export default function RtmDrawer({ children, drawerName, onCancel, ...rest }) {
+export default function RtmDrawer({
+	children,
+	drawerName,
+	onCancel,
+	isOpen: controlledIsOpen,
+	...rest
+}) {
 	const dispatch = useDispatch();
-	const isOpen = useSelector((state) => state.drawers[drawerName]);
+	const drawerState = useSelector((state) => state.drawers[drawerName]);
+	const isOpen =
+		controlledIsOpen !== undefined
+			? controlledIsOpen
+			: typeof drawerState === 'object'
+				? Boolean(drawerState?.isOpen)
+				: Boolean(drawerState);
 	return (
 		<Drawer
-			open={isOpen || false}
+			open={isOpen}
 			anchor="right"
 			onClose={() => {
 				dispatch(closeDrawer({ drawerName }));

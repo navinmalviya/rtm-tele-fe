@@ -4,7 +4,6 @@ import {
 	Box,
 	Button,
 	Checkbox,
-	CircularProgress,
 	FormControlLabel,
 	Grid,
 	Link,
@@ -19,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { getSession, signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import RtmLoader from '@/lib/common/loader';
 import { redirectUser } from '@/lib/util';
 
 export default function LoginPage() {
@@ -143,15 +143,7 @@ export default function LoginPage() {
 
 					<Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
 						{loading ? (
-							<Box
-								sx={{
-									display: 'flex',
-									justifyContent: 'center',
-									py: 4,
-								}}
-							>
-								<CircularProgress />
-							</Box>
+							<RtmLoader label="Signing in..." minHeight={96} />
 						) : (
 							<Stack spacing={2.5}>
 								<Controller

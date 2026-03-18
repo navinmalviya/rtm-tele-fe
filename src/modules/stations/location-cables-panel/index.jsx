@@ -18,6 +18,7 @@ import { useStationLocations } from '@/hooks/locations';
 import { useAddStationCable, useStationCables } from '@/hooks/station-cable';
 import RtmDataGrid from '@/lib/common/datagrid';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer, openDrawer } from '@/lib/store/slices/drawer-slice';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
@@ -279,15 +280,16 @@ export default function LocationCablesPanel({ stationId }) {
 							>
 								Cancel
 							</Button>
-							<Button
+							<RtmLoadingButton
 								fullWidth
 								variant="contained"
 								type="submit"
 								form="location-cable-form"
-								disabled={creating}
+								loading={creating}
+								loadingText="Creating..."
 							>
-								{creating ? 'Creating...' : 'Create Cable'}
-							</Button>
+								Create Cable
+							</RtmLoadingButton>
 						</Stack>
 					</Box>
 				</Box>

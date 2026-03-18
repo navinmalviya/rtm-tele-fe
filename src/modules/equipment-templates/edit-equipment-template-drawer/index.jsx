@@ -10,7 +10,6 @@ import {
 	Memory,
 	Numbers,
 	Search,
-	Speed,
 	Straighten,
 } from '@mui/icons-material';
 import {
@@ -21,7 +20,6 @@ import {
 	IconButton,
 	InputAdornment,
 	ListItemText,
-	ListSubheader,
 	MenuItem,
 	Paper,
 	Stack,
@@ -33,9 +31,10 @@ import { alpha } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
-import { usePortTemplates } from '@/hooks/port-templates';
 import { useUpdateEquipmentTemplate } from '@/hooks/eqiuipment-templates';
+import { usePortTemplates } from '@/hooks/port-templates';
 import { RtmDrawer } from '@/lib/common/layout';
+import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
 export default function EditEquipmentTemplateDrawer({ template }) {
@@ -100,9 +99,7 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 				portTemplateId: cfg.portTemplateId,
 				quantity: cfg.quantity ?? 1,
 				name: cfg.portTemplate?.name || cfg.portTemplate?.type || 'Unknown Port',
-				meta: cfg.portTemplate
-					? `${cfg.portTemplate.category} | ${cfg.portTemplate.type}`
-					: '',
+				meta: cfg.portTemplate ? `${cfg.portTemplate.category} | ${cfg.portTemplate.type}` : '',
 			})),
 		});
 	}, [template, reset]);
@@ -113,7 +110,6 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 	});
 
 	const selectedCategory = watch('category');
-	const selectedSubCategory = watch('subCategory');
 	const currentConfigs = watch('portConfigs');
 
 	const handleCategoryChange = (e, onChange) => {
@@ -129,6 +125,15 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 	};
 
 	const handleFormSubmit = (formData) => {
+		const parseOptionalInt = (value, fallback = null) => {
+			const parsed = Number.parseInt(value, 10);
+			return Number.isFinite(parsed) ? parsed : fallback;
+		};
+		const parseOptionalFloat = (value, fallback = null) => {
+			const parsed = Number.parseFloat(value);
+			return Number.isFinite(parsed) ? parsed : fallback;
+		};
+
 		if (!template?.id) return;
 		let autoLayer = null;
 		if (formData.category === 'NETWORKING') {
@@ -141,15 +146,13 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 		const payload = {
 			...formData,
 			layer: autoLayer,
-			uHeight: formData.category === 'SIGNALLING' ? null : Number.parseInt(formData.uHeight),
-			codalLifeYears: Number.parseInt(formData.codalLifeYears),
-			switchingCapacity: formData.switchingCapacity
-				? Number.parseFloat(formData.switchingCapacity)
-				: null,
-			capacityKva: formData.capacityKva ? Number.parseFloat(formData.capacityKva) : null,
-			capacityAh: formData.capacityAh ? Number.parseFloat(formData.capacityAh) : null,
-			defaultCellCount: Number.parseInt(formData.defaultCellCount),
-			nominalCellVolt: Number.parseFloat(formData.nominalCellVolt),
+			uHeight: formData.category === 'SIGNALLING' ? null : parseOptionalInt(formData.uHeight, 1),
+			codalLifeYears: parseOptionalInt(formData.codalLifeYears, 12),
+			switchingCapacity: parseOptionalFloat(formData.switchingCapacity),
+			capacityKva: parseOptionalFloat(formData.capacityKva),
+			capacityAh: parseOptionalFloat(formData.capacityAh),
+			defaultCellCount: parseOptionalInt(formData.defaultCellCount, 1),
+			nominalCellVolt: parseOptionalFloat(formData.nominalCellVolt, 2.0),
 		};
 		updateTemplate({ id: template.id, templateData: payload });
 	};
@@ -212,7 +215,10 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 							<Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary' }}>
 								Edit Template
 							</Typography>
-							<Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mt: 0.5 }}>
+							<Typography
+								variant="body2"
+								sx={{ fontWeight: 600, color: 'text.secondary', mt: 0.5 }}
+							>
 								Update equipment blueprint metadata
 							</Typography>
 						</Box>
@@ -231,7 +237,10 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 					<form id="edit-template-form" onSubmit={handleSubmit(handleFormSubmit)}>
 						<Stack spacing={4}>
 							<Box>
-								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}>
+								<Typography
+									variant="subtitle2"
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}
+								>
 									BASIC INFORMATION
 								</Typography>
 								<Stack spacing={2.5}>
@@ -347,7 +356,10 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 							</Box>
 
 							<Box>
-								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}>
+								<Typography
+									variant="subtitle2"
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}
+								>
 									TECHNICAL SPECS
 								</Typography>
 								<Stack spacing={2.5}>
@@ -415,7 +427,10 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 							</Box>
 
 							<Box>
-								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}>
+								<Typography
+									variant="subtitle2"
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}
+								>
 									ADVANCED OPTIONS
 								</Typography>
 								<Stack spacing={2}>
@@ -424,9 +439,7 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 											<Controller
 												name="isModular"
 												control={control}
-												render={({ field }) => (
-													<Switch {...field} checked={!!field.value} />
-												)}
+												render={({ field }) => <Switch {...field} checked={!!field.value} />}
 											/>
 										}
 										label="Modular Design"
@@ -436,9 +449,7 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 											<Controller
 												name="isPoe"
 												control={control}
-												render={({ field }) => (
-													<Switch {...field} checked={!!field.value} />
-												)}
+												render={({ field }) => <Switch {...field} checked={!!field.value} />}
 											/>
 										}
 										label="PoE Enabled"
@@ -448,9 +459,7 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 											<Controller
 												name="isMPLSEnables"
 												control={control}
-												render={({ field }) => (
-													<Switch {...field} checked={!!field.value} />
-												)}
+												render={({ field }) => <Switch {...field} checked={!!field.value} />}
 											/>
 										}
 										label="MPLS Enabled"
@@ -460,9 +469,7 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 											<Controller
 												name="isSMRBased"
 												control={control}
-												render={({ field }) => (
-													<Switch {...field} checked={!!field.value} />
-												)}
+												render={({ field }) => <Switch {...field} checked={!!field.value} />}
 											/>
 										}
 										label="SMR Based"
@@ -471,7 +478,10 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 							</Box>
 
 							<Box>
-								<Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}>
+								<Typography
+									variant="subtitle2"
+									sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}
+								>
 									PORT CONFIGURATION
 								</Typography>
 
@@ -593,13 +603,15 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 						>
 							Cancel
 						</Button>
-						<Button
+						<RtmLoadingButton
 							type="submit"
 							form="edit-template-form"
 							variant="contained"
 							fullWidth
 							disableElevation
-							disabled={!isDirty || isLoading}
+							loading={isLoading}
+							loadingText="Saving..."
+							disabled={!isDirty}
 							sx={{
 								bgcolor: 'primary.main',
 								py: 1.5,
@@ -609,7 +621,7 @@ export default function EditEquipmentTemplateDrawer({ template }) {
 							}}
 						>
 							Save Changes
-						</Button>
+						</RtmLoadingButton>
 					</Stack>
 				</Box>
 			</Box>

@@ -13,31 +13,27 @@ export const authOptions = {
 			},
 			async authorize(credentials) {
 				try {
-					console.log(
-						'Checking credentials with Backend:',
-						credentials
-					);
-					const { data } = await axios.post(
-						`${process.env.BASE_URL}/auth/login`,
-						credentials
-					);
+					console.log('Checking credentials with Backend:', credentials);
+					const { data } = await axios.post(`${process.env.BASE_URL}/auth/login`, credentials);
 					console.log('userdata', data);
 					if (data?.user) {
 						return {
 							id: data.user.id,
 							username: data.user.username,
 							name: data.user.fullName,
+							designation: data.user.designation || null,
+							unit: data.user.unit || null,
 							role: data.user.role,
 							accessToken: data.accessToken, // This remains at the top level
 							// Fix: Access these from data.user
 							divisionId: data.user.divisionId,
 							divisionCode: data.user.divisionCode,
+							divisionName: data.user.divisionName,
 						};
 					}
 					return null;
 				} catch ({ response }) {
-					if (response.status === 401)
-						throw new Error('unauthorized');
+					if (response.status === 401) throw new Error('unauthorized');
 				}
 			},
 		}),

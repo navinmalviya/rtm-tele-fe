@@ -26,7 +26,7 @@ const RACK_TYPE_OPTIONS = [
 	{ label: 'Battery Stand', value: 'BATTERY_STAND' },
 ];
 
-export default function AddRackForm({ locations = [], isLoading }) {
+export default function AddRackForm({ locations = [] }) {
 	const dispatch = useDispatch();
 	const { mutate: addRack } = useAddRack();
 	const { stationId } = useParams();
@@ -49,7 +49,7 @@ export default function AddRackForm({ locations = [], isLoading }) {
 	const handleRackSubmit = (rackData) => {
 		const payload = {
 			...rackData,
-			heightU: Number.parseInt(rackData.heightU),
+			heightU: Number.parseInt(rackData.heightU, 10),
 			stationId,
 		};
 		addRack(payload);
