@@ -13,9 +13,12 @@ export const authOptions = {
 			},
 			async authorize(credentials) {
 				try {
-					console.log('Checking credentials with Backend:', credentials);
-					const { data } = await axios.post(`${process.env.BASE_URL}/auth/login`, credentials);
-					console.log('userdata', data);
+					const backendUrl = process.env.BASE_URL;
+					if (!backendUrl) {
+						console.error('Missing BASE_URL for auth backend');
+						return null;
+					}
+					const { data } = await axios.post(`${backendUrl}/auth/login`, credentials);
 					if (data?.user) {
 						return {
 							id: data.user.id,
@@ -32,8 +35,11 @@ export const authOptions = {
 						};
 					}
 					return null;
-				} catch ({ response }) {
-					if (response.status === 401) throw new Error('unauthorized');
+				} catch (error) {
+					const status = error?.response?.status;
+					console.error('Auth authorize failed:', status || 'NO_RESPONSE', error?.message);
+					if (status === 401) return null;
+					return null;
 				}
 			},
 		}),
