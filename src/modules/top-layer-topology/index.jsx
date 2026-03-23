@@ -209,6 +209,48 @@ export default function TopLayerTopology({ readOnly = false, routeBasePath = '/t
 					stroke: `${edgeStroke} !important`,
 					strokeWidth: '2.5px !important',
 				},
+				'& .react-flow__minimap': {
+					borderRadius: 2,
+					overflow: 'hidden',
+					border: '2px solid',
+					borderColor:
+						theme.palette.mode === 'dark'
+							? alpha(theme.palette.common.white, 0.28)
+							: alpha(theme.palette.common.black, 0.24),
+					bgcolor:
+						theme.palette.mode === 'dark'
+							? alpha(theme.palette.background.paper, 0.9)
+							: alpha(theme.palette.background.paper, 0.96),
+				},
+				'& .react-flow__minimap-mask': {
+					fill:
+						theme.palette.mode === 'dark'
+							? alpha(theme.palette.common.black, 0.32)
+							: alpha(theme.palette.common.black, 0.12),
+				},
+				'& .react-flow__controls': {
+					borderRadius: 2,
+					overflow: 'hidden',
+					border: '1px solid',
+					borderColor: 'divider',
+				},
+				'& .react-flow__controls-button': {
+					bgcolor:
+						theme.palette.mode === 'dark'
+							? alpha(theme.palette.background.paper, 0.92)
+							: theme.palette.background.paper,
+					color: theme.palette.text.primary,
+					borderColor: 'divider',
+					'& svg': {
+						fill: `${theme.palette.text.primary} !important`,
+					},
+					'&:hover': {
+						bgcolor:
+							theme.palette.mode === 'dark'
+								? alpha(theme.palette.primary.main, 0.2)
+								: alpha(theme.palette.primary.main, 0.08),
+					},
+				},
 			}}
 		>
 			{!readOnly && <AddStationForm />}
@@ -412,7 +454,13 @@ export default function TopLayerTopology({ readOnly = false, routeBasePath = '/t
 				)}
 
 				<Controls position="bottom-right" />
-				<MiniMap position="bottom-left" zoomable pannable />
+				<MiniMap
+					position="bottom-left"
+					zoomable
+					pannable
+					nodeStrokeColor={theme.palette.text.secondary}
+					nodeColor={alpha(theme.palette.primary.main, 0.35)}
+				/>
 			</ReactFlow>
 		</Box>
 	);

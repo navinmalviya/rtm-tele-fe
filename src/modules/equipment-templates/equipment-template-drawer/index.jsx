@@ -5,7 +5,7 @@ import {
 	Business,
 	Category,
 	Close,
-	Delete,
+	DeleteOutline,
 	ElectricBolt,
 	Memory,
 	Numbers,
@@ -537,10 +537,11 @@ export default function AddEquipmentTemplateDrawer() {
 													render={({ field: qtyField }) => (
 														<TextField
 															{...qtyField}
-															label="Qty"
+															label="Qty of Ports"
 															type="number"
 															size="small"
-															sx={{ width: 80 }}
+															InputLabelProps={{ shrink: true }}
+															sx={{ width: 150 }}
 															InputProps={{
 																startAdornment: (
 																	<InputAdornment position="start">
@@ -552,7 +553,7 @@ export default function AddEquipmentTemplateDrawer() {
 													)}
 												/>
 												<IconButton onClick={() => remove(index)} color="error" size="small">
-													<Delete fontSize="small" />
+													<DeleteOutline fontSize="small" />
 												</IconButton>
 											</Stack>
 										</Paper>

@@ -1,11 +1,18 @@
 'use client';
 
-import { AdminPanelSettings, GroupAdd, ManageHistory } from '@mui/icons-material';
-import { Box, Button, Paper, Stack, Typography } from '@mui/material';
-import { useState } from 'react';
+import {
+	AdminPanelSettings,
+	EmailOutlined,
+	GroupAdd,
+	LockOutlined,
+	ManageHistory,
+	PersonOutline,
+} from '@mui/icons-material';
+import { Box, Button, InputAdornment, Paper, Stack, TextField, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useDeleteEscalationMatrix } from '@/hooks/escalation-matrix';
-import { useDeleteUser } from '@/hooks/user';
+import { useDeleteUser, useMyProfile, useUpdateMyPassword, useUpdateMyProfile } from '@/hooks/user';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import {
 	DeleteEscalationDialog,
@@ -17,11 +24,25 @@ import { AddUserDrawer, DeleteUserDialog, EditUserDrawer, UserTable } from '@/mo
 export default function SettingsPage() {
 	const dispatch = useDispatch();
 	const { mutate: deleteUser, isLoading: deletingUser } = useDeleteUser();
+	const { data: myProfile } = useMyProfile();
+	const { mutate: updateMyProfile, isLoading: savingProfile } = useUpdateMyProfile();
+	const { mutate: updateMyPassword, isLoading: savingPassword } = useUpdateMyPassword();
 	const { mutate: deleteEscalation, isLoading: deletingEscalation } = useDeleteEscalationMatrix();
 	const [editingUser, setEditingUser] = useState(null);
 	const [deleteTarget, setDeleteTarget] = useState(null);
 	const [editingEscalation, setEditingEscalation] = useState(null);
 	const [deleteEscalationTarget, setDeleteEscalationTarget] = useState(null);
+	const [profileForm, setProfileForm] = useState({ email: '', designation: '', unit: '' });
+	const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '' });
+
+	useEffect(() => {
+		if (!myProfile) return;
+		setProfileForm({
+			email: myProfile.email || '',
+			designation: myProfile.designation || '',
+			unit: myProfile.unit || '',
+		});
+	}, [myProfile]);
 
 	return (
 		<Box
@@ -58,6 +79,127 @@ export default function SettingsPage() {
 			</Box>
 
 			<Box sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
+				<Paper
+					variant="outlined"
+					sx={{
+						borderRadius: 4,
+						borderColor: 'divider',
+						bgcolor: 'background.paper',
+						p: 3,
+						mb: 3,
+					}}
+				>
+					<Typography sx={{ fontWeight: 800, color: 'text.primary', mb: 2 }}>My Profile</Typography>
+					<Stack spacing={2}>
+						<TextField
+							label="Name"
+							value={myProfile?.name || ''}
+							disabled
+							InputProps={{
+								startAdornment: (
+									<InputAdornment position="start">
+										<PersonOutline sx={{ color: 'text.secondary' }} />
+									</InputAdornment>
+								),
+							}}
+						/>
+						<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+							<TextField
+								label="Email"
+								value={profileForm.email}
+								onChange={(e) => setProfileForm((prev) => ({ ...prev, email: e.target.value }))}
+								fullWidth
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position="start">
+											<EmailOutlined sx={{ color: 'text.secondary' }} />
+										</InputAdornment>
+									),
+								}}
+							/>
+							<TextField
+								label="Designation"
+								value={profileForm.designation}
+								onChange={(e) =>
+									setProfileForm((prev) => ({ ...prev, designation: e.target.value }))
+								}
+								fullWidth
+							/>
+							<TextField
+								label="Unit"
+								value={profileForm.unit}
+								onChange={(e) => setProfileForm((prev) => ({ ...prev, unit: e.target.value }))}
+								fullWidth
+							/>
+						</Stack>
+						<Stack direction="row" justifyContent="flex-end">
+							<Button
+								variant="contained"
+								disabled={savingProfile}
+								onClick={() => {
+									updateMyProfile({
+										email: profileForm.email,
+										designation: profileForm.designation,
+										unit: profileForm.unit,
+									});
+								}}
+							>
+								Save Profile
+							</Button>
+						</Stack>
+						<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+							<TextField
+								label="Current Password"
+								type="password"
+								value={passwordForm.currentPassword}
+								onChange={(e) =>
+									setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))
+								}
+								fullWidth
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position="start">
+											<LockOutlined sx={{ color: 'text.secondary' }} />
+										</InputAdornment>
+									),
+								}}
+							/>
+							<TextField
+								label="New Password"
+								type="password"
+								value={passwordForm.newPassword}
+								onChange={(e) =>
+									setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))
+								}
+								fullWidth
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position="start">
+											<LockOutlined sx={{ color: 'text.secondary' }} />
+										</InputAdornment>
+									),
+								}}
+							/>
+							<Button
+								variant="outlined"
+								disabled={
+									savingPassword ||
+									!passwordForm.currentPassword.trim() ||
+									!passwordForm.newPassword.trim()
+								}
+								onClick={() => {
+									updateMyPassword(passwordForm, {
+										onSuccess: () =>
+											setPasswordForm({ currentPassword: '', newPassword: '' }),
+									});
+								}}
+							>
+								Update Password
+							</Button>
+						</Stack>
+					</Stack>
+				</Paper>
+
 				<Paper
 					variant="outlined"
 					sx={{

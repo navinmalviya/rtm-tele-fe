@@ -38,6 +38,13 @@ const addJoint = (cableId, payload) => {
 };
 
 /**
+ * Adds a cable cut entry to a cable.
+ */
+const addCableCut = (cableId, payload) => {
+	return http.post(`/cable/${cableId}/cut`, payload);
+};
+
+/**
  * Adds a cable test report with section + measured values.
  */
 const addCableTestReport = (cableId, payload) => {
@@ -49,6 +56,13 @@ const addCableTestReport = (cableId, payload) => {
  */
 const connectMedia = (payload) => {
 	return http.post('/cable/connect-media', payload);
+};
+
+/**
+ * Connects pair/fiber with an approved station circuit.
+ */
+const connectStationCircuit = (payload) => {
+	return http.post('/cable/connect-station-circuit', payload);
 };
 
 /**
@@ -71,8 +85,10 @@ export const CableService = {
 	addCable,
 	addEcSocket,
 	addJoint,
+	addCableCut,
 	addCableTestReport,
 	connectMedia,
+	connectStationCircuit,
 	updateCable,
 	deleteCable,
 };

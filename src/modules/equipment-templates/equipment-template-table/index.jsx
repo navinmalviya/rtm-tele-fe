@@ -1,6 +1,6 @@
 'use client';
 
-import { Bolt, Delete, Edit, Hub, Layers, Memory, Straighten } from '@mui/icons-material';
+import { Bolt, DeleteOutline, Edit, Hub, Layers, Memory, Straighten } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useEquipmentTemplates } from '@/hooks/eqiuipment-templates';
 import RtmDataGrid from '@/lib/common/datagrid';
@@ -142,7 +142,7 @@ export default function EquipmentTemplateTable({ onEdit, onDelete }) {
 							sx={{ color: 'error.light' }}
 							onClick={() => onDelete?.(params.row)}
 						>
-							<Delete fontSize="small" />
+							<DeleteOutline fontSize="small" />
 						</IconButton>
 					</Tooltip>
 				</Stack>
@@ -151,15 +151,13 @@ export default function EquipmentTemplateTable({ onEdit, onDelete }) {
 	];
 
 	return (
-		<Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 2 }}>
-			<RtmDataGrid
-				rows={templates}
-				columns={columns}
-				loading={isLoading}
-				getRowId={(row) => row.id}
-				rowHeight={80}
-				disableRowSelectionOnClick
-			/>
-		</Box>
+		<RtmDataGrid
+			rows={templates}
+			columns={columns}
+			loading={isLoading}
+			getRowId={(row) => row.id}
+			rowHeight={80}
+			disableRowSelectionOnClick
+		/>
 	);
 }

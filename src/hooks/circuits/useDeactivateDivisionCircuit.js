@@ -10,10 +10,10 @@ export const useDeactivateDivisionCircuit = () => {
 		mutationFn: (id) => CircuitsService.deactivateMaster(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['division-circuit-masters'] });
-			showToast('Circuit master deactivated', 'success');
+			showToast('Circuit master deleted', 'success');
 		},
 		onError: (error) => {
-			showToast(error.response?.data?.message || 'Failed to deactivate circuit master', 'error');
+			showToast(error.response?.data?.message || 'Failed to delete circuit master', 'error');
 		},
 	});
 };

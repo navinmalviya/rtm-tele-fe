@@ -1,5 +1,6 @@
 import { useAddMaintenanceSchedule } from './useAddMaintenanceSchedule';
 import { useCompleteMaintenance } from './useCompleteMaintenance';
+import { useDeleteMaintenanceSchedule } from './useDeleteMaintenanceSchedule';
 import { useInspectionForm } from './useInspectionForm';
 import { useMaintenanceSchedules } from './useMaintenanceSchedules';
 import { useMyMaintenanceSummary } from './useMyMaintenanceSummary';
@@ -14,6 +15,7 @@ export {
 	useCompleteMaintenance,
 	useUpdateMaintenanceSchedule,
 	useToggleMaintenanceSchedule,
+	useDeleteMaintenanceSchedule,
 	useMyMaintenanceSummary,
 	useInspectionForm,
 };

@@ -30,7 +30,15 @@ import { RtmDrawer } from '@/lib/common/layout';
 import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 
-const SPEED_OPTIONS = ['2Mb', '100 Mbps', '1 Gbps', '10 Gbps', '40 Gbps', '100 Gbps'];
+const SPEED_OPTIONS = [
+	'2Mb',
+	'100 Mbps',
+	'1 Gbps',
+	'1.25 Gbps',
+	'10 Gbps',
+	'25 Gbps',
+	'40 Gbps',
+];
 const VOLTAGE_OPTIONS = ['110V DC', '230V AC', '48V DC', '24V DC', '12V DC'];
 
 const NETWORK_TYPES = [

@@ -1,6 +1,6 @@
 'use client';
 
-import { Delete, Edit, MapsHomeWork, Storage, Subtitles, ViewInAr } from '@mui/icons-material';
+import { DeleteOutline, Edit, MapsHomeWork, Storage, Subtitles, ViewInAr } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useMemo } from 'react';
@@ -132,7 +132,7 @@ export default function RackTable({ racks = [], isLoading, onEdit, onDelete }) {
 									sx={{ color: 'error.light' }}
 									onClick={() => onDelete?.(params.row)}
 								>
-									<Delete fontSize="small" />
+									<DeleteOutline fontSize="small" />
 								</IconButton>
 							</Tooltip>
 						</Stack>

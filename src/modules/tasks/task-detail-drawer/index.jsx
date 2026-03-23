@@ -1,8 +1,11 @@
 'use client';
 
 import {
+	Assignment,
 	Close,
+	DeleteOutline,
 	ErrorOutline,
+	ExpandMore,
 	FactCheck,
 	Flag,
 	Group,
@@ -13,10 +16,15 @@ import {
 	Tune,
 } from '@mui/icons-material';
 import {
+	Accordion,
+	AccordionDetails,
+	AccordionSummary,
+	Autocomplete,
 	Avatar,
 	Box,
 	Button,
 	Chip,
+	CircularProgress,
 	Divider,
 	FormControlLabel,
 	IconButton,
@@ -28,12 +36,20 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+import { useSession } from 'next-auth/react';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { useStationLocations } from '@/hooks/locations';
 import { useStations } from '@/hooks/stations';
-import { useAddTaskComment, useTask, useUpdateTaskFailure } from '@/hooks/task';
+import {
+	useAddTaskComment,
+	useDeleteTask,
+	useTask,
+	useUpdateTask,
+	useUpdateTaskFailure,
+} from '@/hooks/task';
+import { useUsers } from '@/hooks/user';
 import { RtmDrawer } from '@/lib/common/layout';
 import RtmLoader from '@/lib/common/loader';
 import RtmLoadingButton from '@/lib/common/loading-button';
@@ -81,6 +97,8 @@ const FAILURE_CAUSES = [
 	'HIGH_LOSS',
 ];
 
+const PRIORITY_OPTIONS = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+
 const formatEnumLabel = (value) =>
 	value
 		?.toLowerCase()
@@ -111,13 +129,17 @@ const formatHistoryAction = (value) => {
 
 export default function TaskDetailDrawer() {
 	const dispatch = useDispatch();
+	const { data: session } = useSession();
 	const drawerState = useSelector((state) => state.drawers.taskDetailDrawer);
 	const taskId = drawerState?.taskId;
 
 	const { data: task, isLoading } = useTask(taskId);
+	const { mutate: updateTaskDetails, isLoading: isUpdatingTask } = useUpdateTask(taskId);
 	const { mutate: saveFailure, isLoading: isSaving } = useUpdateTaskFailure(taskId);
 	const { mutate: addComment, isLoading: isCommenting } = useAddTaskComment(taskId);
+	const { mutate: deleteTask, isLoading: isDeleting } = useDeleteTask();
 	const { data: stations = [] } = useStations();
+	const { data: users = [] } = useUsers();
 
 	const {
 		control,
@@ -137,6 +159,20 @@ export default function TaskDetailDrawer() {
 			locationId: '',
 			restorationTime: '',
 			remarks: '',
+		},
+	});
+
+	const {
+		control: taskControl,
+		handleSubmit: handleTaskSubmit,
+		reset: resetTaskForm,
+		formState: { errors: taskErrors, isDirty: isTaskDirty },
+	} = useForm({
+		defaultValues: {
+			title: '',
+			description: '',
+			priority: 'MEDIUM',
+			assignedToId: '',
 		},
 	});
 
@@ -177,6 +213,16 @@ export default function TaskDetailDrawer() {
 	}, [task, reset]);
 
 	useEffect(() => {
+		if (!task) return;
+		resetTaskForm({
+			title: task.title || '',
+			description: task.description || '',
+			priority: task.priority || 'MEDIUM',
+			assignedToId: task.assignedToId || '',
+		});
+	}, [task, resetTaskForm]);
+
+	useEffect(() => {
 		if (!selectedStationId) {
 			setValue('locationId', '');
 		}
@@ -196,9 +242,36 @@ export default function TaskDetailDrawer() {
 		dispatch(closeDrawer({ drawerName: 'taskDetailDrawer' }));
 	};
 
+	const canDeleteTask = useMemo(() => {
+		const role = session?.user?.role;
+		const userId = session?.user?.id;
+		if (!task || !role) return false;
+		return (
+			role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'TESTROOM' || task.ownerId === userId
+		);
+	}, [session?.user?.id, session?.user?.role, task]);
+
+	const canEditTask = useMemo(() => {
+		const role = session?.user?.role;
+		const userId = session?.user?.id;
+		if (!task || !role) return false;
+		return (
+			role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'TESTROOM' || task.ownerId === userId
+		);
+	}, [session?.user?.id, session?.user?.role, task]);
+
 	if (!taskId) {
 		return null;
 	}
+
+	const onTaskDetailsSubmit = (formData) => {
+		updateTaskDetails({
+			title: formData.title?.trim(),
+			description: formData.description?.trim(),
+			priority: formData.priority,
+			assignedToId: formData.assignedToId || null,
+		});
+	};
 
 	const onSubmit = (formData) => {
 		const payload = {
@@ -322,6 +395,102 @@ export default function TaskDetailDrawer() {
 								</Box>
 							</Paper>
 
+							<Paper
+								variant="outlined"
+								sx={{
+									p: 2.5,
+									mb: 3,
+									borderRadius: 3,
+									borderColor: 'divider',
+									bgcolor: 'background.paper',
+								}}
+							>
+								<form id="task-core-form" onSubmit={handleTaskSubmit(onTaskDetailsSubmit)}>
+									<Stack spacing={2}>
+										<Stack direction="row" spacing={1} alignItems="center">
+											<Assignment sx={{ color: 'primary.main' }} />
+											<Typography
+												variant="subtitle2"
+												sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: '1px' }}
+											>
+												TASK DETAILS
+											</Typography>
+										</Stack>
+
+										<Controller
+											name="title"
+											control={taskControl}
+											rules={{ required: 'Title is required' }}
+											render={({ field }) => (
+												<TextField
+													{...field}
+													label="Title"
+													fullWidth
+													disabled={!canEditTask}
+													error={!!taskErrors.title}
+													helperText={taskErrors.title?.message}
+												/>
+											)}
+										/>
+
+										<Controller
+											name="description"
+											control={taskControl}
+											rules={{ required: 'Description is required' }}
+											render={({ field }) => <input type="hidden" {...field} />}
+										/>
+
+										<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+											<Controller
+												name="priority"
+												control={taskControl}
+												render={({ field }) => (
+													<TextField
+														{...field}
+														select
+														label="Priority"
+														fullWidth
+														disabled={!canEditTask}
+													>
+														{PRIORITY_OPTIONS.map((value) => (
+															<MenuItem key={value} value={value}>
+																{formatEnumLabel(value)}
+															</MenuItem>
+														))}
+													</TextField>
+												)}
+											/>
+
+											<Controller
+												name="assignedToId"
+												control={taskControl}
+												render={({ field }) => (
+													<Autocomplete
+														options={users}
+														disabled={!canEditTask}
+														value={users.find((user) => user.id === field.value) || null}
+														onChange={(_, option) => field.onChange(option?.id || '')}
+														isOptionEqualToValue={(option, value) => option.id === value.id}
+														getOptionLabel={(option) =>
+															`${option.name} (${option.designation || option.role})`
+														}
+														renderInput={(params) => (
+															<TextField {...params} label="Assigned To" fullWidth />
+														)}
+													/>
+												)}
+											/>
+										</Stack>
+
+										{!canEditTask && (
+											<Typography variant="caption" sx={{ color: 'text.secondary' }}>
+												Only task owner/Testroom/Admin can edit task details.
+											</Typography>
+										)}
+									</Stack>
+								</form>
+							</Paper>
+
 							{task.type !== 'FAILURE' ? (
 								<Box sx={{ p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
 									<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
@@ -346,9 +515,24 @@ export default function TaskDetailDrawer() {
 											<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
 												Summary
 											</Typography>
-											<Typography sx={{ color: 'text.secondary', mt: 1 }}>
-												{task.description || 'No description provided.'}
-											</Typography>
+											<Controller
+												name="description"
+												control={taskControl}
+												rules={{ required: 'Summary is required' }}
+												render={({ field }) => (
+													<TextField
+														{...field}
+														label="Summary"
+														fullWidth
+														multiline
+														minRows={3}
+														sx={{ mt: 1 }}
+														disabled={!canEditTask}
+														error={!!taskErrors.description}
+														helperText={taskErrors.description?.message}
+													/>
+												)}
+											/>
 										</Paper>
 
 										<Stack direction="row" spacing={1} alignItems="center">
@@ -591,69 +775,95 @@ export default function TaskDetailDrawer() {
 							<Divider sx={{ my: 3 }} />
 
 							<Stack spacing={2}>
-								<Stack spacing={2}>
-									<Stack direction="row" justifyContent="space-between" alignItems="center">
-										<Typography
-											variant="subtitle2"
-											sx={{ fontWeight: 800, color: 'text.secondary' }}
+								<Accordion
+									disableGutters
+									elevation={0}
+									sx={{
+										bgcolor: 'background.paper',
+										border: '1px solid',
+										borderColor: 'divider',
+										borderRadius: 2,
+										'&:before': { display: 'none' },
+									}}
+								>
+									<AccordionSummary expandIcon={<ExpandMore />}>
+										<Stack
+											direction="row"
+											justifyContent="space-between"
+											alignItems="center"
+											sx={{ width: 1, pr: 1 }}
 										>
-											Activity History
-										</Typography>
-										<Typography variant="caption" sx={{ color: 'text.secondary' }}>
-											{(task.history || []).length} events
-										</Typography>
-									</Stack>
-
-									<Stack spacing={1.5}>
-										{(task.history || []).map((entry) => (
-											<Paper
-												key={entry.id}
-												variant="outlined"
-												sx={{
-													p: 1.75,
-													borderRadius: 3,
-													borderColor: 'divider',
-													bgcolor: 'background.paper',
-												}}
+											<Typography
+												variant="subtitle2"
+												sx={{ fontWeight: 800, color: 'text.secondary' }}
 											>
-												<Stack spacing={1}>
-													<Stack direction="row" justifyContent="space-between" alignItems="center">
-														<Stack direction="row" spacing={1} alignItems="center">
-															<Chip
-																size="small"
-																label={formatHistoryAction(entry.action)}
-																sx={{ fontWeight: 700 }}
-															/>
-															<Typography
-																sx={{ fontSize: '0.78rem', color: 'text.primary', fontWeight: 700 }}
-															>
-																{entry.actor?.name || 'System'}
+												Activity History
+											</Typography>
+											<Typography variant="caption" sx={{ color: 'text.secondary' }}>
+												{(task.history || []).length} events
+											</Typography>
+										</Stack>
+									</AccordionSummary>
+									<AccordionDetails>
+										<Stack spacing={1.5}>
+											{(task.history || []).map((entry) => (
+												<Paper
+													key={entry.id}
+													variant="outlined"
+													sx={{
+														p: 1.75,
+														borderRadius: 3,
+														borderColor: 'divider',
+														bgcolor: 'background.paper',
+													}}
+												>
+													<Stack spacing={1}>
+														<Stack
+															direction="row"
+															justifyContent="space-between"
+															alignItems="center"
+														>
+															<Stack direction="row" spacing={1} alignItems="center">
+																<Chip
+																	size="small"
+																	label={formatHistoryAction(entry.action)}
+																	sx={{ fontWeight: 700 }}
+																/>
+																<Typography
+																	sx={{
+																		fontSize: '0.78rem',
+																		color: 'text.primary',
+																		fontWeight: 700,
+																	}}
+																>
+																	{entry.actor?.name || 'System'}
+																</Typography>
+															</Stack>
+															<Typography variant="caption" sx={{ color: 'text.secondary' }}>
+																{formatDateTime(entry.createdAt)}
 															</Typography>
 														</Stack>
-														<Typography variant="caption" sx={{ color: 'text.secondary' }}>
-															{formatDateTime(entry.createdAt)}
-														</Typography>
+														{(entry.fromValue || entry.toValue) && (
+															<Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+																{entry.fromValue || 'N/A'} → {entry.toValue || 'N/A'}
+															</Typography>
+														)}
+														{entry.details && (
+															<Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>
+																{entry.details}
+															</Typography>
+														)}
 													</Stack>
-													{(entry.fromValue || entry.toValue) && (
-														<Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-															{entry.fromValue || 'N/A'} → {entry.toValue || 'N/A'}
-														</Typography>
-													)}
-													{entry.details && (
-														<Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>
-															{entry.details}
-														</Typography>
-													)}
-												</Stack>
-											</Paper>
-										))}
-										{(task.history || []).length === 0 && (
-											<Typography sx={{ color: 'text.secondary' }}>
-												No activity logged yet.
-											</Typography>
-										)}
-									</Stack>
-								</Stack>
+												</Paper>
+											))}
+											{(task.history || []).length === 0 && (
+												<Typography sx={{ color: 'text.secondary' }}>
+													No activity logged yet.
+												</Typography>
+											)}
+										</Stack>
+									</AccordionDetails>
+								</Accordion>
 
 								<Divider sx={{ my: 1 }} />
 
@@ -754,18 +964,57 @@ export default function TaskDetailDrawer() {
 
 				<Box sx={{ p: 3, bgcolor: 'background.default' }}>
 					<Stack direction="row" spacing={2}>
-						<Button variant="text" fullWidth onClick={handleClose} sx={{ fontWeight: 700 }}>
+						{canDeleteTask && (
+							<IconButton
+								color="error"
+								disabled={isDeleting}
+								onClick={() => {
+									if (!task?.id) return;
+									const confirmDelete = window.confirm(
+										'Delete this task from workflow overview? This action cannot be undone.'
+									);
+									if (!confirmDelete) return;
+									deleteTask(task.id, {
+										onSuccess: () => handleClose(),
+									});
+								}}
+								sx={{
+									border: '1px solid',
+									borderColor: 'error.main',
+									borderRadius: 2,
+									width: 44,
+									height: 44,
+								}}
+							>
+								{isDeleting ? <CircularProgress size={18} color="inherit" /> : <DeleteOutline />}
+							</IconButton>
+						)}
+						<Button variant="text" onClick={handleClose} sx={{ fontWeight: 700, minWidth: 110 }}>
 							Close
 						</Button>
+						{canEditTask && (
+							<RtmLoadingButton
+								type="submit"
+								form="task-core-form"
+								variant="contained"
+								disableElevation
+								loading={isUpdatingTask}
+								loadingText="Saving..."
+								disabled={!isTaskDirty}
+								sx={{ minWidth: 170 }}
+							>
+								Save Task Details
+							</RtmLoadingButton>
+						)}
 						<RtmLoadingButton
 							type="submit"
 							form="failure-task-form"
 							variant="contained"
-							fullWidth
 							disableElevation
 							loading={isSaving}
 							loadingText="Saving..."
 							disabled={task?.type !== 'FAILURE' || !isDirty}
+							sx={{ minWidth: 170 }}
 						>
 							Save Failure Details
 						</RtmLoadingButton>

@@ -4,7 +4,7 @@ import {
 	Cable,
 	Close,
 	ColorLens,
-	DeleteForever,
+	DeleteOutline,
 	Router,
 	SettingsInputComponent,
 	Straighten,
@@ -47,8 +47,7 @@ export default function LinkDetailDrawer({ stationId }) {
 	];
 
 	const dispatch = useDispatch();
-	const { data: shallowData } = useSelector((state) => state.drawers?.linkDetailDrawer || {});
-	console.log('shd', shallowData);
+	const shallowData = useSelector((state) => state.drawers?.linkDetailDrawer || {});
 
 	const { data: link, isLoading } = usePortLinkDetails(shallowData?.id);
 	const { mutate: updateLink } = useUpdatePortLink(stationId);
@@ -339,7 +338,7 @@ export default function LinkDetailDrawer({ stationId }) {
 							variant="outlined"
 							color="error"
 							fullWidth
-							startIcon={<DeleteForever />}
+							startIcon={<DeleteOutline />}
 							onClick={handleDelete}
 							sx={{ py: 1, fontWeight: 700, borderRadius: 2, borderStyle: 'dashed' }}
 						>

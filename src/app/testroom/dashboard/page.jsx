@@ -1,32 +1,26 @@
 'use client';
 
 import { Bolt, Flag, Hub, Repeat, Timeline, WifiTetheringError } from '@mui/icons-material';
-import {
-	Box,
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	Paper,
-	Stack,
-	TextField,
-	Typography,
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { Box, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { BarChart, PieChart } from '@mui/x-charts';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { useStations } from '@/hooks/stations';
 import { useTasks } from '@/hooks/task';
-import StatCard from '@/lib/common/stat-card';
-import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import { useUsers } from '@/hooks/user';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
 
 export default function DashboardPage() {
-	const dispatch = useDispatch();
+	const router = useRouter();
 	const theme = useTheme();
-	const [drilldown, setDrilldown] = useState({ open: false, title: '', items: [] });
+	const [inchargeId, setInchargeId] = useState('');
+	const [chartFilters, setChartFilters] = useState({
+		stationId: '',
+		failureType: '',
+		failureCause: '',
+		monthKey: '',
+	});
 	const [dateRange, setDateRange] = useState(() => {
 		const now = new Date();
 		const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
@@ -39,13 +33,19 @@ export default function DashboardPage() {
 	// Fetching tasks which includes failures, inspections, etc.
 	const { data: allTasks = [] } = useTasks();
 	const { data: stations = [] } = useStations();
+	const { data: users = [] } = useUsers();
 
 	const failures = allTasks.filter((t) => t.type === 'FAILURE');
 	const getFailureEventDate = (task) =>
 		task.failure?.failureInTime || task.createdAt || task.updatedAt;
-	const openDrilldown = (title, items = []) => setDrilldown({ open: true, title, items });
+	const monthKeyFromDate = (value) => {
+		if (!value) return null;
+		const dt = new Date(value);
+		if (Number.isNaN(dt.getTime())) return null;
+		return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+	};
 
-	const filteredFailures = useMemo(() => {
+	const dateFilteredFailures = useMemo(() => {
 		const start = dateRange.start ? new Date(dateRange.start) : null;
 		const end = dateRange.end ? new Date(dateRange.end) : null;
 		return failures.filter((task) => {
@@ -61,6 +61,97 @@ export default function DashboardPage() {
 			return true;
 		});
 	}, [failures, dateRange]);
+
+	const subordinateMap = useMemo(() => {
+		const map = new Map();
+		users.forEach((user) => {
+			if (!user.inchargeId) return;
+			if (!map.has(user.inchargeId)) map.set(user.inchargeId, []);
+			map.get(user.inchargeId).push(user.id);
+		});
+		return map;
+	}, [users]);
+
+	const collectJurisdictionIds = (rootId) => {
+		const scoped = new Set();
+		if (!rootId) return scoped;
+		const stack = [rootId];
+		while (stack.length) {
+			const currentId = stack.pop();
+			if (!currentId || scoped.has(currentId)) continue;
+			scoped.add(currentId);
+			const children = subordinateMap.get(currentId) || [];
+			children.forEach((childId) => {
+				stack.push(childId);
+			});
+		}
+		return scoped;
+	};
+
+	const inchargeUsers = useMemo(
+		() => users.filter((user) => user.role === 'SSE_TELE_INCHARGE'),
+		[users]
+	);
+
+	const inchargeJurisdictionIds = useMemo(
+		() => collectJurisdictionIds(inchargeId),
+		[inchargeId, subordinateMap]
+	);
+
+	const scopedFailures = useMemo(() => {
+		const hasInchargeFilter = Boolean(inchargeId);
+		if (!hasInchargeFilter) return dateFilteredFailures;
+
+		return dateFilteredFailures.filter((task) => {
+			const accountableUserId = task.assignedToId || task.ownerId;
+			if (!accountableUserId) return false;
+			if (hasInchargeFilter && !inchargeJurisdictionIds.has(accountableUserId)) return false;
+			return true;
+		});
+	}, [dateFilteredFailures, inchargeId, inchargeJurisdictionIds]);
+
+	const applyInteractiveFilters = (tasks, excluded = []) => {
+		const exclude = new Set(excluded);
+		const { stationId, failureType, failureCause, monthKey } = chartFilters;
+		if (!stationId && !failureType && !failureCause && !monthKey) return tasks;
+
+		return tasks.filter((task) => {
+			const taskStationId =
+				task.failure?.stationId || task.failure?.location?.stationId || 'UNKNOWN';
+			const taskFailureType = task.failure?.type || 'UNKNOWN';
+			const taskFailureCause = task.failure?.cause || 'UNKNOWN';
+			const taskMonthKey = monthKeyFromDate(getFailureEventDate(task));
+
+			if (!exclude.has('stationId') && stationId && taskStationId !== stationId) return false;
+			if (!exclude.has('failureType') && failureType && taskFailureType !== failureType)
+				return false;
+			if (!exclude.has('failureCause') && failureCause && taskFailureCause !== failureCause)
+				return false;
+			if (!exclude.has('monthKey') && monthKey && taskMonthKey !== monthKey) return false;
+			return true;
+		});
+	};
+
+	const filteredFailures = useMemo(() => {
+		return applyInteractiveFilters(scopedFailures);
+	}, [scopedFailures, chartFilters]);
+
+	const stationChartFailures = useMemo(
+		() => applyInteractiveFilters(scopedFailures, ['stationId']),
+		[scopedFailures, chartFilters]
+	);
+	const failureTypeChartFailures = useMemo(
+		() => applyInteractiveFilters(scopedFailures, ['failureType']),
+		[scopedFailures, chartFilters]
+	);
+	const failureCauseChartFailures = useMemo(
+		() => applyInteractiveFilters(scopedFailures, ['failureCause']),
+		[scopedFailures, chartFilters]
+	);
+	const monthChartFailures = useMemo(
+		() => applyInteractiveFilters(scopedFailures, ['monthKey']),
+		[scopedFailures, chartFilters]
+	);
 
 	const activeFailures = filteredFailures.filter(
 		(f) => f.status !== 'RESOLVED' && f.status !== 'CLOSED'
@@ -80,11 +171,6 @@ export default function DashboardPage() {
 		const minutes = totalMinutes % 60;
 		return `${hours}h ${minutes}m`;
 	};
-	const formatDurationMinutes = (ms) => {
-		if (!Number.isFinite(ms) || ms <= 0) return 'N/A';
-		return `${Math.round(ms / (1000 * 60))} mins`;
-	};
-
 	const formatEnumLabel = (value) =>
 		value
 			?.toString()
@@ -131,60 +217,64 @@ export default function DashboardPage() {
 		});
 
 		const counts = new Map();
-		filteredFailures.forEach((task) => {
+		stationChartFailures.forEach((task) => {
 			const stationId = task.failure?.stationId || task.failure?.location?.stationId;
-			if (!stationId) return;
-			const key = stationMap.get(stationId) || 'Unknown';
-			if (!counts.has(key)) counts.set(key, { label: key, items: [] });
+			const key = stationId || 'UNKNOWN';
+			const label = stationMap.get(stationId) || 'Unknown';
+			if (!counts.has(key)) counts.set(key, { key, label, items: [] });
 			counts.get(key).items.push(task);
 		});
 
 		return Array.from(counts.values())
 			.map((entry) => ({
+				key: entry.key,
 				label: entry.label,
 				value: entry.items.length,
 				items: entry.items,
 			}))
 			.sort((a, b) => b.value - a.value);
-	}, [filteredFailures, stations]);
+	}, [stationChartFailures, stations]);
 
 	const failureTypeChart = useMemo(() => {
 		const counts = new Map();
-		filteredFailures.forEach((task) => {
+		failureTypeChartFailures.forEach((task) => {
 			const key = task.failure?.type || 'UNKNOWN';
 			if (!counts.has(key)) counts.set(key, []);
 			counts.get(key).push(task);
 		});
 		return Array.from(counts.entries())
-			.map(([label, items]) => ({
-				label: formatEnumLabel(label),
+			.map(([key, items]) => ({
+				key,
+				label: formatEnumLabel(key),
 				value: items.length,
 				items,
 			}))
 			.sort((a, b) => b.value - a.value);
-	}, [filteredFailures]);
+	}, [failureTypeChartFailures]);
 
 	const failureCauseChart = useMemo(() => {
 		const counts = new Map();
-		filteredFailures.forEach((task) => {
+		failureCauseChartFailures.forEach((task) => {
 			const key = task.failure?.cause || 'UNKNOWN';
 			if (!counts.has(key)) counts.set(key, []);
 			counts.get(key).push(task);
 		});
 		return Array.from(counts.entries())
-			.map(([label, items]) => ({
-				label: formatEnumLabel(label),
+			.map(([key, items]) => ({
+				key,
+				label: formatEnumLabel(key),
 				value: items.length,
 				items,
 			}))
 			.sort((a, b) => b.value - a.value);
-	}, [filteredFailures]);
+	}, [failureCauseChartFailures]);
 
 	const monthWiseAnalytics = useMemo(() => {
 		const start = dateRange.start ? new Date(dateRange.start) : new Date();
 		const end = dateRange.end ? new Date(dateRange.end) : new Date();
 		if (end < start) {
 			return {
+				monthKeys: [],
 				labels: [],
 				totalValues: [],
 				hqValues: [],
@@ -216,7 +306,7 @@ export default function DashboardPage() {
 			cursor.setMonth(cursor.getMonth() + 1);
 		}
 
-		filteredFailures.forEach((task) => {
+		monthChartFailures.forEach((task) => {
 			const eventDate = getFailureEventDate(task);
 			if (!eventDate) return;
 			const dt = new Date(eventDate);
@@ -249,6 +339,7 @@ export default function DashboardPage() {
 		});
 
 		return {
+			monthKeys,
 			labels,
 			totalValues: monthKeys.map((key) => buckets.get(key).totalItems.length),
 			hqValues: monthKeys.map((key) => buckets.get(key).hqItems.length),
@@ -263,7 +354,7 @@ export default function DashboardPage() {
 			icmsItems: monthKeys.map((key) => buckets.get(key).icmsItems),
 			mttrItems: monthKeys.map((key) => buckets.get(key).mttrItems),
 		};
-	}, [filteredFailures, dateRange]);
+	}, [monthChartFailures, dateRange]);
 
 	const chartCardSx = {
 		p: 2.5,
@@ -277,10 +368,11 @@ export default function DashboardPage() {
 
 	const toPieData = (rows = []) => {
 		if (!rows.length) {
-			return [{ id: 0, label: 'No Data', value: 1, items: [] }];
+			return [{ id: 0, key: '__NO_DATA__', label: 'No Data', value: 1, items: [] }];
 		}
 		return rows.map((row, index) => ({
 			id: index,
+			key: row.key || row.label,
 			label: row.label,
 			value: row.value,
 			items: row.items,
@@ -301,18 +393,135 @@ export default function DashboardPage() {
 		theme.palette.secondary.light,
 	];
 
-	const stationPieData = toPieData(stationChart).map((item, index) => ({
-		...item,
-		color: piePalette[index % piePalette.length],
-	}));
-	const failureTypePieData = toPieData(failureTypeChart).map((item, index) => ({
-		...item,
-		color: piePalette[index % piePalette.length],
-	}));
-	const failureCausePieData = toPieData(failureCauseChart).map((item, index) => ({
-		...item,
-		color: piePalette[index % piePalette.length],
-	}));
+	const applyPieColors = (data, selectedKey) =>
+		data.map((item, index) => {
+			const baseColor = piePalette[index % piePalette.length];
+			const isSelected = selectedKey && item.key === selectedKey;
+			const isDimmed = selectedKey && item.key !== selectedKey;
+			return {
+				...item,
+				color: isSelected ? baseColor : isDimmed ? alpha(baseColor, 0.3) : baseColor,
+			};
+		});
+
+	const stationPieData = applyPieColors(toPieData(stationChart), chartFilters.stationId);
+	const failureTypePieData = applyPieColors(toPieData(failureTypeChart), chartFilters.failureType);
+	const failureCausePieData = applyPieColors(
+		toPieData(failureCauseChart),
+		chartFilters.failureCause
+	);
+
+	const monthLabelByKey = useMemo(() => {
+		const map = new Map();
+		(monthWiseAnalytics.monthKeys || []).forEach((key, index) => {
+			map.set(key, monthWiseAnalytics.labels[index] || key);
+		});
+		return map;
+	}, [monthWiseAnalytics.monthKeys, monthWiseAnalytics.labels]);
+
+	const activeFilterChips = useMemo(() => {
+		const chips = [];
+		if (chartFilters.stationId) {
+			chips.push({
+				key: 'stationId',
+				label: `Station: ${
+					stationChart.find((row) => row.key === chartFilters.stationId)?.label ||
+					chartFilters.stationId
+				}`,
+			});
+		}
+		if (chartFilters.failureType) {
+			chips.push({
+				key: 'failureType',
+				label: `Type: ${formatEnumLabel(chartFilters.failureType)}`,
+			});
+		}
+		if (chartFilters.failureCause) {
+			chips.push({
+				key: 'failureCause',
+				label: `Cause: ${formatEnumLabel(chartFilters.failureCause)}`,
+			});
+		}
+		if (chartFilters.monthKey) {
+			chips.push({
+				key: 'monthKey',
+				label: `Month: ${monthLabelByKey.get(chartFilters.monthKey) || chartFilters.monthKey}`,
+			});
+		}
+		return chips;
+	}, [chartFilters, stationChart, monthLabelByKey]);
+
+	const toggleChartFilter = (field, value) => {
+		if (!value || value === '__NO_DATA__') return;
+		setChartFilters((prev) => ({
+			...prev,
+			[field]: prev[field] === value ? '' : value,
+		}));
+	};
+
+	const resetChartFilters = () => {
+		setChartFilters({
+			stationId: '',
+			failureType: '',
+			failureCause: '',
+			monthKey: '',
+		});
+	};
+
+	const CompactStatCard = ({ label, value, trend, icon, color }) => (
+		<Paper
+			variant="outlined"
+			sx={{
+				borderRadius: 3,
+				p: 1.5,
+				height: '100%',
+				borderColor: 'divider',
+				bgcolor: 'background.paper',
+			}}
+		>
+			<Stack direction="row" spacing={1.25} alignItems="center">
+				<Box
+					sx={{
+						width: 34,
+						height: 34,
+						borderRadius: 2,
+						bgcolor: alpha(theme.palette.action.active, 0.1),
+						color,
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						flexShrink: 0,
+						'& svg': { fontSize: 18 },
+					}}
+				>
+					{icon}
+				</Box>
+				<Box sx={{ minWidth: 0, flex: 1 }}>
+					<Typography sx={{ fontSize: '0.76rem', color: 'text.secondary', fontWeight: 700 }}>
+						{label}
+					</Typography>
+					<Typography
+						sx={{ fontSize: '1.6rem', lineHeight: 1.1, color: 'text.primary', fontWeight: 800 }}
+					>
+						{value}
+					</Typography>
+					<Typography
+						sx={{
+							fontSize: '0.68rem',
+							color,
+							fontWeight: 700,
+							whiteSpace: 'nowrap',
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+						}}
+						title={trend}
+					>
+						{trend}
+					</Typography>
+				</Box>
+			</Stack>
+		</Paper>
+	);
 
 	return (
 		<Box sx={{ bgcolor: 'transparent', p: { xs: 2, md: 3 } }}>
@@ -334,7 +543,7 @@ export default function DashboardPage() {
 				<Button
 					variant="contained"
 					disableElevation
-					onClick={() => dispatch(openDrawer({ drawerName: 'createTicketDrawer' }))}
+					onClick={() => router.push('/testroom/projects-tasks?tab=tasks&action=create-task')}
 					sx={{
 						borderRadius: 2,
 						px: 3,
@@ -345,58 +554,58 @@ export default function DashboardPage() {
 						'&:hover': { bgcolor: 'primary.dark' },
 					}}
 				>
-					+ Create Ticket
+					+ Create Task
 				</Button>
 			</Stack>
 
 			<Box
 				sx={{
 					display: 'grid',
-					gap: 2,
+					gap: 1.5,
 					gridTemplateColumns: {
 						xs: '1fr',
 						sm: 'repeat(2, minmax(0, 1fr))',
 						md: 'repeat(3, minmax(0, 1fr))',
-						xl: 'repeat(6, minmax(0, 1fr))',
+						lg: 'repeat(6, minmax(0, 1fr))',
 					},
 				}}
 			>
-				<StatCard
+				<CompactStatCard
 					label="Total Failures"
 					value={totalFailures.toString()}
 					trend="In selected range"
 					icon={<Hub />}
 					color="primary.main"
 				/>
-				<StatCard
+				<CompactStatCard
 					label="Active Failures"
 					value={activeFailures.length.toString()}
 					trend={criticalCount > 0 ? `${criticalCount} Critical` : 'Normal'}
 					icon={<WifiTetheringError />}
 					color={criticalCount > 0 ? 'error.main' : 'warning.main'}
 				/>
-				<StatCard
+				<CompactStatCard
 					label="Failures in ICMS"
 					value={icmsRepeatedCount.toString()}
 					trend="Marked as ICMS repeated"
 					icon={<Repeat />}
 					color="secondary.main"
 				/>
-				<StatCard
+				<CompactStatCard
 					label="HQ Repeated"
 					value={hqRepeatedCount.toString()}
 					trend="Marked for HQ reporting"
 					icon={<Flag />}
 					color="error.main"
 				/>
-				<StatCard
+				<CompactStatCard
 					label="Avg. MTTR"
 					value={formatDuration(avgMttrMs)}
 					trend="Mean Time to Repair"
 					icon={<Bolt />}
 					color="success.main"
 				/>
-				<StatCard
+				<CompactStatCard
 					label="Avg. MTBF"
 					value={formatDuration(avgMtbfMs)}
 					trend="Mean Time Between Failures"
@@ -420,12 +629,54 @@ export default function DashboardPage() {
 							{activeFailures.length} ACTIVE
 						</Typography>
 					</Box>
+					{activeFilterChips.length > 0 && (
+						<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+							{activeFilterChips.map((chip) => (
+								<Chip
+									key={chip.key}
+									size="small"
+									label={chip.label}
+									onDelete={() =>
+										setChartFilters((prev) => ({
+											...prev,
+											[chip.key]: '',
+										}))
+									}
+								/>
+							))}
+							<Button size="small" onClick={resetChartFilters} sx={{ textTransform: 'none' }}>
+								Clear Selection
+							</Button>
+						</Stack>
+					)}
 					<Stack
 						direction={{ xs: 'column', sm: 'row' }}
 						spacing={2}
 						alignItems={{ xs: 'stretch', sm: 'center' }}
 						sx={{ ml: { lg: 'auto' }, width: { xs: '100%', sm: 'auto' } }}
 					>
+						<TextField
+							select
+							size="small"
+							label="SSE Incharge"
+							value={inchargeId}
+							onChange={(event) => setInchargeId(event.target.value)}
+							sx={{ minWidth: 260 }}
+						>
+							<MenuItem value="">All Incharge Jurisdictions</MenuItem>
+							{inchargeUsers.map((user) => (
+								<MenuItem key={user.id} value={user.id}>
+									<Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+										<Typography sx={{ fontSize: '0.85rem', color: 'text.primary' }}>
+											{user.name}
+										</Typography>
+										<Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>
+											{user.designation || user.role}
+										</Typography>
+									</Box>
+								</MenuItem>
+							))}
+						</TextField>
 						<TextField
 							type="date"
 							label="Start Date"
@@ -482,9 +733,9 @@ export default function DashboardPage() {
 										]}
 										onItemClick={(_event, payload) => {
 											if (!payload || payload.dataIndex == null) return;
-											const target = stationChart[payload.dataIndex];
+											const target = stationPieData[payload.dataIndex];
 											if (!target) return;
-											openDrilldown(`Station: ${target.label}`, target.items);
+											toggleChartFilter('stationId', target.key);
 										}}
 									/>
 								</Box>
@@ -506,7 +757,7 @@ export default function DashboardPage() {
 											spacing={1}
 											alignItems="center"
 											sx={{ cursor: 'pointer' }}
-											onClick={() => openDrilldown(`Station: ${item.label}`, item.items || [])}
+											onClick={() => toggleChartFilter('stationId', item.key)}
 										>
 											<Box
 												sx={{
@@ -518,7 +769,13 @@ export default function DashboardPage() {
 												}}
 											/>
 											<Typography
-												sx={{ fontSize: '0.75rem', color: 'text.primary', flex: 1 }}
+												sx={{
+													fontSize: '0.75rem',
+													color:
+														chartFilters.stationId === item.key ? 'primary.main' : 'text.primary',
+													fontWeight: chartFilters.stationId === item.key ? 700 : 500,
+													flex: 1,
+												}}
 												noWrap
 											>
 												{item.label}
@@ -554,9 +811,9 @@ export default function DashboardPage() {
 										]}
 										onItemClick={(_event, payload) => {
 											if (!payload || payload.dataIndex == null) return;
-											const target = failureTypeChart[payload.dataIndex];
+											const target = failureTypePieData[payload.dataIndex];
 											if (!target) return;
-											openDrilldown(`Failure Type: ${target.label}`, target.items);
+											toggleChartFilter('failureType', target.key);
 										}}
 									/>
 								</Box>
@@ -578,7 +835,7 @@ export default function DashboardPage() {
 											spacing={1}
 											alignItems="center"
 											sx={{ cursor: 'pointer' }}
-											onClick={() => openDrilldown(`Failure Type: ${item.label}`, item.items || [])}
+											onClick={() => toggleChartFilter('failureType', item.key)}
 										>
 											<Box
 												sx={{
@@ -590,7 +847,13 @@ export default function DashboardPage() {
 												}}
 											/>
 											<Typography
-												sx={{ fontSize: '0.75rem', color: 'text.primary', flex: 1 }}
+												sx={{
+													fontSize: '0.75rem',
+													color:
+														chartFilters.failureType === item.key ? 'primary.main' : 'text.primary',
+													fontWeight: chartFilters.failureType === item.key ? 700 : 500,
+													flex: 1,
+												}}
 												noWrap
 											>
 												{item.label}
@@ -626,9 +889,9 @@ export default function DashboardPage() {
 										]}
 										onItemClick={(_event, payload) => {
 											if (!payload || payload.dataIndex == null) return;
-											const target = failureCauseChart[payload.dataIndex];
+											const target = failureCausePieData[payload.dataIndex];
 											if (!target) return;
-											openDrilldown(`Cause: ${target.label}`, target.items);
+											toggleChartFilter('failureCause', target.key);
 										}}
 									/>
 								</Box>
@@ -650,7 +913,7 @@ export default function DashboardPage() {
 											spacing={1}
 											alignItems="center"
 											sx={{ cursor: 'pointer' }}
-											onClick={() => openDrilldown(`Cause: ${item.label}`, item.items || [])}
+											onClick={() => toggleChartFilter('failureCause', item.key)}
 										>
 											<Box
 												sx={{
@@ -662,7 +925,15 @@ export default function DashboardPage() {
 												}}
 											/>
 											<Typography
-												sx={{ fontSize: '0.75rem', color: 'text.primary', flex: 1 }}
+												sx={{
+													fontSize: '0.75rem',
+													color:
+														chartFilters.failureCause === item.key
+															? 'primary.main'
+															: 'text.primary',
+													fontWeight: chartFilters.failureCause === item.key ? 700 : 500,
+													flex: 1,
+												}}
 												noWrap
 											>
 												{item.label}
@@ -701,10 +972,7 @@ export default function DashboardPage() {
 								]}
 								onItemClick={(_event, payload) => {
 									if (!payload || payload.dataIndex == null) return;
-									openDrilldown(
-										`Restored Failures • ${monthWiseAnalytics.labels[payload.dataIndex]}`,
-										monthWiseAnalytics.mttrItems[payload.dataIndex]
-									);
+									toggleChartFilter('monthKey', monthWiseAnalytics.monthKeys?.[payload.dataIndex]);
 								}}
 							/>
 						</Paper>
@@ -746,66 +1014,13 @@ export default function DashboardPage() {
 								]}
 								onItemClick={(_event, payload) => {
 									if (!payload || payload.dataIndex == null) return;
-									const monthLabel = monthWiseAnalytics.labels[payload.dataIndex];
-									if (payload.seriesId === 'hq') {
-										openDrilldown(
-											`HQ Repeated • ${monthLabel}`,
-											monthWiseAnalytics.hqItems[payload.dataIndex]
-										);
-										return;
-									}
-									if (payload.seriesId === 'icms') {
-										openDrilldown(
-											`ICMS Repeated • ${monthLabel}`,
-											monthWiseAnalytics.icmsItems[payload.dataIndex]
-										);
-										return;
-									}
-									openDrilldown(
-										`Total Failures • ${monthLabel}`,
-										monthWiseAnalytics.totalItems[payload.dataIndex]
-									);
+									toggleChartFilter('monthKey', monthWiseAnalytics.monthKeys?.[payload.dataIndex]);
 								}}
 							/>
 						</Paper>
 					</Box>
 				</Box>
 			</Box>
-
-			<Dialog
-				open={drilldown.open}
-				onClose={() => setDrilldown({ open: false, title: '', items: [] })}
-				maxWidth="sm"
-				fullWidth
-			>
-				<DialogTitle>{drilldown.title}</DialogTitle>
-				<DialogContent>
-					<Stack spacing={1.5}>
-						{drilldown.items.length === 0 && (
-							<Typography sx={{ color: 'text.secondary' }}>No failures found.</Typography>
-						)}
-						{drilldown.items.map((task) => (
-							<Paper key={task.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
-								<Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
-									{task.title || 'Failure Ticket'}
-								</Typography>
-								<Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-									{task.failure?.type || task.type} • {task.priority} • {task.status} •{' '}
-									{formatDurationMinutes(
-										task.failure?.restorationTime
-											? new Date(task.failure.restorationTime).getTime() -
-													(new Date(task.failure?.failureInTime || task.createdAt).getTime() || 0)
-											: null
-									)}
-								</Typography>
-							</Paper>
-						))}
-					</Stack>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setDrilldown({ open: false, title: '', items: [] })}>Close</Button>
-				</DialogActions>
-			</Dialog>
 		</Box>
 	);
 }

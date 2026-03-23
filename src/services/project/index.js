@@ -18,6 +18,10 @@ const updateProject = (id, projectData) => {
 	return http.patch(`/project/${id}`, projectData);
 };
 
+const deleteProject = (id) => {
+	return http.delete(`/project/${id}`);
+};
+
 const syncProjectProgress = (id) => {
 	// Manually trigger a recalculation of the completion percentage
 	return http.post(`/project/${id}/sync-progress`);
@@ -28,5 +32,6 @@ export const ProjectService = {
 	createProject,
 	getProjectDetails,
 	updateProject,
+	deleteProject,
 	syncProjectProgress,
 };

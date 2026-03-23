@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarMonth, Edit, PauseCircle, PlayCircle, Refresh } from '@mui/icons-material';
+import { CalendarMonth, DeleteOutline, Edit, PauseCircle, PlayCircle, Refresh } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useState } from 'react';
@@ -21,7 +21,7 @@ const typeLabel = {
 	CUSTOM: 'Custom',
 };
 
-export default function MaintenanceScheduleTable({ onEdit }) {
+export default function MaintenanceScheduleTable({ onEdit, onDelete }) {
 	const { data: schedules = [], isLoading, refetch } = useMaintenanceSchedules();
 	const { mutate: toggleStatus } = useToggleMaintenanceSchedule();
 	const [pendingToggle, setPendingToggle] = useState(null);
@@ -265,23 +265,35 @@ export default function MaintenanceScheduleTable({ onEdit }) {
 											)}
 										</IconButton>
 									</Tooltip>
-									<Tooltip title="Refresh">
-										<IconButton
-											size="small"
-											onClick={() => refetch()}
+										<Tooltip title="Refresh">
+											<IconButton
+												size="small"
+												onClick={() => refetch()}
 											sx={(theme) => ({
 												bgcolor: theme.palette.action.hover,
 												color: theme.palette.text.secondary,
 											})}
 										>
 											<Refresh fontSize="small" />
-										</IconButton>
-									</Tooltip>
-								</Stack>
-							);
-						},
-					};
-				})}
+											</IconButton>
+										</Tooltip>
+										<Tooltip title="Delete schedule">
+											<IconButton
+												size="small"
+												onClick={() => onDelete?.(params.row._raw)}
+												sx={(theme) => ({
+													bgcolor: alpha(theme.palette.error.main, 0.16),
+													color: theme.palette.error.main,
+												})}
+											>
+												<DeleteOutline fontSize="small" />
+											</IconButton>
+										</Tooltip>
+									</Stack>
+								);
+							},
+						};
+					})}
 				loading={isLoading}
 			/>
 		</Box>

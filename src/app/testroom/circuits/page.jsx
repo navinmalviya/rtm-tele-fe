@@ -342,7 +342,12 @@ export default function CircuitsPage() {
 
 	return (
 		<Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-			<Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+			<Stack
+				direction={{ xs: 'column', md: 'row' }}
+				spacing={1.5}
+				alignItems={{ xs: 'flex-start', md: 'center' }}
+				justifyContent="space-between"
+			>
 				<Stack direction="row" spacing={1.5} alignItems="center">
 					<Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 2, display: 'flex' }}>
 						<ElectricalServices sx={{ color: 'text.secondary' }} />
@@ -356,7 +361,19 @@ export default function CircuitsPage() {
 						</Typography>
 					</Box>
 				</Stack>
-			</Box>
+				{currentTab === 'masters' && (
+					<Stack direction="row" spacing={1} sx={{ width: { xs: '100%', md: 'auto' } }}>
+						<Button
+							variant="contained"
+							startIcon={<Add />}
+							onClick={openAddDialog}
+							sx={{ width: { xs: '100%', md: 'auto' } }}
+						>
+							Add Circuit Master
+						</Button>
+					</Stack>
+				)}
+			</Stack>
 
 			<RtmTabs
 				tabs={CIRCUIT_TABS}
@@ -366,12 +383,6 @@ export default function CircuitsPage() {
 
 			{currentTab === 'masters' && (
 				<>
-					<Stack direction="row" justifyContent="flex-end">
-						<Button variant="contained" startIcon={<Add />} onClick={openAddDialog}>
-							Add Circuit Master
-						</Button>
-					</Stack>
-
 					<RtmDataGrid
 						rows={masterRows}
 						loading={loadingMasters}
@@ -403,6 +414,7 @@ export default function CircuitsPage() {
 									<Stack direction="row" spacing={0.5}>
 										<Tooltip title="View">
 											<IconButton
+												size="small"
 												onClick={() =>
 													dispatch(
 														openDrawer({
@@ -411,21 +423,31 @@ export default function CircuitsPage() {
 														})
 													)
 												}
+												sx={{ color: 'text.secondary' }}
 											>
-												<VisibilityOutlined />
+												<VisibilityOutlined fontSize="small" />
 											</IconButton>
 										</Tooltip>
 										<Tooltip title="Edit">
-											<IconButton onClick={() => openEditDialog(params.row.id)}>
-												<EditOutlined />
+											<IconButton
+												size="small"
+												onClick={() => openEditDialog(params.row.id)}
+												sx={{ color: 'text.secondary' }}
+											>
+												<EditOutlined fontSize="small" />
 											</IconButton>
 										</Tooltip>
-										<Tooltip title="Deactivate master">
+										<Tooltip title="Delete master">
 											<IconButton
-												onClick={() => deactivateMaster(params.row.id)}
-												disabled={params.row.status !== 'ACTIVE'}
+												size="small"
+												onClick={() => {
+													const yes = window.confirm(`Delete circuit master "${params.row.name}"?`);
+													if (!yes) return;
+													deactivateMaster(params.row.id);
+												}}
+												sx={{ color: 'error.light' }}
 											>
-												<DeleteOutline />
+												<DeleteOutline fontSize="small" />
 											</IconButton>
 										</Tooltip>
 									</Stack>
@@ -466,8 +488,8 @@ export default function CircuitsPage() {
 										</IconButton>
 									</Tooltip>
 									<Tooltip title="Reject">
-										<IconButton onClick={() => openRejectDialog(params.row.id)}>
-											<DeleteOutline color="error" />
+										<IconButton onClick={() => openRejectDialog(params.row.id)} sx={{ color: 'error.light' }}>
+											<DeleteOutline fontSize="small" />
 										</IconButton>
 									</Tooltip>
 								</Stack>
@@ -738,7 +760,7 @@ export default function CircuitsPage() {
 									<IconButton
 										onClick={() => onRemoveField(setFormState, index)}
 										disabled={formState.fields.length === 1}
-										sx={{ alignSelf: 'center' }}
+										sx={{ alignSelf: 'center', color: 'error.light' }}
 									>
 										<DeleteOutline />
 									</IconButton>
@@ -917,7 +939,7 @@ export default function CircuitsPage() {
 									<IconButton
 										onClick={() => onRemoveField(setEditForm, index)}
 										disabled={editForm.fields.length === 1}
-										sx={{ alignSelf: 'center' }}
+										sx={{ alignSelf: 'center', color: 'error.light' }}
 									>
 										<DeleteOutline />
 									</IconButton>

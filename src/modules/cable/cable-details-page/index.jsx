@@ -1,6 +1,7 @@
 'use client';
 
 import {
+	Add,
 	ArrowBack,
 	Biotech,
 	Cable,
@@ -21,7 +22,12 @@ import RtmDataGrid from '@/lib/common/datagrid';
 import RtmLoader from '@/lib/common/loader';
 import RtmTabs from '@/lib/common/tabs';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import AddCableCutDrawer, { ADD_CABLE_CUT_DRAWER } from './AddCableCutDrawer';
+import AddCableJointDrawer, { ADD_CABLE_JOINT_DRAWER } from './AddCableJointDrawer';
 import AddCableTestReportDrawer, { ADD_CABLE_TEST_REPORT_DRAWER } from './AddCableTestReportDrawer';
+import ConnectPairCircuitDrawer, {
+	CONNECT_PAIR_CIRCUIT_DRAWER,
+} from './ConnectPairCircuitDrawer';
 
 const CABLE_TABS = [
 	{ label: 'Cable Parameters', step: 'parameters', icon: <Inventory2 sx={{ fontSize: 18 }} /> },
@@ -205,6 +211,21 @@ export default function CableDetailsPage({ cableId }) {
 			})),
 		[cable?.subsection?.name, cable?.testReports]
 	);
+
+	const latestTestReport = useMemo(
+		() => (Array.isArray(cable?.testReports) && cable.testReports.length ? cable.testReports[0] : null),
+		[cable?.testReports]
+	);
+
+	const latestPairMeasuredMap = useMemo(() => {
+		const map = new Map();
+		for (const row of latestTestReport?.measuredValues || []) {
+			if (row?.quadNo === null || row?.quadNo === undefined) continue;
+			if (row?.pairNo === null || row?.pairNo === undefined) continue;
+			map.set(`${row.quadNo}-${row.pairNo}`, row);
+		}
+		return map;
+	}, [latestTestReport?.id, latestTestReport?.measuredValues]);
 
 	const quadGroups = useMemo(() => {
 		const grouped = new Map();
@@ -605,14 +626,31 @@ export default function CableDetailsPage({ cableId }) {
 														const connectedLabel = circuits.length
 															? circuits.map((item) => item.circuitIdString).join(', ')
 															: 'SPARE';
+														const latestPairKey = `${pair.quadNo}-${pair.pairNo}`;
+														const latestMeasured = latestPairMeasuredMap.get(latestPairKey) || null;
+														const latestMeasuredLabel = latestMeasured
+															? `Tx ${latestMeasured.transmissionLossDb ?? '—'} dB • Loop ${
+																	latestMeasured.loopResistanceOhm ?? '—'
+																} Ω • L1E ${latestMeasured.insulationL1E ?? '—'} • L2E ${
+																	latestMeasured.insulationL2E ?? '—'
+																} • L1L2 ${latestMeasured.insulationL1L2 ?? '—'}`
+															: 'No latest test values';
 
 														return (
 															<Stack
 																key={pair.id}
-																direction="row"
+																direction={{ xs: 'column', sm: 'row' }}
 																spacing={1}
-																alignItems="center"
+																alignItems={{ xs: 'flex-start', sm: 'center' }}
 																justifyContent="space-between"
+																onClick={() =>
+																	dispatch(
+																		openDrawer({
+																			drawerName: CONNECT_PAIR_CIRCUIT_DRAWER,
+																			pairId: pair.id,
+																		})
+																	)
+																}
 																sx={{
 																	py: 0.75,
 																	px: 1,
@@ -620,30 +658,51 @@ export default function CableDetailsPage({ cableId }) {
 																	bgcolor: 'background.paper',
 																	border: '1px solid',
 																	borderColor: 'divider',
+																	cursor: 'pointer',
+																	'&:hover': {
+																		borderColor: 'primary.main',
+																		bgcolor: 'action.hover',
+																	},
 																}}
 															>
-																<Stack direction="row" spacing={0.75} alignItems="center">
-																	<Typography sx={{ fontSize: '0.78rem', fontWeight: 700 }}>
-																		P{pair.pairNo}
-																	</Typography>
-																	<Stack direction="row" spacing={0.5}>
-																		{pairColors.map((color) => (
-																			<Box
-																				key={`${pair.id}-${color}`}
-																				title={color}
-																				sx={{
-																					width: 12,
-																					height: 12,
-																					borderRadius: '50%',
-																					bgcolor: getColorHex(color),
-																					border: '1px solid',
-																					borderColor: 'divider',
-																				}}
-																			/>
-																		))}
+																<Stack sx={{ minWidth: 0 }}>
+																	<Stack direction="row" spacing={0.75} alignItems="center">
+																		<Typography sx={{ fontSize: '0.78rem', fontWeight: 700 }}>
+																			P{pair.pairNo}
+																		</Typography>
+																		<Stack direction="row" spacing={0.5}>
+																			{pairColors.map((color) => (
+																				<Box
+																					key={`${pair.id}-${color}`}
+																					title={color}
+																					sx={{
+																						width: 12,
+																						height: 12,
+																						borderRadius: '50%',
+																						bgcolor: getColorHex(color),
+																						border: '1px solid',
+																						borderColor: 'divider',
+																					}}
+																				/>
+																			))}
+																		</Stack>
+																		<Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+																			{pair.pairColor || '—'}
+																		</Typography>
 																	</Stack>
-																	<Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
-																		{pair.pairColor || '—'}
+																	<Typography
+																		sx={{
+																			fontSize: '0.68rem',
+																			color: 'text.secondary',
+																			mt: 0.35,
+																			whiteSpace: 'nowrap',
+																			overflow: 'hidden',
+																			textOverflow: 'ellipsis',
+																			maxWidth: { xs: '100%', sm: 320 },
+																		}}
+																		title={latestMeasuredLabel}
+																	>
+																		Last Test: {latestMeasuredLabel}
 																	</Typography>
 																</Stack>
 
@@ -686,7 +745,22 @@ export default function CableDetailsPage({ cableId }) {
 
 			{currentTab === 'joints' && (
 				<Box>
-					<Typography sx={{ fontWeight: 800, mb: 1 }}>Cable Joint Register</Typography>
+					<Stack
+						direction={{ xs: 'column', sm: 'row' }}
+						justifyContent="space-between"
+						alignItems={{ xs: 'flex-start', sm: 'center' }}
+						spacing={1}
+						sx={{ mb: 1 }}
+					>
+						<Typography sx={{ fontWeight: 800 }}>Cable Joint Register</Typography>
+						<Button
+							variant="contained"
+							startIcon={<Add sx={{ fontSize: 18 }} />}
+							onClick={() => dispatch(openDrawer({ drawerName: ADD_CABLE_JOINT_DRAWER }))}
+						>
+							Add Joint
+						</Button>
+					</Stack>
 					<RtmDataGrid
 						rows={jointRows}
 						columns={jointColumns}
@@ -701,7 +775,22 @@ export default function CableDetailsPage({ cableId }) {
 
 			{currentTab === 'cuts' && (
 				<Box>
-					<Typography sx={{ fontWeight: 800, mb: 1 }}>Cable Cut Register</Typography>
+					<Stack
+						direction={{ xs: 'column', sm: 'row' }}
+						justifyContent="space-between"
+						alignItems={{ xs: 'flex-start', sm: 'center' }}
+						spacing={1}
+						sx={{ mb: 1 }}
+					>
+						<Typography sx={{ fontWeight: 800 }}>Cable Cut Register</Typography>
+						<Button
+							variant="contained"
+							startIcon={<Add sx={{ fontSize: 18 }} />}
+							onClick={() => dispatch(openDrawer({ drawerName: ADD_CABLE_CUT_DRAWER }))}
+						>
+							Add Cable Cut
+						</Button>
+					</Stack>
 					<RtmDataGrid
 						rows={cutRows}
 						columns={cutColumns}
@@ -776,7 +865,10 @@ export default function CableDetailsPage({ cableId }) {
 				</Stack>
 			)}
 
+			<AddCableJointDrawer cable={cable} />
+			<AddCableCutDrawer cable={cable} />
 			<AddCableTestReportDrawer cable={cable} />
+			<ConnectPairCircuitDrawer cable={cable} />
 		</Box>
 	);
 }

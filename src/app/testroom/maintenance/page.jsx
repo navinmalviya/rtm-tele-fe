@@ -1,12 +1,12 @@
 'use client';
 
-import { BuildCircle, EventRepeat, Warning } from '@mui/icons-material';
+import { Add, BuildCircle, EventRepeat, Warning } from '@mui/icons-material';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import { useDispatch } from 'react-redux';
 import { useState } from 'react';
-import RtmTabs from '@/lib/common/tabs';
+import { useDispatch } from 'react-redux';
 import { useTabs } from '@/hooks/common';
+import { useDeleteMaintenanceSchedule } from '@/hooks/maintenance';
+import RtmTabs from '@/lib/common/tabs';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
 import {
 	AddMaintenanceScheduleDrawer,
@@ -24,9 +24,9 @@ const MAINT_TABS = [
 export default function MaintenancePage() {
 	const dispatch = useDispatch();
 	const { currentTab } = useTabs('maintenanceHub', { currentTab: 'schedules' });
+	const { mutate: deleteSchedule } = useDeleteMaintenanceSchedule();
 	const [selectedOccurrence, setSelectedOccurrence] = useState(null);
 	const [editingSchedule, setEditingSchedule] = useState(null);
-	const theme = useTheme();
 
 	const handleCreate = () => {
 		dispatch(openDrawer({ drawerName: 'addMaintenanceScheduleDrawer' }));
@@ -48,66 +48,66 @@ export default function MaintenancePage() {
 					px: 3,
 					pt: 3,
 					pb: 2,
-					display: 'flex',
-					justifyContent: 'space-between',
 					bgcolor: 'background.paper',
 				}}
 			>
-				<Stack direction="row" spacing={1.5} alignItems="center">
-					<Box
-						sx={{
-							p: 1,
-							bgcolor: 'action.hover',
-							borderRadius: 2,
-							display: 'flex',
-						}}
-					>
-						<BuildCircle sx={{ color: 'text.secondary' }} />
-					</Box>
-					<Box>
-						<Typography variant="h5" sx={{ fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em' }}>
-							Maintenance Management
-						</Typography>
-						<Typography
-							variant="caption"
+				<Stack
+					direction={{ xs: 'column', md: 'row' }}
+					spacing={1.5}
+					alignItems={{ xs: 'flex-start', md: 'center' }}
+					justifyContent="space-between"
+				>
+					<Stack direction="row" spacing={1.5} alignItems="center">
+						<Box
 							sx={{
-								color: 'text.secondary',
-								fontWeight: 700,
-								textTransform: 'uppercase',
-								letterSpacing: '1px',
+								p: 1,
+								bgcolor: 'action.hover',
+								borderRadius: 2,
+								display: 'flex',
 							}}
 						>
-							Preventive scheduling & compliance
-						</Typography>
-					</Box>
+							<BuildCircle sx={{ color: 'text.secondary' }} />
+						</Box>
+						<Box>
+							<Typography
+								variant="h5"
+								sx={{ fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em' }}
+							>
+								Maintenance Management
+							</Typography>
+							<Typography
+								variant="caption"
+								sx={{
+									color: 'text.secondary',
+									fontWeight: 700,
+									textTransform: 'uppercase',
+									letterSpacing: '1px',
+								}}
+							>
+								Preventive scheduling & compliance
+							</Typography>
+						</Box>
+					</Stack>
+					<Stack direction="row" spacing={1} sx={{ width: { xs: '100%', md: 'auto' } }}>
+						<Button
+							variant="contained"
+							startIcon={<Add />}
+							onClick={handleCreate}
+							sx={{ width: { xs: '100%', md: 'auto' } }}
+						>
+							Add Schedule
+						</Button>
+					</Stack>
 				</Stack>
-
-				<Button
-					variant="contained"
-					onClick={handleCreate}
-					sx={{
-						bgcolor: 'primary.main',
-						borderRadius: 2.5,
-						textTransform: 'none',
-						fontWeight: 800,
-						px: 3,
-						py: 1.2,
-						fontSize: '0.85rem',
-						boxShadow: `0 4px 12px ${theme.palette.primary.main}33`,
-						'&:hover': {
-							bgcolor: 'primary.main',
-							filter: 'brightness(0.9)',
-							boxShadow: `0 6px 16px ${theme.palette.primary.main}44`,
-						},
-					}}
-				>
-					Create Schedule
-				</Button>
 			</Box>
 
 			{/* Tabs */}
 			<Box sx={{ px: 3, bgcolor: 'background.paper' }}>
-				<RtmTabs tabs={MAINT_TABS} tabsName="maintenanceHub" initialState={{ currentTab: 'schedules' }} />
+				<RtmTabs
+					tabs={MAINT_TABS}
+					tabsName="maintenanceHub"
+					initialState={{ currentTab: 'schedules' }}
+				/>
 			</Box>
 
 			{/* Content */}
@@ -125,6 +125,13 @@ export default function MaintenancePage() {
 						onEdit={(row) => {
 							setEditingSchedule(row);
 							dispatch(openDrawer({ drawerName: 'editMaintenanceScheduleDrawer' }));
+						}}
+						onDelete={(row) => {
+							const yes = window.confirm(
+								`Delete schedule "${row?.title || 'selected schedule'}"? This cannot be undone.`
+							);
+							if (!yes || !row?.id) return;
+							deleteSchedule(row.id);
 						}}
 					/>
 				)}

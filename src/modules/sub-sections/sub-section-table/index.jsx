@@ -1,6 +1,6 @@
 'use client';
 
-import { Delete, East, Edit, LinearScale } from '@mui/icons-material';
+import { DeleteOutline, East, Edit, LinearScale } from '@mui/icons-material';
 import { Box, IconButton, Stack, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/navigation'; // Added for navigation
@@ -122,7 +122,7 @@ export function SubSectionTable({ readOnly = false, routeBasePath = '/testroom' 
 								sx={{ color: 'error.light' }}
 								onClick={() => setDeleteTarget(params.row)}
 							>
-								<Delete fontSize="small" />
+								<DeleteOutline fontSize="small" />
 							</IconButton>
 						</>
 					)}

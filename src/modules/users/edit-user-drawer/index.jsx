@@ -11,6 +11,7 @@ import {
 	WorkOutline,
 } from '@mui/icons-material';
 import {
+	Autocomplete,
 	Box,
 	Button,
 	Divider,
@@ -315,33 +316,40 @@ export default function EditUserDrawer({ user }) {
 									control={control}
 									rules={{ required: 'reporting_to is required' }}
 									render={({ field }) => (
-										<TextField
-											{...field}
-											select
-											label="reporting_to"
-											fullWidth
-											error={!!errors.inchargeId}
-											helperText={errors.inchargeId?.message}
-											sx={textFieldStyles}
-											InputProps={{
-												startAdornment: (
-													<InputAdornment position="start">
-														<Apartment sx={{ color: 'text.secondary' }} />
-													</InputAdornment>
-												),
-											}}
-										>
-											{reportingCandidates.map((candidate) => (
-												<MenuItem key={candidate.id} value={candidate.id}>
-													{candidate.name} ({candidate.designation || candidate.role})
-												</MenuItem>
-											))}
-											{reportingCandidates.length === 0 && (
-												<MenuItem disabled value="">
-													No valid reporting officers for selected role
-												</MenuItem>
+										<Autocomplete
+											options={reportingCandidates}
+											getOptionLabel={(option) =>
+												`${option.name} (${option.designation || option.role})`
+											}
+											value={
+												reportingCandidates.find((candidate) => candidate.id === field.value) ||
+												null
+											}
+											onChange={(_, option) => field.onChange(option?.id || '')}
+											isOptionEqualToValue={(option, value) => option.id === value.id}
+											noOptionsText="No valid reporting officers for selected role"
+											renderInput={(params) => (
+												<TextField
+													{...params}
+													label="reporting_to"
+													fullWidth
+													error={!!errors.inchargeId}
+													helperText={errors.inchargeId?.message}
+													sx={textFieldStyles}
+													InputProps={{
+														...params.InputProps,
+														startAdornment: (
+															<>
+																<InputAdornment position="start">
+																	<Apartment sx={{ color: 'text.secondary' }} />
+																</InputAdornment>
+																{params.InputProps.startAdornment}
+															</>
+														),
+													}}
+												/>
 											)}
-										</TextField>
+										/>
 									)}
 								/>
 							)}

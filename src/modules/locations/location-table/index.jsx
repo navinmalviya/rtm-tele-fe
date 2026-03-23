@@ -1,6 +1,6 @@
 'use client';
 
-import { Delete, Edit, MapsHomeWork, Storage, Subtitles } from '@mui/icons-material';
+import { DeleteOutline, Edit, MapsHomeWork, Storage, Subtitles } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useMemo } from 'react';
@@ -139,7 +139,7 @@ export default function LocationTable({ locations = [], isLoading, onEdit, onDel
 									sx={{ color: 'error.light' }}
 									onClick={() => onDelete?.(params.row)}
 								>
-									<Delete fontSize="small" />
+									<DeleteOutline fontSize="small" />
 								</IconButton>
 							</Tooltip>
 						</Stack>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Bolt, Cable, Delete, Edit, Lan, Speed } from '@mui/icons-material';
+import { Bolt, Cable, DeleteOutline, Edit, Lan, Speed } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { usePortTemplates } from '@/hooks/port-templates';
@@ -177,7 +177,7 @@ export default function PortTemplateTable({ onEdit, onDelete }) {
 							sx={{ color: 'error.light' }}
 							onClick={() => onDelete?.(params.row)}
 						>
-							<Delete fontSize="small" />
+							<DeleteOutline fontSize="small" />
 						</IconButton>
 					</Tooltip>
 				</Box>
@@ -186,14 +186,12 @@ export default function PortTemplateTable({ onEdit, onDelete }) {
 	];
 
 	return (
-		<Box sx={{ width: '100%' }}>
-			<RtmDataGrid
-				rows={portTemplates}
-				columns={columns}
-				loading={isLoading}
-				getRowId={(row) => row.id}
-				rowHeight={70}
-			/>
-		</Box>
+		<RtmDataGrid
+			rows={portTemplates}
+			columns={columns}
+			loading={isLoading}
+			getRowId={(row) => row.id}
+			rowHeight={70}
+		/>
 	);
 }

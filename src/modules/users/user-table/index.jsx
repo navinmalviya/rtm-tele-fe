@@ -1,9 +1,9 @@
 'use client';
 
-import { Badge, Delete, Edit, Email, Person, Shield } from '@mui/icons-material';
-import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Badge, DeleteOutline, Edit, Email, Person, Shield } from '@mui/icons-material';
+import { Box, Chip, IconButton, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useUsers } from '@/hooks/user';
 import RtmDataGrid from '@/lib/common/datagrid';
 import { formatRoleLabel } from '../role-options';
@@ -11,8 +11,42 @@ import { formatRoleLabel } from '../role-options';
 export default function UserTable({ onEdit, onDelete }) {
 	const { data: users = [], isLoading } = useUsers();
 	const theme = useTheme();
+	const [searchTerm, setSearchTerm] = useState('');
+	const [roleFilter, setRoleFilter] = useState('ALL');
+	const [unitFilter, setUnitFilter] = useState('ALL');
 
-	const filteredUsers = useMemo(() => users.filter((user) => user.role !== 'SUPER_ADMIN'), [users]);
+	const roleOptions = useMemo(
+		() => ['ALL', ...new Set(users.map((user) => user.role).filter(Boolean).sort())],
+		[users]
+	);
+	const unitOptions = useMemo(
+		() => ['ALL', ...new Set(users.map((user) => user.unit).filter(Boolean).sort())],
+		[users]
+	);
+
+	const filteredUsers = useMemo(() => {
+		const needle = searchTerm.trim().toLowerCase();
+		return users
+			.filter((user) => user.role !== 'SUPER_ADMIN')
+			.filter((user) => (roleFilter === 'ALL' ? true : user.role === roleFilter))
+			.filter((user) => (unitFilter === 'ALL' ? true : (user.unit || '') === unitFilter))
+			.filter((user) => {
+				if (!needle) return true;
+				const searchIn = [
+					user.name,
+					user.username,
+					user.email,
+					user.designation,
+					user.incharge?.name,
+					formatRoleLabel(user.role),
+					user.unit,
+				]
+					.filter(Boolean)
+					.join(' ')
+					.toLowerCase();
+				return searchIn.includes(needle);
+			});
+	}, [users, roleFilter, searchTerm, unitFilter]);
 
 	const columns = useMemo(
 		() => [
@@ -131,7 +165,7 @@ export default function UserTable({ onEdit, onDelete }) {
 								sx={{ color: 'error.light' }}
 								onClick={() => onDelete?.(params.row)}
 							>
-								<Delete fontSize="small" />
+								<DeleteOutline fontSize="small" />
 							</IconButton>
 						</Tooltip>
 					</Stack>
@@ -143,6 +177,48 @@ export default function UserTable({ onEdit, onDelete }) {
 
 	return (
 		<Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 2 }}>
+			<Stack
+				direction={{ xs: 'column', md: 'row' }}
+				spacing={1.5}
+				sx={{ p: 1.5, alignItems: { xs: 'stretch', md: 'center' } }}
+			>
+				<TextField
+					size="small"
+					label="Search users"
+					placeholder="Name, username, email..."
+					value={searchTerm}
+					onChange={(e) => setSearchTerm(e.target.value)}
+					sx={{ minWidth: 220 }}
+				/>
+				<TextField
+					size="small"
+					select
+					label="Role"
+					value={roleFilter}
+					onChange={(e) => setRoleFilter(e.target.value)}
+					sx={{ minWidth: 180 }}
+				>
+					{roleOptions.map((role) => (
+						<MenuItem key={role} value={role}>
+							{role === 'ALL' ? 'All Roles' : formatRoleLabel(role)}
+						</MenuItem>
+					))}
+				</TextField>
+				<TextField
+					size="small"
+					select
+					label="Unit"
+					value={unitFilter}
+					onChange={(e) => setUnitFilter(e.target.value)}
+					sx={{ minWidth: 180 }}
+				>
+					{unitOptions.map((unit) => (
+						<MenuItem key={unit} value={unit}>
+							{unit === 'ALL' ? 'All Units' : unit}
+						</MenuItem>
+					))}
+				</TextField>
+			</Stack>
 			<RtmDataGrid
 				rows={filteredUsers}
 				columns={columns}

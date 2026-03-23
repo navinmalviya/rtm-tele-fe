@@ -19,6 +19,10 @@ const toggleScheduleStatus = (id) => {
 	return http.patch(`/maintenance/${id}/toggle-status`);
 };
 
+const deleteSchedule = (id) => {
+	return http.delete(`/maintenance/${id}`);
+};
+
 const createOccurrence = (scheduleId) => {
 	return http.post(`/maintenance/${scheduleId}/occurrences`);
 };
@@ -41,6 +45,7 @@ export const MaintenanceService = {
 	createSchedule,
 	updateSchedule,
 	toggleScheduleStatus,
+	deleteSchedule,
 	createOccurrence,
 	listOverdue,
 	completeOccurrence,

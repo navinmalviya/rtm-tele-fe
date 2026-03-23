@@ -3,11 +3,18 @@
 import { Assignment, Construction, PlaylistAddCheck, RocketLaunch } from '@mui/icons-material';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useTabs } from '@/hooks/common';
+import { useDeleteProject } from '@/hooks/project';
 import RtmTabs from '@/lib/common/tabs';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
-import { AddProjectDrawer, ProjectTable } from '@/modules/projects';
+import {
+	AddProjectDrawer,
+	DeleteProjectDialog,
+	EditProjectDrawer,
+	ProjectTable,
+} from '@/modules/projects';
 import { AddTaskDrawer, TaskTab } from '@/modules/tasks';
 
 const PROJECT_TABS = [
@@ -26,9 +33,12 @@ const PROJECT_TABS = [
 const ProjectTasksPage = () => {
 	const dispatch = useDispatch();
 	const theme = useTheme();
+	const { mutate: deleteProject, isLoading: isDeletingProject } = useDeleteProject();
+	const [editingProject, setEditingProject] = useState(null);
+	const [deleteTarget, setDeleteTarget] = useState(null);
 
 	// Access the current tab state from Redux (managed by RtmTabs internally)
-	const { currentTab } = useTabs('operationsHub', { currentTab: 'projects' });
+	const { currentTab, goTo } = useTabs('operationsHub', { currentTab: 'projects' });
 
 	// Configuration for dynamic header action
 	const tabActions = {
@@ -45,6 +55,29 @@ const ProjectTasksPage = () => {
 	};
 
 	const currentAction = tabActions[currentTab] || tabActions.projects;
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+		const params = new URLSearchParams(window.location.search);
+		const tab = params.get('tab');
+		const action = params.get('action');
+
+		if (tab === 'tasks') {
+			goTo('tasks');
+		}
+
+		if (action === 'create-task') {
+			dispatch(openDrawer({ drawerName: 'addTaskDrawer' }));
+			params.delete('action');
+			const nextQuery = params.toString();
+			window.history.replaceState(
+				{},
+				'',
+				nextQuery ? `${window.location.pathname}?${nextQuery}` : window.location.pathname
+			);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [dispatch]);
 
 	const handleActionClick = () => {
 		dispatch(openDrawer({ drawerName: currentAction.drawer }));
@@ -145,10 +178,31 @@ const ProjectTasksPage = () => {
 			<Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 3 }}>
 				{/* Global Drawers */}
 				<AddProjectDrawer />
+				<EditProjectDrawer project={editingProject} />
 				<AddTaskDrawer />
+				<DeleteProjectDialog
+					open={!!deleteTarget}
+					project={deleteTarget}
+					isLoading={isDeletingProject}
+					onClose={() => setDeleteTarget(null)}
+					onConfirm={() => {
+						if (!deleteTarget?.id) return;
+						deleteProject(deleteTarget.id, {
+							onSuccess: () => setDeleteTarget(null),
+						});
+					}}
+				/>
 
 				{/* Conditional Rendering based on Redux/URL state */}
-				{currentTab === 'projects' && <ProjectTable />}
+				{currentTab === 'projects' && (
+					<ProjectTable
+						onEdit={(project) => {
+							setEditingProject(project);
+							dispatch(openDrawer({ drawerName: 'editProjectDrawer' }));
+						}}
+						onDelete={(project) => setDeleteTarget(project)}
+					/>
+				)}
 				{currentTab === 'tasks' && <TaskTab />}
 			</Box>
 		</Box>

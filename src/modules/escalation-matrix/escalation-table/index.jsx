@@ -1,6 +1,6 @@
 'use client';
 
-import { Delete, Edit, HourglassBottom, Stairs, ToggleOn } from '@mui/icons-material';
+import { DeleteOutline, Edit, HourglassBottom, Stairs, ToggleOn } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
@@ -121,7 +121,7 @@ export default function EscalationTable({ onEdit, onDelete }) {
 								onClick={() => onDelete?.(params.row)}
 								sx={{ color: 'error.light' }}
 							>
-								<Delete fontSize="small" />
+								<DeleteOutline fontSize="small" />
 							</IconButton>
 						</Tooltip>
 					</Stack>

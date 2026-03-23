@@ -1,13 +1,13 @@
 'use client';
 
-import { CalendarMonth, Delete, Edit, Person, RocketLaunch, Timer } from '@mui/icons-material';
+import { CalendarMonth, DeleteOutline, Edit, Person, RocketLaunch, Timer } from '@mui/icons-material';
 import { Box, Chip, CircularProgress, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import { useProjects } from '@/hooks/project';
 import RtmDataGrid from '@/lib/common/datagrid';
 
-export default function ProjectTable() {
+export default function ProjectTable({ onEdit, onDelete }) {
 	// Calling the hook internally to fetch project data
 	const { data: projects = [], isLoading } = useProjects();
 	const theme = useTheme();
@@ -194,23 +194,31 @@ export default function ProjectTable() {
 				width: 100,
 				sortable: false,
 				align: 'right',
-				renderCell: () => (
+				renderCell: (params) => (
 					<Stack direction="row" spacing={0.5} alignItems="center" sx={{ height: '100%' }}>
 						<Tooltip title="Edit Project">
-							<IconButton size="small" sx={{ color: 'text.secondary' }}>
+							<IconButton
+								size="small"
+								sx={{ color: 'text.secondary' }}
+								onClick={() => onEdit?.(params.row)}
+							>
 								<Edit fontSize="small" />
 							</IconButton>
 						</Tooltip>
 						<Tooltip title="Delete">
-							<IconButton size="small" sx={{ color: 'error.light' }}>
-								<Delete fontSize="small" />
+							<IconButton
+								size="small"
+								sx={{ color: 'error.light' }}
+								onClick={() => onDelete?.(params.row)}
+							>
+								<DeleteOutline fontSize="small" />
 							</IconButton>
 						</Tooltip>
 					</Stack>
 				),
 			},
 		],
-		[]
+		[onDelete, onEdit, theme]
 	);
 
 	return (

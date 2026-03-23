@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarMonth, Delete, Edit, Place, Visibility } from '@mui/icons-material';
+import { CalendarMonth, DeleteOutline, Edit, Place, Visibility } from '@mui/icons-material';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
@@ -110,7 +110,7 @@ export function StationTable({ readOnly = false, routeBasePath = '/testroom' }) 
 									sx={{ color: 'error.light' }}
 									onClick={() => setDeleteTarget(params.row)}
 								>
-									<Delete fontSize="small" />
+									<DeleteOutline fontSize="small" />
 								</IconButton>
 							</Tooltip>
 						</>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Delete, Edit, Inventory2 } from '@mui/icons-material';
+import { DeleteOutline, Edit, Inventory2 } from '@mui/icons-material';
 import { Box, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
@@ -107,7 +107,7 @@ export default function TnpTable({ onEdit, onDelete }) {
 						</Tooltip>
 						<Tooltip title="Delete">
 							<IconButton size="small" sx={{ color: 'error.light' }} onClick={() => onDelete?.(params.row)}>
-								<Delete fontSize="small" />
+								<DeleteOutline fontSize="small" />
 							</IconButton>
 						</Tooltip>
 					</Stack>

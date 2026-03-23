@@ -465,7 +465,15 @@ export default function ReportsPage() {
 							</Button>
 						</Stack>
 
-						<RtmDataGrid rows={rows} columns={columns} loading={isLoading} />
+						<RtmDataGrid
+							rows={rows}
+							columns={columns}
+							loading={isLoading}
+							hideFooter={false}
+							pagination
+							pageSizeOptions={[10, 25, 50]}
+							initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
+						/>
 					</Stack>
 				)}
 

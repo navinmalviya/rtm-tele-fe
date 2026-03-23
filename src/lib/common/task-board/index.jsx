@@ -1,13 +1,27 @@
 'use client';
 
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import { Avatar, Box, Card, Chip, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { Autorenew, DeleteOutline, DoneAll, PendingActions, TaskAlt } from '@mui/icons-material';
+import {
+	Avatar,
+	Box,
+	Card,
+	Chip,
+	IconButton,
+	Paper,
+	Skeleton,
+	Stack,
+	Tooltip,
+	Typography,
+} from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
+import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useDeleteTask } from '@/hooks/task';
 import { useUpdateTaskStatus } from '@/hooks/task/useUpdateTaskStatus';
-import { TaskDetailDrawer } from '@/modules/tasks';
 import { openDrawer } from '@/lib/store/slices/drawer-slice';
+import { TaskDetailDrawer } from '@/modules/tasks';
 
 const COLUMNS = [
 	{ id: 'OPEN', title: 'To Do' },
@@ -16,8 +30,17 @@ const COLUMNS = [
 	{ id: 'CLOSED', title: 'Closed' },
 ];
 
+const STATUS_META = {
+	OPEN: { icon: PendingActions, color: 'warning.main', tone: 'warning' },
+	IN_PROGRESS: { icon: Autorenew, color: 'info.main', tone: 'info' },
+	RESOLVED: { icon: TaskAlt, color: 'success.main', tone: 'success' },
+	CLOSED: { icon: DoneAll, color: 'text.secondary', tone: 'grey' },
+};
+
 const TaskBoard = ({ tasks = [], isLoading }) => {
+	const { data: session } = useSession();
 	const { mutate: updateStatus } = useUpdateTaskStatus();
+	const { mutate: deleteTask } = useDeleteTask();
 	const theme = useTheme();
 	const dispatch = useDispatch();
 
@@ -75,143 +98,223 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 		<DragDropContext onDragEnd={onDragEnd}>
 			<Box
 				sx={{
-					display: 'flex',
+					display: 'grid',
 					gap: 3,
 					width: '100%',
-					height: 'calc(100vh - 350px)',
-					overflowX: 'auto',
+					gridTemplateColumns: {
+						xs: 'repeat(1, minmax(0, 1fr))',
+						md: 'repeat(2, minmax(0, 1fr))',
+						xl: 'repeat(4, minmax(0, 1fr))',
+					},
+					minHeight: 'calc(100vh - 350px)',
 					pb: 2,
 				}}
 			>
-				{COLUMNS.map((column) => (
-					<Box
-						key={column.id}
-						sx={{
-							flex: 1,
-							minWidth: 320,
-							bgcolor: 'background.default',
-							borderRadius: 4,
-							p: 2,
-							display: 'flex',
-							flexDirection: 'column',
-						}}
-					>
-						<Stack
-							direction="row"
-							justifyContent="space-between"
-							alignItems="center"
-							sx={{ mb: 2, px: 1 }}
+				{COLUMNS.map((column) => {
+					const meta = STATUS_META[column.id];
+					const StatusIcon = meta.icon;
+					return (
+						<Paper
+							key={column.id}
+							variant="outlined"
+							sx={{
+								minWidth: 0,
+								borderRadius: 4,
+								p: 2,
+								display: 'flex',
+								flexDirection: 'column',
+								borderColor: alpha(theme.palette[meta.tone]?.main || theme.palette.divider, 0.5),
+								bgcolor: alpha(
+									theme.palette[meta.tone]?.main || '#000',
+									theme.palette.mode === 'dark' ? 0.08 : 0.04
+								),
+							}}
 						>
-							<Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>
-								{column.title.toUpperCase()}
-							</Typography>
-							<Chip
-								label={boardData[column.id]?.length || 0}
-								size="small"
-								sx={{
-									bgcolor: 'background.paper',
-									fontWeight: 900,
-									color: 'text.secondary',
-									fontSize: '0.7rem',
-								}}
-							/>
-						</Stack>
+							<Stack
+								direction="row"
+								justifyContent="space-between"
+								alignItems="center"
+								sx={{ mb: 2, px: 1 }}
+							>
+								<Stack direction="row" spacing={1} alignItems="center">
+									<Box
+										sx={{
+											width: 28,
+											height: 28,
+											borderRadius: '50%',
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											bgcolor: alpha(theme.palette[meta.tone]?.main || '#000', 0.14),
+											color: meta.color,
+										}}
+									>
+										<StatusIcon sx={{ fontSize: 18 }} />
+									</Box>
+									<Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary' }}>
+										{column.title}
+									</Typography>
+								</Stack>
+								<Chip
+									label={boardData[column.id]?.length || 0}
+									size="small"
+									sx={{
+										bgcolor: alpha(theme.palette[meta.tone]?.main || '#000', 0.14),
+										fontWeight: 900,
+										color: meta.color,
+										fontSize: '0.7rem',
+									}}
+								/>
+							</Stack>
 
-						<Droppable droppableId={column.id}>
-							{(provided) => (
-								<Box
-									{...provided.droppableProps}
-									ref={provided.innerRef}
-									sx={{ flexGrow: 1, overflowY: 'auto', minHeight: 100 }}
-								>
-									{boardData[column.id]?.map((task, index) => (
-										<Draggable key={task.id} draggableId={task.id} index={index}>
-											{(provided) => (
-												<Card
-													ref={provided.innerRef}
-													{...provided.draggableProps}
-													{...provided.dragHandleProps}
-													onClick={() => {
-														if (!task?.id) return;
-														dispatch(
-															openDrawer({
-																drawerName: 'taskDetailDrawer',
-																taskId: task.id,
-															})
-														);
-													}}
-													sx={{
-														mb: 2,
-														p: 2,
-														borderRadius: 3,
-														bgcolor: 'background.paper',
-														boxShadow: 1,
-														borderLeft:
-															task.priority === 'HIGH' || task.priority === 'CRITICAL'
-																? `5px solid ${theme.palette.error.main}`
-																: '1px solid transparent',
-														'&:hover': {
-															boxShadow: 3,
-														},
-													}}
-												>
-													<Typography
-														variant="body2"
+							<Droppable droppableId={column.id}>
+								{(provided) => (
+									<Box
+										{...provided.droppableProps}
+										ref={provided.innerRef}
+										sx={{
+											flexGrow: 1,
+											overflowY: 'auto',
+											minHeight: 180,
+											maxHeight: { xs: 'unset', xl: 'calc(100vh - 450px)' },
+											pr: 0.5,
+										}}
+									>
+										{boardData[column.id]?.map((task, index) => (
+											<Draggable key={task.id} draggableId={task.id} index={index}>
+												{(provided) => (
+													<Card
+														ref={provided.innerRef}
+														{...provided.draggableProps}
+														{...provided.dragHandleProps}
+														onClick={() => {
+															if (!task?.id) return;
+															dispatch(
+																openDrawer({
+																	drawerName: 'taskDetailDrawer',
+																	taskId: task.id,
+																})
+															);
+														}}
 														sx={{
-															fontWeight: 700,
-															mb: 1.5,
-															color: 'text.primary',
+															mb: 2,
+															p: 2,
+															borderRadius: 3,
+															bgcolor: 'background.paper',
+															boxShadow: 1,
+															borderLeft:
+																task.priority === 'HIGH' || task.priority === 'CRITICAL'
+																	? `5px solid ${theme.palette.error.main}`
+																	: '1px solid transparent',
+															'&:hover': {
+																boxShadow: 3,
+															},
 														}}
 													>
-														{task.title}
-													</Typography>
-
-													<Stack direction="row" justifyContent="space-between" alignItems="center">
-														<Chip
-															label={task.type}
-															size="small"
+														<Typography
+															variant="body2"
 															sx={{
-																fontWeight: 800,
-																fontSize: '0.6rem',
-																height: 20,
-																bgcolor: 'action.hover',
+																fontWeight: 700,
+																mb: 1.5,
+																color: 'text.primary',
 															}}
-														/>
-														<Stack direction="row" spacing={1} alignItems="center">
-															<Typography
-																variant="caption"
-																sx={{ fontWeight: 800, color: 'text.disabled' }}
-															>
-																{task.priority}
-															</Typography>
+														>
+															{task.title}
+														</Typography>
 
-															<Tooltip title={task.assignedTo?.name || 'Unassigned'} arrow>
-																<Box component="span">
-																	<Avatar
-																		sx={{
-																			width: 24,
-																			height: 24,
-																			fontSize: '0.65rem',
-																			bgcolor: 'primary.main',
-																			cursor: 'pointer',
-																		}}
-																	>
-																		{task.assignedTo?.name?.substring(0, 2).toUpperCase() || '??'}
-																	</Avatar>
-																</Box>
-															</Tooltip>
+														<Stack
+															direction="row"
+															justifyContent="space-between"
+															alignItems="center"
+														>
+															<Chip
+																label={task.type}
+																size="small"
+																sx={{
+																	fontWeight: 800,
+																	fontSize: '0.6rem',
+																	height: 20,
+																	bgcolor: 'action.hover',
+																}}
+															/>
+															<Stack direction="row" spacing={0.5} alignItems="center">
+																{(session?.user?.role === 'SUPER_ADMIN' ||
+																	session?.user?.role === 'ADMIN' ||
+																	session?.user?.role === 'TESTROOM' ||
+																	task.ownerId === session?.user?.id) && (
+																	<Tooltip title="Delete task">
+																		<IconButton
+																			size="small"
+																			onClick={(event) => {
+																				event.stopPropagation();
+																				const confirmDelete = window.confirm(
+																					'Delete this task from workflow overview?'
+																				);
+																				if (!confirmDelete) return;
+																				deleteTask(task.id);
+																			}}
+																			sx={{ color: 'error.main' }}
+																		>
+																			<DeleteOutline sx={{ fontSize: 16 }} />
+																		</IconButton>
+																	</Tooltip>
+																)}
+																<Typography
+																	variant="caption"
+																	sx={{ fontWeight: 800, color: 'text.disabled' }}
+																>
+																	{task.priority}
+																</Typography>
+
+																<Tooltip title={task.assignedTo?.name || 'Unassigned'} arrow>
+																	<Box component="span">
+																		<Avatar
+																			sx={{
+																				width: 24,
+																				height: 24,
+																				fontSize: '0.65rem',
+																				bgcolor: 'primary.main',
+																				cursor: 'pointer',
+																			}}
+																		>
+																			{task.assignedTo?.name?.substring(0, 2).toUpperCase() || '??'}
+																		</Avatar>
+																	</Box>
+																</Tooltip>
+															</Stack>
 														</Stack>
-													</Stack>
-												</Card>
-											)}
-										</Draggable>
-									))}
-									{provided.placeholder}
-								</Box>
-							)}
-						</Droppable>
-					</Box>
-				))}
+													</Card>
+												)}
+											</Draggable>
+										))}
+										{(boardData[column.id] || []).length === 0 && (
+											<Box
+												sx={{
+													minHeight: 120,
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													border: '1px dashed',
+													borderColor: 'divider',
+													borderRadius: 3,
+													bgcolor: 'background.paper',
+												}}
+											>
+												<Typography
+													variant="caption"
+													sx={{ color: 'text.secondary', fontWeight: 700 }}
+												>
+													No tasks in {column.title}
+												</Typography>
+											</Box>
+										)}
+										{provided.placeholder}
+									</Box>
+								)}
+							</Droppable>
+						</Paper>
+					);
+				})}
 			</Box>
 			<TaskDetailDrawer />
 		</DragDropContext>

@@ -2,6 +2,7 @@
 
 import { Assignment, Close, Percent, Person } from '@mui/icons-material';
 import {
+	Autocomplete,
 	Box,
 	Button,
 	Divider,
@@ -235,27 +236,36 @@ const AddTaskDrawer = () => {
 										control={control}
 										rules={{ required: 'Assignee is required' }}
 										render={({ field }) => (
-											<TextField
-												{...field}
-												select
-												label="Assign To"
-												fullWidth
-												error={!!errors.assignedToId}
-												sx={TEXT_FIELD_STYLES}
-												InputProps={{
-													startAdornment: (
-														<InputAdornment position="start">
-															<Person fontSize="small" sx={{ color: 'info.main' }} />
-														</InputAdornment>
-													),
-												}}
-											>
-												{users.map((u) => (
-													<MenuItem key={u.id} value={u.id}>
-														{u.name} ({u.designation})
-													</MenuItem>
-												))}
-											</TextField>
+											<Autocomplete
+												options={users}
+												getOptionLabel={(option) =>
+													`${option.name} (${option.designation || option.role})`
+												}
+												value={users.find((user) => user.id === field.value) || null}
+												onChange={(_, option) => field.onChange(option?.id || '')}
+												isOptionEqualToValue={(option, value) => option.id === value.id}
+												renderInput={(params) => (
+													<TextField
+														{...params}
+														label="Assign To"
+														fullWidth
+														error={!!errors.assignedToId}
+														helperText={errors.assignedToId?.message}
+														sx={TEXT_FIELD_STYLES}
+														InputProps={{
+															...params.InputProps,
+															startAdornment: (
+																<>
+																	<InputAdornment position="start">
+																		<Person fontSize="small" sx={{ color: 'info.main' }} />
+																	</InputAdornment>
+																	{params.InputProps.startAdornment}
+																</>
+															),
+														}}
+													/>
+												)}
+											/>
 										)}
 									/>
 								</Stack>

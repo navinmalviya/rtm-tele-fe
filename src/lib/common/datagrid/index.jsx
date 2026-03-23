@@ -10,6 +10,13 @@ const DataGridLoadingOverlay = () => (
 	<RtmLoader label="Loading records..." size={24} minHeight={220} />
 );
 
+const TABLE_ROW_HEIGHT = 56;
+const TABLE_HEADER_HEIGHT = 56;
+
+const DEFAULT_INITIAL_STATE = {
+	pagination: { paginationModel: { page: 0, pageSize: 10 } },
+};
+
 /**
  * RtmDataGrid - Common Table Component
  * Standardized with the "Hardware Blueprint" design language.
@@ -21,6 +28,9 @@ export default function RtmDataGrid({
 	loading = false,
 	onSelectionChange,
 	checkboxSelection = false,
+	pagination = true,
+	pageSizeOptions = [10, 25, 50],
+	initialState,
 	hideFooter: hideFooterProp,
 	slots: customSlots,
 	slotProps: customSlotProps,
@@ -95,11 +105,22 @@ export default function RtmDataGrid({
 			color: theme.palette.text.primary,
 			display: 'flex',
 			alignItems: 'center',
-			fontSize: '0.85rem',
+			fontSize: '0.82rem',
+			fontWeight: 600,
 			'&:focus, &:focus-within': {
 				outline: 'none !important',
 				backgroundColor: 'transparent !important',
 			},
+		},
+		'& .MuiDataGrid-cell .MuiIconButton-root': {
+			width: 28,
+			height: 28,
+			padding: 0.5,
+			borderRadius: 1.2,
+			color: theme.palette.text.secondary,
+		},
+		'& .MuiDataGrid-cell .MuiIconButton-root .MuiSvgIcon-root': {
+			fontSize: 18,
 		},
 		'& .Mui-selected': {
 			backgroundColor: `${alpha(theme.palette.primary.main, 0.12)} !important`,
@@ -148,8 +169,13 @@ export default function RtmDataGrid({
 					disableRowSelectionOnClick
 					disableColumnMenu
 					density="comfortable"
-					hideFooter={hideFooterProp ?? rows.length < 10}
+					hideFooter={hideFooterProp ?? false}
+					pagination={pagination}
+					pageSizeOptions={pageSizeOptions}
+					initialState={initialState || DEFAULT_INITIAL_STATE}
 					{...rest}
+					rowHeight={TABLE_ROW_HEIGHT}
+					columnHeaderHeight={TABLE_HEADER_HEIGHT}
 				/>
 			) : (
 				<Box sx={{ minHeight: 320 }} />

@@ -184,35 +184,23 @@ export default function EquipmentLibraryPage() {
 
 			{/* Table Area */}
 			<Box sx={{ flex: 1, px: 4, pb: 4 }}>
-				<Box
-					sx={{
-						bgcolor: 'background.paper',
-						borderRadius: 4,
-						boxShadow: 1,
-						border: '1px solid',
-						borderColor: 'divider',
-						overflow: 'hidden',
-						height: '100%',
-					}}
-				>
-					{currentTab === 'equipment-templates' ? (
-						<EquipmentTemplateTable
-							onEdit={(template) => {
-								setEditingTemplate(template);
-								dispatch(openDrawer({ drawerName: 'editEquipmentTemplateDrawer' }));
-							}}
-							onDelete={(template) => setDeleteTemplate(template)}
-						/>
-					) : (
-						<PortTemplateTable
-							onEdit={(template) => {
-								setEditingPortTemplate(template);
-								dispatch(openDrawer({ drawerName: 'editPortTemplateDrawer' }));
-							}}
-							onDelete={(template) => setDeletePortTemplate(template)}
-						/>
-					)}
-				</Box>
+				{currentTab === 'equipment-templates' ? (
+					<EquipmentTemplateTable
+						onEdit={(template) => {
+							setEditingTemplate(template);
+							dispatch(openDrawer({ drawerName: 'editEquipmentTemplateDrawer' }));
+						}}
+						onDelete={(template) => setDeleteTemplate(template)}
+					/>
+				) : (
+					<PortTemplateTable
+						onEdit={(template) => {
+							setEditingPortTemplate(template);
+							dispatch(openDrawer({ drawerName: 'editPortTemplateDrawer' }));
+						}}
+						onDelete={(template) => setDeletePortTemplate(template)}
+					/>
+				)}
 			</Box>
 
 			{/* Drawers */}

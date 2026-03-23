@@ -27,6 +27,16 @@ const updateTaskStatus = (id, status) => {
 };
 
 /**
+ * Update task core details (owner/edit privileged)
+ */
+const updateTask = (id, payload) => {
+	if (!id) {
+		return Promise.reject(new Error('Task id is required'));
+	}
+	return http.patch(`/task/${id}`, payload);
+};
+
+/**
  * Fetch task details by id
  */
 const getTaskById = (id) => {
@@ -54,11 +64,17 @@ const addTaskComment = (id, commentData) => {
 	return http.post(`/task/${id}/comments`, commentData);
 };
 
+const deleteTask = (id) => {
+	return http.delete(`/task/${id}`);
+};
+
 export const TaskService = {
 	getAllTasks,
 	createTask,
+	updateTask,
 	updateTaskStatus,
 	getTaskById,
 	updateFailureDetails,
 	addTaskComment,
+	deleteTask,
 };
