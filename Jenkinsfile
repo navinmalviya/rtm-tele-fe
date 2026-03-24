@@ -121,6 +121,10 @@ pipeline {
                             --restart unless-stopped \\
                             -e REACT_APP_API_URL=${BACKEND_API_URL} \\
                             -e API_URL=${BACKEND_API_URL} \\
+                            -e BASE_URL=${BASE_URL} \\
+                            -e NEXTAUTH_SECRET=${NEXTAUTH_SECRET} \\
+                            -e NEXTAUTH_URL=${NEXTAUTH_URL} \\
+                            -e NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL} \\
                             ${FRONTEND_IMAGE}:${env.FRONTEND_TAG}
                     """
                     echo "✓ Frontend container deployed on port ${FRONTEND_HOST_PORT}"
