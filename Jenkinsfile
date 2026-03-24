@@ -5,7 +5,10 @@ pipeline {
     environment {
         // Repository URL
         FRONTEND_REPO = 'https://github.com/navinmalviya/rtm-tele-fe.git'
-        
+        BASE_URL='http://localhost:3001'
+        NEXTAUTH_SECRET=my_ultra_secure_nextauth_secret
+        NEXTAUTH_URL=http://localhost:3000
+        NEXT_PUBLIC_BASE_URL='http://localhost:3001'
         // Branch to build
         BRANCH = 'main'
         
