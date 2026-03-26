@@ -7,7 +7,7 @@ FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ARG NEXT_PUBLIC_BASE_URL=http://localhost:6001
+ARG NEXT_PUBLIC_BASE_URL=http://localhost:3001
 ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL
 RUN npm run build
 
