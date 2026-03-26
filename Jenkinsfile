@@ -5,7 +5,7 @@ pipeline {
     environment {
         // Repository URL
         FRONTEND_REPO = 'https://github.com/navinmalviya/rtm-tele-fe.git'
-        BASE_URL='http://10.39.251.60:3001'
+        BASE_URL='http://backend-app:3001'
         NEXTAUTH_SECRET='my_ultra_secure_nextauth_secret'
         NEXTAUTH_URL='http://10.39.251.60:3000'
         NEXT_PUBLIC_BASE_URL='http://10.39.251.60:3001'
@@ -73,9 +73,11 @@ pipeline {
                         def timestamp = new Date().format('yyyyMMdd-HHmmss')
                         env.FRONTEND_TAG = timestamp
                         
-                        // Build frontend image
+                        // Build frontend image with public API URL baked into Next.js build
                         sh """
-                            docker build -t ${FRONTEND_IMAGE}:${env.FRONTEND_TAG} .
+                            docker build --no-cache \\
+                                --build-arg NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL} \\
+                                -t ${FRONTEND_IMAGE}:${env.FRONTEND_TAG} .
                             docker tag ${FRONTEND_IMAGE}:${env.FRONTEND_TAG} ${FRONTEND_IMAGE}:latest
                         """
                         echo "✓ Frontend image built: ${FRONTEND_IMAGE}:${env.FRONTEND_TAG}"
