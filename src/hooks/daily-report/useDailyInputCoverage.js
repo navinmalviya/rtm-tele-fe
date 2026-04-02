@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DailyReportService } from '@/services/daily-report';
 import { useToast } from '../common';
 
-export const useDailyFeedCoverage = (params = {}, enabled = true) => {
+export const useDailyInputCoverage = (params = {}, enabled = true) => {
 	const showToast = useToast();
 	return useQuery({
 		queryKey: ['daily-report', 'coverage', params],
@@ -10,7 +10,7 @@ export const useDailyFeedCoverage = (params = {}, enabled = true) => {
 		select: (response) => response.data,
 		enabled,
 		onError: (error) => {
-			showToast(error?.response?.data?.message || 'Failed to load feed coverage', 'error');
+			showToast(error?.response?.data?.message || 'Failed to load input coverage', 'error');
 		},
 	});
 };

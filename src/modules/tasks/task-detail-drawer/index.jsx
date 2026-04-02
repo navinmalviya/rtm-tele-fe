@@ -119,6 +119,14 @@ const formatDateTime = (value) => {
 	});
 };
 
+const toLocalDateTimeInputValue = (value) => {
+	if (!value) return '';
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return '';
+	const timezoneOffsetMs = date.getTimezoneOffset() * 60 * 1000;
+	return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+};
+
 const formatHistoryAction = (value) => {
 	if (!value) return 'Activity';
 	return value
@@ -152,7 +160,6 @@ export default function TaskDetailDrawer() {
 		defaultValues: {
 			type: '',
 			cause: '',
-			failureInTime: '',
 			isHqRepeated: false,
 			isIcmsRepeated: false,
 			stationId: '',
@@ -198,15 +205,12 @@ export default function TaskDetailDrawer() {
 		reset({
 			type: task.failure?.type || '',
 			cause: task.failure?.cause || '',
-			failureInTime: task.failure?.failureInTime
-				? new Date(task.failure.failureInTime).toISOString().slice(0, 16)
-				: '',
 			isHqRepeated: Boolean(task.failure?.isHqRepeated),
 			isIcmsRepeated: Boolean(task.failure?.isIcmsRepeated),
 			stationId: task.failure?.stationId || '',
 			locationId: task.failure?.locationId || '',
 			restorationTime: task.failure?.restorationTime
-				? new Date(task.failure.restorationTime).toISOString().slice(0, 16)
+				? toLocalDateTimeInputValue(task.failure.restorationTime)
 				: '',
 			remarks: task.failure?.remarks || '',
 		});
@@ -276,7 +280,6 @@ export default function TaskDetailDrawer() {
 	const onSubmit = (formData) => {
 		const payload = {
 			...formData,
-			failureInTime: formData.failureInTime ? new Date(formData.failureInTime).toISOString() : null,
 			restorationTime: formData.restorationTime
 				? new Date(formData.restorationTime).toISOString()
 				: null,
@@ -605,30 +608,25 @@ export default function TaskDetailDrawer() {
 										</Stack>
 
 										<Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-											<Controller
-												name="failureInTime"
-												control={control}
-												rules={{ required: 'Failure in time is required' }}
-												render={({ field }) => (
-													<TextField
-														{...field}
-														label="Failure In Time"
-														type="datetime-local"
-														fullWidth
-														error={!!errors.failureInTime}
-														helperText={errors.failureInTime?.message}
-														InputLabelProps={{ shrink: true }}
-														onFocus={openNativeDateTimePicker}
-														onClick={openNativeDateTimePicker}
-														InputProps={{
-															startAdornment: (
-																<InputAdornment position="start">
-																	<Schedule sx={{ fontSize: 18, color: 'text.secondary' }} />
-																</InputAdornment>
-															),
-														}}
-													/>
-												)}
+											<TextField
+												label="Failure In Time"
+												value={toLocalDateTimeInputValue(task.failure?.failureInTime)}
+												type="datetime-local"
+												fullWidth
+												disabled
+												InputLabelProps={{ shrink: true }}
+												InputProps={{
+													startAdornment: (
+														<InputAdornment position="start">
+															<Schedule sx={{ fontSize: 18, color: 'text.secondary' }} />
+														</InputAdornment>
+													),
+												}}
+												helperText={
+													task.failure?.failureInTime
+														? 'Captured at task creation by Testroom'
+														: 'Not captured'
+												}
 											/>
 											<Stack
 												direction={{ xs: 'column', sm: 'row' }}

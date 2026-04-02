@@ -1,5 +1,5 @@
 export { useCreateDailyReportInput } from './useCreateDailyReportInput';
-export { useDailyFeedCoverage } from './useDailyFeedCoverage';
+export { useDailyInputCoverage } from './useDailyInputCoverage';
 export { useDailyReportDashboard } from './useDailyReportDashboard';
 export { useDailyReportInputs } from './useDailyReportInputs';
 export { useDailyReportRuns } from './useDailyReportRuns';

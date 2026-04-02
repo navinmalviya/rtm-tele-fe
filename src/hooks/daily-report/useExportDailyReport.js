@@ -13,7 +13,10 @@ export const useExportDailyReport = () => {
 
 	return useMutation({
 		mutationFn: async (params) => {
-			const response = await DailyReportService.exportReport(params);
+			const response = await DailyReportService.exportReport({
+				...params,
+				_ts: Date.now(),
+			});
 			return response;
 		},
 		onSuccess: (response, variables) => {

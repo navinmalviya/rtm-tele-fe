@@ -48,7 +48,7 @@ const ProjectTasksPage = () => {
 			drawer: 'addProjectDrawer',
 		},
 		tasks: {
-			label: 'Dispatch Work',
+			label: 'Create Task',
 			icon: <Assignment />,
 			drawer: 'addTaskDrawer',
 		},

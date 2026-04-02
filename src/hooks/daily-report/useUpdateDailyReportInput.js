@@ -10,10 +10,10 @@ export const useUpdateDailyReportInput = () => {
 		mutationFn: ({ id, payload }) => DailyReportService.updateInput(id, payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['daily-report'] });
-			showToast('Daily feed entry updated', 'success');
+			showToast('Daily input entry updated', 'success');
 		},
 		onError: (error) => {
-			showToast(error?.response?.data?.message || 'Failed to update daily feed entry', 'error');
+			showToast(error?.response?.data?.message || 'Failed to update daily input entry', 'error');
 		},
 	});
 };

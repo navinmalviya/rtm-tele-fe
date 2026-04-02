@@ -47,7 +47,7 @@ import { useMemo, useState } from 'react';
 import { useTabs } from '@/hooks/common';
 import {
 	useCreateDailyReportInput,
-	useDailyFeedCoverage,
+	useDailyInputCoverage,
 	useDailyReportDashboard,
 	useDailyReportInputs,
 	useDailyReportRuns,
@@ -565,7 +565,7 @@ const buildSummaryFromDynamicFields = (sectionType, dynamicValues = {}, remarks 
 	};
 };
 
-const defaultFeedForm = (reportDate, currentUserId) => ({
+const defaultInputForm = (reportDate, currentUserId) => ({
 	reportDate,
 	sectionType: 'CORE_FAILURE',
 	stationId: '',
@@ -579,6 +579,32 @@ const defaultFeedForm = (reportDate, currentUserId) => ({
 	sourceContactDesignation: '',
 	sourceContactChannel: '',
 });
+
+const pad = (value) => String(value).padStart(2, '0');
+
+const toInputDate = (date) => new Date(date).toISOString().slice(0, 10);
+
+const toInputDateTime = (date) => {
+	const d = new Date(date);
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+const toDateOnly = (value) => {
+	if (!value) return '';
+	if (value.includes('T')) return value.slice(0, 10);
+	return value.slice(0, 10);
+};
+
+const getDefaultRange = () => {
+	const end = new Date();
+	const start = new Date();
+	start.setDate(end.getDate() - 29);
+	start.setHours(0, 0, 0, 0);
+	return {
+		startDate: toInputDateTime(start),
+		endDate: toInputDateTime(end),
+	};
+};
 
 const getStatusColor = (theme, status) => {
 	switch (status) {
@@ -665,27 +691,29 @@ export default function ReportsPage() {
 	const currentUserId = session?.user?.id || '';
 	const { currentTab } = useTabs('reportsHub', { currentTab: 'daily-telecom-position' });
 
-	const [reportDate, setReportDate] = useState(() => new Date().toISOString().slice(0, 10));
-	const [feedDrawerOpen, setFeedDrawerOpen] = useState(false);
+	const [dateRange, setDateRange] = useState(getDefaultRange);
+	const [inputDrawerOpen, setInputDrawerOpen] = useState(false);
 	const [editingInput, setEditingInput] = useState(null);
-	const [feedForm, setFeedForm] = useState(() => defaultFeedForm(reportDate, currentUserId));
+	const [inputForm, setInputForm] = useState(() =>
+		defaultInputForm(toDateOnly(getDefaultRange().endDate), currentUserId)
+	);
+	const reportParams = useMemo(
+		() => ({
+			startDate: dateRange.startDate,
+			endDate: dateRange.endDate,
+		}),
+		[dateRange.startDate, dateRange.endDate]
+	);
 
 	const { data: stationNodes = [] } = useStations();
 	const { data: subSections = [] } = useSubsections();
-	const { data: dashboard, isLoading: loadingDashboard } = useDailyReportDashboard({
-		date: reportDate,
-	});
-	const { data: inputRows = [], isLoading: loadingInputs } = useDailyReportInputs({
-		date: reportDate,
-	});
-	const { data: feedCoverage = [], isLoading: loadingCoverage } = useDailyFeedCoverage(
-		{ date: reportDate },
+	const { data: dashboard, isLoading: loadingDashboard } = useDailyReportDashboard(reportParams);
+	const { data: inputRows = [], isLoading: loadingInputs } = useDailyReportInputs(reportParams);
+	const { data: inputCoverage = [], isLoading: loadingCoverage } = useDailyInputCoverage(
+		reportParams,
 		canFallback
 	);
-	const { data: runHistory = [], isLoading: loadingRuns } = useDailyReportRuns(
-		{ date: reportDate },
-		canFallback
-	);
+	const { data: runHistory = [], isLoading: loadingRuns } = useDailyReportRuns(reportParams, canFallback);
 
 	const createInputMutation = useCreateDailyReportInput();
 	const updateInputMutation = useUpdateDailyReportInput();
@@ -710,13 +738,13 @@ export default function ReportsPage() {
 		[subSections]
 	);
 
-	const feedUsers = useMemo(() => {
+	const inputUsers = useMemo(() => {
 		if (!canFallback) return [];
-		return feedCoverage.map((row) => ({
+		return inputCoverage.map((row) => ({
 			id: row.userId,
 			label: `${row.name}${row.designation ? ` · ${row.designation}` : ''}`,
 		}));
-	}, [feedCoverage, canFallback]);
+	}, [inputCoverage, canFallback]);
 
 	const summary = dashboard?.summary || {};
 	const statusChartData = dashboard?.charts?.status || [];
@@ -949,10 +977,10 @@ export default function ReportsPage() {
 								onClick={() => {
 									if (!canEditRow) return;
 									setEditingInput(params.row);
-									setFeedForm({
+									setInputForm({
 										reportDate: params.row.reportDate
 											? new Date(params.row.reportDate).toISOString().slice(0, 10)
-											: reportDate,
+											: toDateOnly(dateRange.endDate),
 										sectionType: params.row.sectionType || 'CORE_FAILURE',
 										stationId: params.row.stationId || '',
 										subsectionId: params.row.subsectionId || '',
@@ -965,7 +993,7 @@ export default function ReportsPage() {
 										sourceContactDesignation: params.row.sourceContactDesignation || '',
 										sourceContactChannel: params.row.sourceContactChannel || '',
 									});
-									setFeedDrawerOpen(true);
+									setInputDrawerOpen(true);
 								}}
 								sx={{ color: 'primary.main' }}
 								disabled={!canEditRow}
@@ -988,7 +1016,7 @@ export default function ReportsPage() {
 		[
 			theme,
 			deleteInputMutation.isPending,
-			reportDate,
+			toDateOnly(dateRange.endDate),
 			deleteInputMutation,
 			canFallback,
 			canSectionalDelete,
@@ -1063,30 +1091,30 @@ export default function ReportsPage() {
 		[theme]
 	);
 
-	const saveFeedEntry = async () => {
+	const saveInputEntry = async () => {
 		const summary = buildSummaryFromDynamicFields(
-			feedForm.sectionType,
-			feedForm.dynamicFields,
-			feedForm.remarks
+			inputForm.sectionType,
+			inputForm.dynamicFields,
+			inputForm.remarks
 		);
 
-		const dynamicFailureInTime = feedForm.dynamicFields?.failureInTime || '';
-		const dynamicRestorationTime = feedForm.dynamicFields?.restorationTime || '';
-		const dynamicTargetDate = feedForm.dynamicFields?.targetDate || '';
-		const dynamicComplianceDate = feedForm.dynamicFields?.complianceDate || '';
-		const dynamicInformedTo = feedForm.dynamicFields?.informedTo || '';
-		const dynamicResponsibleDept = feedForm.dynamicFields?.responsibleDept || '';
+		const dynamicFailureInTime = inputForm.dynamicFields?.failureInTime || '';
+		const dynamicRestorationTime = inputForm.dynamicFields?.restorationTime || '';
+		const dynamicTargetDate = inputForm.dynamicFields?.targetDate || '';
+		const dynamicComplianceDate = inputForm.dynamicFields?.complianceDate || '';
+		const dynamicInformedTo = inputForm.dynamicFields?.informedTo || '';
+		const dynamicResponsibleDept = inputForm.dynamicFields?.responsibleDept || '';
 		const dynamicStatus =
-			feedForm.dynamicFields?.failureStatus ||
-			feedForm.dynamicFields?.testResult ||
-			feedForm.dynamicFields?.testStatus ||
+			inputForm.dynamicFields?.failureStatus ||
+			inputForm.dynamicFields?.testResult ||
+			inputForm.dynamicFields?.testStatus ||
 			'';
 
 		const payload = {
-			reportDate: feedForm.reportDate || reportDate,
-			sectionType: feedForm.sectionType,
-			stationId: feedForm.stationId || null,
-			subsectionId: feedForm.subsectionId || null,
+			reportDate: inputForm.reportDate || toDateOnly(dateRange.endDate),
+			sectionType: inputForm.sectionType,
+			stationId: inputForm.stationId || null,
+			subsectionId: inputForm.subsectionId || null,
 			entryTitle: summary.entryTitle,
 			entryDetails: summary.entryDetails,
 			entryStatus: dynamicStatus || null,
@@ -1096,13 +1124,13 @@ export default function ReportsPage() {
 			complianceDate: dynamicComplianceDate ? toIsoDate(dynamicComplianceDate) : null,
 			informedTo: dynamicInformedTo || null,
 			responsibleDept: dynamicResponsibleDept || null,
-			dynamicFields: feedForm.dynamicFields || null,
-			inputForUserId: canFallback ? feedForm.inputForUserId || null : null,
-			isFallbackEntry: canFallback ? Boolean(feedForm.isFallbackEntry) : false,
-			sourceType: feedForm.sourceType || 'FIELD_APP',
-			sourceContactName: feedForm.sourceContactName || null,
-			sourceContactDesignation: feedForm.sourceContactDesignation || null,
-			sourceContactChannel: feedForm.sourceContactChannel || null,
+			dynamicFields: inputForm.dynamicFields || null,
+			inputForUserId: canFallback ? inputForm.inputForUserId || null : null,
+			isFallbackEntry: canFallback ? Boolean(inputForm.isFallbackEntry) : false,
+			sourceType: inputForm.sourceType || 'FIELD_APP',
+			sourceContactName: inputForm.sourceContactName || null,
+			sourceContactDesignation: inputForm.sourceContactDesignation || null,
+			sourceContactChannel: inputForm.sourceContactChannel || null,
 		};
 
 		if (editingInput?.id) {
@@ -1110,25 +1138,25 @@ export default function ReportsPage() {
 		} else {
 			await createInputMutation.mutateAsync(payload);
 		}
-		setFeedDrawerOpen(false);
+		setInputDrawerOpen(false);
 		setEditingInput(null);
-		setFeedForm(defaultFeedForm(reportDate, currentUserId));
+		setInputForm(defaultInputForm(toDateOnly(dateRange.endDate), currentUserId));
 	};
 
-	const isSavingFeed = createInputMutation.isPending || updateInputMutation.isPending;
+	const isSavingInput = createInputMutation.isPending || updateInputMutation.isPending;
 	const requiresSourceContact =
-		Boolean(feedForm.isFallbackEntry) ||
-		(feedForm.sourceType && feedForm.sourceType !== 'FIELD_APP');
-	const activeDynamicTemplate = getDynamicTemplate(feedForm.sectionType);
+		Boolean(inputForm.isFallbackEntry) ||
+		(inputForm.sourceType && inputForm.sourceType !== 'FIELD_APP');
+	const activeDynamicTemplate = getDynamicTemplate(inputForm.sectionType);
 	const missingDynamicFields = activeDynamicTemplate.fields.filter((field) => {
 		if (!field.required) return false;
-		const value = feedForm.dynamicFields?.[field.key];
+		const value = inputForm.dynamicFields?.[field.key];
 		if (value === null || value === undefined) return true;
 		if (typeof value === 'string') return !value.trim();
 		return false;
 	});
-	const canSaveFeed =
-		!isSavingFeed && Boolean(feedForm.sectionType) && missingDynamicFields.length === 0;
+	const canSaveInput =
+		!isSavingInput && Boolean(inputForm.sectionType) && missingDynamicFields.length === 0;
 
 	return (
 		<Box
@@ -1160,7 +1188,7 @@ export default function ReportsPage() {
 								letterSpacing: '1px',
 							}}
 						>
-							Daily telecom analytics + field feed + one-click exports
+							Daily telecom analytics + field inputs + one-click exports
 						</Typography>
 					</Box>
 				</Stack>
@@ -1189,7 +1217,7 @@ export default function ReportsPage() {
 								</Typography>
 								<Chip
 									size="small"
-									label={`${failureRows.length} active items`}
+									label={`${failureRows.length} failure rows`}
 									sx={{
 										bgcolor: alpha(theme.palette.primary.main, 0.18),
 										color: 'primary.main',
@@ -1200,13 +1228,33 @@ export default function ReportsPage() {
 
 							<Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
 								<TextField
-									label="Report Date"
-									type="date"
-									value={reportDate}
+									label="Start Date & Time"
+									type="datetime-local"
+									value={dateRange.startDate}
 									onChange={(event) => {
 										const value = event.target.value;
-										setReportDate(value);
-										setFeedForm((prev) => ({ ...prev, reportDate: value }));
+										setDateRange((prev) => ({
+											startDate: value,
+											endDate: value > prev.endDate ? value : prev.endDate,
+										}));
+									}}
+									onFocus={openNativeDateTimePicker}
+									onClick={openNativeDateTimePicker}
+									InputLabelProps={{ shrink: true }}
+									size="small"
+									sx={{ minWidth: 165 }}
+								/>
+								<TextField
+									label="End Date & Time"
+									type="datetime-local"
+									value={dateRange.endDate}
+									onChange={(event) => {
+										const value = event.target.value;
+										setDateRange((prev) => ({
+											startDate: value < prev.startDate ? value : prev.startDate,
+											endDate: value,
+										}));
+										setInputForm((prev) => ({ ...prev, reportDate: toDateOnly(value) }));
 									}}
 									onFocus={openNativeDateTimePicker}
 									onClick={openNativeDateTimePicker}
@@ -1217,9 +1265,13 @@ export default function ReportsPage() {
 								<Button
 									variant="outlined"
 									onClick={() => {
-										const today = new Date().toISOString().slice(0, 10);
-										setReportDate(today);
-										setFeedForm((prev) => ({ ...prev, reportDate: today }));
+										const now = new Date();
+										const startOfDay = new Date(now);
+										startOfDay.setHours(0, 0, 0, 0);
+										const start = toInputDateTime(startOfDay);
+										const end = toInputDateTime(now);
+										setDateRange({ startDate: start, endDate: end });
+										setInputForm((prev) => ({ ...prev, reportDate: toDateOnly(end) }));
 									}}
 									sx={{ textTransform: 'none', fontWeight: 800 }}
 								>
@@ -1228,7 +1280,13 @@ export default function ReportsPage() {
 								<Button
 									variant="outlined"
 									startIcon={<Description sx={{ fontSize: 18 }} />}
-									onClick={() => exportMutation.mutate({ date: reportDate, format: 'excel' })}
+									onClick={() =>
+										exportMutation.mutate({
+											startDate: dateRange.startDate,
+											endDate: dateRange.endDate,
+											format: 'excel',
+										})
+									}
 									disabled={exportMutation.isPending}
 									sx={{ textTransform: 'none', fontWeight: 800 }}
 								>
@@ -1237,7 +1295,13 @@ export default function ReportsPage() {
 								<Button
 									variant="outlined"
 									startIcon={<QueryStats sx={{ fontSize: 18 }} />}
-									onClick={() => exportMutation.mutate({ date: reportDate, format: 'graphical' })}
+									onClick={() =>
+										exportMutation.mutate({
+											startDate: dateRange.startDate,
+											endDate: dateRange.endDate,
+											format: 'graphical',
+										})
+									}
 									disabled={exportMutation.isPending}
 									sx={{ textTransform: 'none', fontWeight: 800 }}
 								>
@@ -1248,12 +1312,12 @@ export default function ReportsPage() {
 									startIcon={<Add sx={{ fontSize: 18 }} />}
 									onClick={() => {
 										setEditingInput(null);
-										setFeedForm(defaultFeedForm(reportDate, currentUserId));
-										setFeedDrawerOpen(true);
+										setInputForm(defaultInputForm(toDateOnly(dateRange.endDate), currentUserId));
+										setInputDrawerOpen(true);
 									}}
 									sx={{ textTransform: 'none', fontWeight: 800 }}
 								>
-									Add Field Feed
+									Add Field Input
 								</Button>
 							</Stack>
 						</Stack>
@@ -1268,7 +1332,7 @@ export default function ReportsPage() {
 							<StatCard
 								title="Total Failures"
 								value={summary.totalFailures || 0}
-								subtitle="In selected date"
+								subtitle="In selected range"
 								icon={<Troubleshoot sx={{ fontSize: 18 }} />}
 								tone="primary"
 							/>
@@ -1282,14 +1346,14 @@ export default function ReportsPage() {
 							<StatCard
 								title="Reported"
 								value={summary.reportedInRange || 0}
-								subtitle="New for date"
+								subtitle="New in range"
 								icon={<Campaign sx={{ fontSize: 18 }} />}
 								tone="info"
 							/>
 							<StatCard
 								title="Restored"
 								value={summary.restoredInRange || 0}
-								subtitle="Closed in date"
+								subtitle="Closed in range"
 								icon={<TaskAlt sx={{ fontSize: 18 }} />}
 								tone="success"
 							/>
@@ -1337,7 +1401,7 @@ export default function ReportsPage() {
 									/>
 								) : (
 									<Typography sx={{ color: 'text.secondary' }}>
-										No status data for this date.
+										No status data for this range.
 									</Typography>
 								)}
 							</Paper>
@@ -1359,7 +1423,7 @@ export default function ReportsPage() {
 									/>
 								) : (
 									<Typography sx={{ color: 'text.secondary' }}>
-										No type data for this date.
+										No type data for this range.
 									</Typography>
 								)}
 							</Paper>
@@ -1386,7 +1450,7 @@ export default function ReportsPage() {
 									/>
 								) : (
 									<Typography sx={{ color: 'text.secondary' }}>
-										No station data for this date.
+										No station data for this range.
 									</Typography>
 								)}
 							</Paper>
@@ -1437,7 +1501,7 @@ export default function ReportsPage() {
 								justifyContent="space-between"
 							>
 								<Typography sx={{ fontWeight: 900, fontSize: '1.02rem' }}>
-									Carry-Forward Feed Entries
+									Carry-Forward Input Entries
 								</Typography>
 								<Stack direction="row" spacing={0.8} alignItems="center">
 									<Chip
@@ -1485,9 +1549,9 @@ export default function ReportsPage() {
 								}}
 							>
 								<Paper variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
-									<Typography sx={{ fontWeight: 900, mb: 1 }}>Field Feed Coverage</Typography>
+									<Typography sx={{ fontWeight: 900, mb: 1 }}>Field Input Coverage</Typography>
 									<RtmDataGrid
-										rows={feedCoverage.map((row) => ({ id: row.userId, ...row }))}
+										rows={inputCoverage.map((row) => ({ id: row.userId, ...row }))}
 										columns={coverageColumns}
 										loading={loadingCoverage}
 										pagination
@@ -1537,9 +1601,9 @@ export default function ReportsPage() {
 
 			<Drawer
 				anchor="right"
-				open={feedDrawerOpen}
+				open={inputDrawerOpen}
 				onClose={() => {
-					setFeedDrawerOpen(false);
+					setInputDrawerOpen(false);
 					setEditingInput(null);
 				}}
 				PaperProps={{
@@ -1554,7 +1618,7 @@ export default function ReportsPage() {
 					<Stack direction="row" alignItems="center" justifyContent="space-between">
 						<Box>
 							<Typography variant="h6" sx={{ fontWeight: 900 }}>
-								{editingInput ? 'Edit Field Feed Entry' : 'Add Field Feed Entry'}
+								{editingInput ? 'Edit Field Input Entry' : 'Add Field Input Entry'}
 							</Typography>
 							<Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 600 }}>
 								Captured for telecom position and carried forward until removed by sectional JE/SSE.
@@ -1565,9 +1629,9 @@ export default function ReportsPage() {
 					<TextField
 						label="Report Date"
 						type="date"
-						value={feedForm.reportDate}
+						value={inputForm.reportDate}
 						onChange={(event) =>
-							setFeedForm((prev) => ({
+							setInputForm((prev) => ({
 								...prev,
 								reportDate: event.target.value,
 							}))
@@ -1589,10 +1653,10 @@ export default function ReportsPage() {
 					<TextField
 						select
 						label="Section Type"
-						value={feedForm.sectionType}
+						value={inputForm.sectionType}
 						onChange={(event) => {
 							const nextSection = event.target.value;
-							setFeedForm((prev) => ({
+							setInputForm((prev) => ({
 								...prev,
 								sectionType: nextSection,
 								dynamicFields: getDynamicDefaults(nextSection),
@@ -1619,9 +1683,9 @@ export default function ReportsPage() {
 						<TextField
 							select
 							label="Station (Optional)"
-							value={feedForm.stationId}
+							value={inputForm.stationId}
 							onChange={(event) =>
-								setFeedForm((prev) => ({
+								setInputForm((prev) => ({
 									...prev,
 									stationId: event.target.value,
 								}))
@@ -1647,9 +1711,9 @@ export default function ReportsPage() {
 						<TextField
 							select
 							label="Subsection (Optional)"
-							value={feedForm.subsectionId}
+							value={inputForm.subsectionId}
 							onChange={(event) =>
-								setFeedForm((prev) => ({
+								setInputForm((prev) => ({
 									...prev,
 									subsectionId: event.target.value,
 								}))
@@ -1718,7 +1782,7 @@ export default function ReportsPage() {
 						>
 							{activeDynamicTemplate.fields.map((field) => {
 								const FieldIcon = field.icon || Description;
-								const value = dynamicValueToString(feedForm.dynamicFields?.[field.key], field);
+								const value = dynamicValueToString(inputForm.dynamicFields?.[field.key], field);
 								const isDateField = field.type === 'date';
 								const isDateTimeField = field.type === 'datetime-local';
 								const isMultiline = field.type === 'multiline';
@@ -1740,7 +1804,7 @@ export default function ReportsPage() {
 										}
 										value={value}
 										onChange={(event) =>
-											setFeedForm((prev) => ({
+											setInputForm((prev) => ({
 												...prev,
 												dynamicFields: {
 													...(prev.dynamicFields || {}),
@@ -1780,9 +1844,9 @@ export default function ReportsPage() {
 
 					<TextField
 						label="Additional Remarks (Optional)"
-						value={feedForm.remarks}
+						value={inputForm.remarks}
 						onChange={(event) =>
-							setFeedForm((prev) => ({
+							setInputForm((prev) => ({
 								...prev,
 								remarks: event.target.value,
 							}))
@@ -1805,9 +1869,9 @@ export default function ReportsPage() {
 							<TextField
 								select
 								label="Input For Engineer"
-								value={feedForm.inputForUserId}
+								value={inputForm.inputForUserId}
 								onChange={(event) =>
-									setFeedForm((prev) => ({
+									setInputForm((prev) => ({
 										...prev,
 										inputForUserId: event.target.value,
 									}))
@@ -1823,7 +1887,7 @@ export default function ReportsPage() {
 								fullWidth
 							>
 								<MenuItem value="">Self / General</MenuItem>
-								{feedUsers.map((user) => (
+								{inputUsers.map((user) => (
 									<MenuItem key={user.id} value={user.id}>
 										{user.label}
 									</MenuItem>
@@ -1834,9 +1898,9 @@ export default function ReportsPage() {
 								<TextField
 									select
 									label="Source Type"
-									value={feedForm.sourceType}
+									value={inputForm.sourceType}
 									onChange={(event) =>
-										setFeedForm((prev) => ({
+										setInputForm((prev) => ({
 											...prev,
 											sourceType: event.target.value,
 										}))
@@ -1854,9 +1918,9 @@ export default function ReportsPage() {
 								<TextField
 									select
 									label="Fallback Entry"
-									value={feedForm.isFallbackEntry ? 'YES' : 'NO'}
+									value={inputForm.isFallbackEntry ? 'YES' : 'NO'}
 									onChange={(event) =>
-										setFeedForm((prev) => ({
+										setInputForm((prev) => ({
 											...prev,
 											isFallbackEntry: event.target.value === 'YES',
 										}))
@@ -1873,9 +1937,9 @@ export default function ReportsPage() {
 								<Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
 									<TextField
 										label="Source Contact Name"
-										value={feedForm.sourceContactName}
+										value={inputForm.sourceContactName}
 										onChange={(event) =>
-											setFeedForm((prev) => ({
+											setInputForm((prev) => ({
 												...prev,
 												sourceContactName: event.target.value,
 											}))
@@ -1885,9 +1949,9 @@ export default function ReportsPage() {
 									/>
 									<TextField
 										label="Source Contact Designation"
-										value={feedForm.sourceContactDesignation}
+										value={inputForm.sourceContactDesignation}
 										onChange={(event) =>
-											setFeedForm((prev) => ({
+											setInputForm((prev) => ({
 												...prev,
 												sourceContactDesignation: event.target.value,
 											}))
@@ -1897,9 +1961,9 @@ export default function ReportsPage() {
 									/>
 									<TextField
 										label="Source Contact Channel"
-										value={feedForm.sourceContactChannel}
+										value={inputForm.sourceContactChannel}
 										onChange={(event) =>
-											setFeedForm((prev) => ({
+											setInputForm((prev) => ({
 												...prev,
 												sourceContactChannel: event.target.value,
 											}))
@@ -1922,7 +1986,7 @@ export default function ReportsPage() {
 						<Button
 							variant="outlined"
 							onClick={() => {
-								setFeedDrawerOpen(false);
+								setInputDrawerOpen(false);
 								setEditingInput(null);
 							}}
 							sx={{ textTransform: 'none', fontWeight: 800 }}
@@ -1931,11 +1995,11 @@ export default function ReportsPage() {
 						</Button>
 						<Button
 							variant="contained"
-							onClick={saveFeedEntry}
-							disabled={!canSaveFeed}
+							onClick={saveInputEntry}
+							disabled={!canSaveInput}
 							sx={{ textTransform: 'none', fontWeight: 800 }}
 						>
-							{isSavingFeed ? 'Saving...' : editingInput ? 'Update Entry' : 'Save Entry'}
+							{isSavingInput ? 'Saving...' : editingInput ? 'Update Entry' : 'Save Entry'}
 						</Button>
 					</Stack>
 				</Stack>

@@ -10,10 +10,10 @@ export const useCreateDailyReportInput = () => {
 		mutationFn: (payload) => DailyReportService.createInput(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['daily-report'] });
-			showToast('Daily feed entry saved', 'success');
+			showToast('Daily input entry saved', 'success');
 		},
 		onError: (error) => {
-			showToast(error?.response?.data?.message || 'Failed to save daily feed entry', 'error');
+			showToast(error?.response?.data?.message || 'Failed to save daily input entry', 'error');
 		},
 	});
 };

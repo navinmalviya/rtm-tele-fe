@@ -1,10 +1,10 @@
 'use client';
 
-import { CalendarMonth, DeleteOutline, Edit, Place, Visibility } from '@mui/icons-material';
-import { Box, IconButton, Tooltip, Typography } from '@mui/material';
+import { CalendarMonth, DeleteOutline, Edit, Place, Search, Visibility } from '@mui/icons-material';
+import { Box, IconButton, InputAdornment, TextField, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useDeleteStation, useStations } from '@/hooks/stations';
 import RtmDataGrid from '@/lib/common/datagrid';
@@ -19,6 +19,32 @@ export function StationTable({ readOnly = false, routeBasePath = '/testroom' }) 
 	const { mutate: deleteStation, isLoading: isDeleting } = useDeleteStation();
 	const [editTarget, setEditTarget] = useState(null);
 	const [deleteTarget, setDeleteTarget] = useState(null);
+	const [searchText, setSearchText] = useState('');
+
+	const filteredStations = useMemo(() => {
+		const normalizedSearch = searchText.trim().toLowerCase();
+		if (!normalizedSearch) return stations;
+
+		return stations.filter((station) => {
+			const stationSupervisorNames = (station.stationSupervisors || [])
+				.map((row) => row?.name)
+				.filter(Boolean);
+
+			const searchableValues = [
+				station.name,
+				station.code,
+				station.data?.label,
+				station.data?.code,
+				station.supervisor?.name,
+				...stationSupervisorNames,
+			]
+				.filter(Boolean)
+				.join(' ')
+				.toLowerCase();
+
+			return searchableValues.includes(normalizedSearch);
+		});
+	}, [searchText, stations]);
 
 	const columns = [
 		{
@@ -122,8 +148,28 @@ export function StationTable({ readOnly = false, routeBasePath = '/testroom' }) 
 
 	return (
 		<Box sx={{ width: '100%' }}>
+			<Box sx={{ mb: 2.5, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+				<TextField
+					value={searchText}
+					onChange={(event) => setSearchText(event.target.value)}
+					placeholder="Search station by name, code or supervisor..."
+					size="small"
+					sx={{ width: { xs: '100%', sm: 420 } }}
+					InputProps={{
+						startAdornment: (
+							<InputAdornment position="start">
+								<Search sx={{ fontSize: 18, color: 'text.secondary' }} />
+							</InputAdornment>
+						),
+					}}
+				/>
+				<Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', alignSelf: 'center' }}>
+					{filteredStations.length} station{filteredStations.length === 1 ? '' : 's'}
+				</Typography>
+			</Box>
+
 			<RtmDataGrid
-				rows={stations}
+				rows={filteredStations}
 				columns={columns}
 				loading={isLoading}
 				getRowId={(row) => row.id}

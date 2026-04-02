@@ -10,10 +10,10 @@ export const useDeleteDailyReportInput = () => {
 		mutationFn: (id) => DailyReportService.deleteInput(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['daily-report'] });
-			showToast('Daily feed entry deleted', 'success');
+			showToast('Daily input entry deleted', 'success');
 		},
 		onError: (error) => {
-			showToast(error?.response?.data?.message || 'Failed to delete daily feed entry', 'error');
+			showToast(error?.response?.data?.message || 'Failed to delete daily input entry', 'error');
 		},
 	});
 };
