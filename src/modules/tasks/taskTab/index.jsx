@@ -1,7 +1,7 @@
 'use client';
 
 import { Refresh } from '@mui/icons-material';
-import { Box, IconButton, MenuItem, Select, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Button, IconButton, MenuItem, Select, Stack, Tooltip, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useProjects } from '@/hooks/project/useProjects';
 import { useTasks } from '@/hooks/task/useTasks';
@@ -32,6 +32,7 @@ const TaskTab = () => {
 		assigneeId: 'ALL',
 		projectId: 'ALL',
 		failureDetails: 'ALL',
+		todayOnly: false,
 	});
 
 	const handleFilterChange = (field) => (event) => {
@@ -51,8 +52,21 @@ const TaskTab = () => {
 				(filters.failureDetails === 'COMPLETED' &&
 					task.type === 'FAILURE' &&
 					!isFailureDetailsPending(task));
+			let matchToday = true;
+			if (filters.todayOnly) {
+				const taskDate = task?.createdAt ? new Date(task.createdAt) : null;
+				if (!taskDate || Number.isNaN(taskDate.getTime())) {
+					matchToday = false;
+				} else {
+					const now = new Date();
+					matchToday =
+						taskDate.getFullYear() === now.getFullYear() &&
+						taskDate.getMonth() === now.getMonth() &&
+						taskDate.getDate() === now.getDate();
+				}
+			}
 
-			return matchType && matchAssignee && matchProject && matchFailureDetails;
+			return matchType && matchAssignee && matchProject && matchFailureDetails && matchToday;
 		});
 	}, [tasks, filters]);
 
@@ -127,6 +141,27 @@ const TaskTab = () => {
 						<MenuItem value="PENDING">Details Pending</MenuItem>
 						<MenuItem value="COMPLETED">Details Added</MenuItem>
 					</Select>
+
+					<Button
+						variant={filters.todayOnly ? 'contained' : 'outlined'}
+						disableElevation
+						onClick={() =>
+							setFilters((prev) => ({
+								...prev,
+								todayOnly: !prev.todayOnly,
+							}))
+						}
+						sx={{
+							height: 36,
+							borderRadius: 2,
+							fontSize: '0.75rem',
+							fontWeight: 800,
+							textTransform: 'none',
+							minWidth: 84,
+						}}
+					>
+						Today
+					</Button>
 
 					<Tooltip title="Refresh Board">
 						<IconButton
