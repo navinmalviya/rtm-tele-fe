@@ -172,11 +172,13 @@ export default function DashboardPage() {
 		return `${hours}h ${minutes}m`;
 	};
 	const formatEnumLabel = (value) =>
-		value
-			?.toString()
-			.toLowerCase()
-			.replace(/_/g, ' ')
-			.replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
+		value === 'UNKNOWN'
+			? 'Details Pending'
+			: value
+					?.toString()
+					.toLowerCase()
+					.replace(/_/g, ' ')
+					.replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
 
 	const mttrValues = useMemo(() => {
 		return filteredFailures
@@ -220,7 +222,7 @@ export default function DashboardPage() {
 		stationChartFailures.forEach((task) => {
 			const stationId = task.failure?.stationId || task.failure?.location?.stationId;
 			const key = stationId || 'UNKNOWN';
-			const label = stationMap.get(stationId) || 'Unknown';
+			const label = stationMap.get(stationId) || 'Station Not Linked';
 			if (!counts.has(key)) counts.set(key, { key, label, items: [] });
 			counts.get(key).items.push(task);
 		});

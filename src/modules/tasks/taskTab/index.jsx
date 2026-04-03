@@ -17,6 +17,10 @@ const SELECT_STYLES = {
 	'& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
 };
 
+const isFailureDetailsPending = (task) =>
+	task.type === 'FAILURE' &&
+	(!task.failure || !task.failure.type || !task.failure.cause || !task.failure.failureInTime);
+
 const TaskTab = () => {
 	const { data: tasks = [], isLoading, refetch, isFetching } = useTasks();
 	const { data: users = [] } = useUsers();
@@ -27,6 +31,7 @@ const TaskTab = () => {
 		type: 'ALL',
 		assigneeId: 'ALL',
 		projectId: 'ALL',
+		failureDetails: 'ALL',
 	});
 
 	const handleFilterChange = (field) => (event) => {
@@ -40,8 +45,14 @@ const TaskTab = () => {
 			const matchAssignee =
 				filters.assigneeId === 'ALL' || task.assignedToId === filters.assigneeId;
 			const matchProject = filters.projectId === 'ALL' || task.projectId === filters.projectId;
+			const matchFailureDetails =
+				filters.failureDetails === 'ALL' ||
+				(filters.failureDetails === 'PENDING' && isFailureDetailsPending(task)) ||
+				(filters.failureDetails === 'COMPLETED' &&
+					task.type === 'FAILURE' &&
+					!isFailureDetailsPending(task));
 
-			return matchType && matchAssignee && matchProject;
+			return matchType && matchAssignee && matchProject && matchFailureDetails;
 		});
 	}, [tasks, filters]);
 
@@ -105,6 +116,16 @@ const TaskTab = () => {
 								{p.name}
 							</MenuItem>
 						))}
+					</Select>
+
+					<Select
+						value={filters.failureDetails}
+						onChange={handleFilterChange('failureDetails')}
+						sx={{ ...SELECT_STYLES, width: 170 }}
+					>
+						<MenuItem value="ALL">All Failures</MenuItem>
+						<MenuItem value="PENDING">Details Pending</MenuItem>
+						<MenuItem value="COMPLETED">Details Added</MenuItem>
 					</Select>
 
 					<Tooltip title="Refresh Board">

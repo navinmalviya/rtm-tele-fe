@@ -55,47 +55,7 @@ import RtmLoader from '@/lib/common/loader';
 import RtmLoadingButton from '@/lib/common/loading-button';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
-
-const FAILURE_TYPES = [
-	'AXLE_COUTER',
-	'FARE_TERMINAL',
-	'FCT_STD_PHONE',
-	'DATA_LOGGER',
-	'VHF',
-	'GPS_CLOCK',
-	'BLOCK',
-	'SECTION_CONTROL',
-	'TPC_CONTROL',
-	'SI_CONTROL',
-	'UTN',
-	'FOIS',
-	'AUTO_PHONE',
-	'RAILNET',
-	'CMS_SERVER',
-	'CGDB_BOARD',
-	'PA_SYSTEM',
-	'MISC',
-];
-
-const FAILURE_TYPE_LABELS = {
-	FARE_TERMINAL: 'fare terminal',
-	FCT_STD_PHONE: 'FCT/STD Phone',
-	DATA_LOGGER: 'Data logger',
-	VHF: 'VHF',
-	GPS_CLOCK: 'GPS Clock',
-};
-
-const FAILURE_CAUSES = [
-	'EQUIPMENT_FAILURE',
-	'PATCH_CORD_FAILURE',
-	'CABLE_CUT',
-	'CABLE_DAMAGED',
-	'PORT_FAILURE',
-	'KRONE_FAILURE',
-	'WAGO_FAILURE',
-	'LOW_INSULATION',
-	'HIGH_LOSS',
-];
+import { FAILURE_CAUSES, FAILURE_TYPES, FAILURE_TYPE_LABELS } from '../constants';
 
 const PRIORITY_OPTIONS = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 

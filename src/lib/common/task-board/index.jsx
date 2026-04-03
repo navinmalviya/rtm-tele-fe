@@ -37,6 +37,10 @@ const STATUS_META = {
 	CLOSED: { icon: DoneAll, color: 'text.secondary', tone: 'grey' },
 };
 
+const isFailureDetailsPending = (task) =>
+	task.type === 'FAILURE' &&
+	(!task.failure || !task.failure.type || !task.failure.cause || !task.failure.failureInTime);
+
 const TaskBoard = ({ tasks = [], isLoading }) => {
 	const { data: session } = useSession();
 	const { mutate: updateStatus } = useUpdateTaskStatus();
@@ -221,6 +225,23 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 														>
 															{task.title}
 														</Typography>
+
+														{isFailureDetailsPending(task) && (
+															<Chip
+																label="Details Pending"
+																size="small"
+																sx={{
+																	mb: 1.5,
+																	height: 20,
+																	fontSize: '0.62rem',
+																	fontWeight: 800,
+																	bgcolor: alpha(theme.palette.warning.main, 0.16),
+																	color: 'warning.dark',
+																	border: '1px solid',
+																	borderColor: alpha(theme.palette.warning.main, 0.4),
+																}}
+															/>
+														)}
 
 														<Stack
 															direction="row"
