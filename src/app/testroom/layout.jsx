@@ -5,6 +5,7 @@ import {
 	Assessment,
 	AssignmentTurnedIn,
 	BuildCircle,
+	Forum,
 	Dashboard,
 	ElectricalServices,
 	Hub,
@@ -26,6 +27,7 @@ export default function Layout({ children }) {
 		{ text: 'Asset Management', icon: <Inventory />, path: '/testroom/assets' },
 		{ text: 'Equipment Library', icon: <LibraryBooks />, path: '/testroom/equipment-library' },
 		{ text: 'Projects & Tasks', icon: <AssignmentTurnedIn />, path: '/testroom/projects-tasks' },
+		{ text: 'Chat', icon: <Forum />, path: '/testroom/chat' },
 		{
 			text: 'Sections & Sub-sections',
 			icon: <AccountTree />,

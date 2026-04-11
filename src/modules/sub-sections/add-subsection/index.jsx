@@ -13,6 +13,7 @@ import {
 	Typography,
 } from '@mui/material';
 import { useSession } from 'next-auth/react';
+import { useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useUsers } from '@/hooks/user';
@@ -28,8 +29,6 @@ export default function AddSubSectionForm() {
 	const { data: users = [] } = useUsers();
 	const { data: session } = useSession();
 
-	console.log('stations=>', stations);
-
 	const {
 		control,
 		handleSubmit,
@@ -38,8 +37,6 @@ export default function AddSubSectionForm() {
 		formState: { errors },
 	} = useForm({
 		defaultValues: {
-			name: '',
-			code: '',
 			fromStationId: '',
 			toStationId: '',
 			startKm: '',
@@ -49,6 +46,32 @@ export default function AddSubSectionForm() {
 	});
 
 	const selectedFrom = watch('fromStationId');
+	const selectedTo = watch('toStationId');
+
+	const stationMap = useMemo(
+		() =>
+			new Map(
+				(stations || []).map((station) => [
+					station.id,
+					{
+						name: station?.data?.label || station?.name || '',
+						code: station?.data?.code || station?.code || '',
+					},
+				])
+			),
+		[stations]
+	);
+
+	const derivedIdentity = useMemo(() => {
+		if (!selectedFrom || !selectedTo) return { code: '', name: '' };
+		const from = stationMap.get(selectedFrom);
+		const to = stationMap.get(selectedTo);
+		if (!from || !to) return { code: '', name: '' };
+		return {
+			code: `${from.code}-${to.code}`,
+			name: `${from.name} - ${to.name}`,
+		};
+	}, [selectedFrom, selectedTo, stationMap]);
 
 	const handleFormSubmit = (formData) => {
 		addSubSection(formData);
@@ -156,79 +179,42 @@ export default function AddSubSectionForm() {
 										color: 'text.secondary',
 									}}
 								>
-									IDENTIFICATION
+									AUTO GENERATED IDENTITY
 								</Typography>
 								<Stack spacing={3}>
-									<Controller
-										name="code"
-										control={control}
-										rules={{
-											required: 'Code is required',
+									<TextField
+										label="Sub-section Code (Auto)"
+										value={derivedIdentity.code}
+										placeholder="Select From and To stations"
+										fullWidth
+										InputProps={{
+											readOnly: true,
+											sx: {
+												borderRadius: 2,
+											},
+											startAdornment: (
+												<InputAdornment position="start">
+													<AltRoute
+														sx={{
+															color: 'primary.main',
+															fontSize: 20,
+														}}
+													/>
+												</InputAdornment>
+											),
 										}}
-										render={({
-											field,
-										}) => (
-											<TextField
-												{...field}
-												label="Sub-section Code"
-												placeholder="e.g. RTM-MRN"
-												fullWidth
-												error={
-													!!errors.code
-												}
-												helperText={
-													errors
-														.code
-														?.message
-												}
-												InputProps={{
-													sx: {
-														borderRadius: 2,
-													},
-													startAdornment:
-														(
-															<InputAdornment position="start">
-																<AltRoute
-																	sx={{
-																		color: 'primary.main',
-																		fontSize: 20,
-																	}}
-																/>
-															</InputAdornment>
-														),
-												}}
-											/>
-										)}
 									/>
-									<Controller
-										name="name"
-										control={control}
-										rules={{
-											required: 'Name is required',
+									<TextField
+										label="Sub-section Name (Auto)"
+										value={derivedIdentity.name}
+										placeholder="Select From and To stations"
+										fullWidth
+										InputProps={{
+											readOnly: true,
+											sx: {
+												borderRadius: 2,
+											},
 										}}
-										render={({
-											field,
-										}) => (
-											<TextField
-												{...field}
-												label="Sub-section Name"
-												placeholder="e.g. Ratlam - Morwani Block"
-												fullWidth
-												error={
-													!!errors.name
-												}
-												helperText={
-													errors
-														.name
-														?.message
-												}
-												InputProps={{
-													sx: {
-														borderRadius: 2,
-													},
-												}}
-											/>
-										)}
 									/>
 								</Stack>
 							</Box>

@@ -6,7 +6,7 @@ const allSubSections = () => {
 };
 
 const addSubSection = (subSectionData) => {
-	// payload: { name, code, fromStationId, toStationId }
+	// payload: { fromStationId, toStationId, startKm, endKm, supervisorId }
 	return http.post(`/subsection/create`, subSectionData);
 };
 

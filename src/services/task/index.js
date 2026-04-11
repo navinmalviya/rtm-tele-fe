@@ -68,6 +68,10 @@ const deleteTask = (id) => {
 	return http.delete(`/task/${id}`);
 };
 
+const bulkTaskAction = ({ taskIds = [], action }) => {
+	return http.post('/task/bulk-action', { taskIds, action });
+};
+
 export const TaskService = {
 	getAllTasks,
 	createTask,
@@ -77,4 +81,5 @@ export const TaskService = {
 	updateFailureDetails,
 	addTaskComment,
 	deleteTask,
+	bulkTaskAction,
 };

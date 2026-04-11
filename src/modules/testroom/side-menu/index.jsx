@@ -8,6 +8,7 @@ import {
 	Settings,
 } from '@mui/icons-material';
 import {
+	Badge,
 	Box,
 	Drawer,
 	FormControlLabel,
@@ -26,6 +27,7 @@ import Cookies from 'js-cookie';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
+import { useChatUnreadCount } from '@/hooks/chat';
 import { useThemeMode } from '@/lib/providers';
 import { getNavbarTitle } from '@/lib/util';
 
@@ -50,6 +52,11 @@ export default function SideMenu({ menuItems }) {
 	}, [menuItems]);
 	const canShowSettings = basePath === '/testroom';
 	const settingsPath = `${basePath}/settings`;
+	const hasChatMenu = useMemo(
+		() => (menuItems || []).some((item) => String(item.path || '').endsWith('/chat')),
+		[menuItems]
+	);
+	const { data: unreadChatCount = 0 } = useChatUnreadCount(hasChatMenu);
 
 	const closeMobileMenu = () => setMobileOpen(false);
 
@@ -182,6 +189,7 @@ export default function SideMenu({ menuItems }) {
 					<List sx={{ p: 0 }}>
 						{menuItems.map((item) => {
 							const isActive = pathname === item.path;
+							const isChatItem = String(item.path || '').endsWith('/chat');
 							return (
 								<ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
 									<ListItemButton
@@ -208,7 +216,17 @@ export default function SideMenu({ menuItems }) {
 												minWidth: 45,
 											}}
 										>
-											{item.icon}
+											{isChatItem ? (
+												<Badge
+													color="error"
+													badgeContent={unreadChatCount > 99 ? '99+' : unreadChatCount}
+													invisible={!unreadChatCount}
+												>
+													{item.icon}
+												</Badge>
+											) : (
+												item.icon
+											)}
 										</ListItemIcon>
 										<ListItemText
 											primary={item.text}

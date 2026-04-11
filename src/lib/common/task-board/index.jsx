@@ -1,7 +1,14 @@
 'use client';
 
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
-import { Autorenew, DeleteOutline, DoneAll, PendingActions, TaskAlt } from '@mui/icons-material';
+import {
+	Autorenew,
+	CheckCircle,
+	DeleteOutline,
+	DoneAll,
+	PendingActions,
+	TaskAlt,
+} from '@mui/icons-material';
 import {
 	Avatar,
 	Box,
@@ -41,7 +48,13 @@ const isFailureDetailsPending = (task) =>
 	task.type === 'FAILURE' &&
 	(!task.failure || !task.failure.type || !task.failure.cause || !task.failure.failureInTime);
 
-const TaskBoard = ({ tasks = [], isLoading }) => {
+const TaskBoard = ({
+	tasks = [],
+	isLoading,
+	selectionMode = false,
+	selectedTaskIds = [],
+	onToggleSelectTask,
+}) => {
 	const { data: session } = useSession();
 	const { mutate: updateStatus } = useUpdateTaskStatus();
 	const { mutate: deleteTask } = useDeleteTask();
@@ -71,6 +84,7 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 	}, [initialBoardData]);
 
 	const onDragEnd = (result) => {
+		if (selectionMode) return;
 		const { destination, source, draggableId } = result;
 
 		if (!destination) return;
@@ -191,15 +205,19 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 														ref={provided.innerRef}
 														{...provided.draggableProps}
 														{...provided.dragHandleProps}
-														onClick={() => {
-															if (!task?.id) return;
-															dispatch(
-																openDrawer({
-																	drawerName: 'taskDetailDrawer',
-																	taskId: task.id,
-																})
-															);
-														}}
+													onClick={() => {
+														if (!task?.id) return;
+														if (selectionMode && onToggleSelectTask) {
+															onToggleSelectTask(task.id);
+															return;
+														}
+														dispatch(
+															openDrawer({
+																drawerName: 'taskDetailDrawer',
+																taskId: task.id,
+															})
+														);
+													}}
 														sx={{
 															mb: 2,
 															p: 2,
@@ -213,6 +231,11 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 															'&:hover': {
 																boxShadow: 3,
 															},
+															cursor: selectionMode ? 'pointer' : 'grab',
+															outline:
+																selectionMode && selectedTaskIds.includes(task.id)
+																	? `2px solid ${theme.palette.primary.main}`
+																	: 'none',
 														}}
 													>
 														<Typography
@@ -239,6 +262,24 @@ const TaskBoard = ({ tasks = [], isLoading }) => {
 																	color: 'warning.dark',
 																	border: '1px solid',
 																	borderColor: alpha(theme.palette.warning.main, 0.4),
+																}}
+															/>
+														)}
+
+														{task.isPublished && (
+															<Chip
+																label="Published"
+																size="small"
+																icon={<CheckCircle sx={{ fontSize: 14 }} />}
+																sx={{
+																	mb: 1.5,
+																	height: 20,
+																	fontSize: '0.62rem',
+																	fontWeight: 800,
+																	bgcolor: alpha(theme.palette.success.main, 0.15),
+																	color: 'success.dark',
+																	border: '1px solid',
+																	borderColor: alpha(theme.palette.success.main, 0.35),
 																}}
 															/>
 														)}

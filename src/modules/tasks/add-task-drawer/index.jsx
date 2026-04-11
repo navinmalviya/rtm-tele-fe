@@ -16,6 +16,8 @@ import {
 	Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useProjects } from '@/hooks/project/useProjects';
@@ -24,6 +26,14 @@ import { useUsers } from '@/hooks/user/useUsers';
 import { RtmDrawer } from '@/lib/common/layout';
 import { closeDrawer } from '@/lib/store/slices/drawer-slice';
 import { openNativeDateTimePicker } from '@/lib/util/date-input';
+
+const PRIVATE_CREATOR_ROLES = new Set([
+	'SSE_TELE_INCHARGE',
+	'JE_SSE_TELE_SECTIONAL',
+	'JE_SECTIONAL',
+	'SSE_SECTIONAL',
+	'FIELD_ENGINEER',
+]);
 
 const TEXT_FIELD_STYLES = {
 	bgcolor: 'background.paper',
@@ -37,6 +47,7 @@ const TEXT_FIELD_STYLES = {
 
 const AddTaskDrawer = () => {
 	const dispatch = useDispatch();
+	const { data: session } = useSession();
 	const { mutate: addTask } = useAddTask();
 	const { data: projects = [] } = useProjects();
 	const { data: users = [] } = useUsers();
@@ -46,6 +57,7 @@ const AddTaskDrawer = () => {
 		handleSubmit,
 		watch,
 		reset,
+		setValue,
 		formState: { errors },
 	} = useForm({
 		defaultValues: {
@@ -63,6 +75,20 @@ const AddTaskDrawer = () => {
 	});
 
 	const selectedType = watch('type');
+	const sessionRole = session?.user?.originalRole || session?.user?.role || '';
+	const currentUserId = session?.user?.id || '';
+	const isPrivateCreator = PRIVATE_CREATOR_ROLES.has(sessionRole);
+	const assignableUsers = isPrivateCreator
+		? users.filter((user) => user.id === currentUserId)
+		: users;
+	const availableProjects = isPrivateCreator
+		? projects.filter((project) => project.ownerId === currentUserId)
+		: projects;
+
+	useEffect(() => {
+		if (!isPrivateCreator || !currentUserId) return;
+		setValue('assignedToId', currentUserId, { shouldDirty: false });
+	}, [currentUserId, isPrivateCreator, setValue]);
 
 	const handleClose = () => {
 		dispatch(closeDrawer({ drawerName: 'addTaskDrawer' }));
@@ -70,6 +96,9 @@ const AddTaskDrawer = () => {
 
 	const onFormSubmit = (formData) => {
 		const payload = { ...formData };
+		if (isPrivateCreator && currentUserId) {
+			payload.assignedToId = currentUserId;
+		}
 
 		// If not a Project task, we clear project-specific progress data
 		if (payload.type !== 'PROJECT') {
@@ -235,23 +264,30 @@ const AddTaskDrawer = () => {
 										name="assignedToId"
 										control={control}
 										rules={{ required: 'Assignee is required' }}
-										render={({ field }) => (
-											<Autocomplete
-												options={users}
-												getOptionLabel={(option) =>
-													`${option.name} (${option.designation || option.role})`
-												}
-												value={users.find((user) => user.id === field.value) || null}
-												onChange={(_, option) => field.onChange(option?.id || '')}
-												isOptionEqualToValue={(option, value) => option.id === value.id}
-												renderInput={(params) => (
-													<TextField
+											render={({ field }) => (
+												<Autocomplete
+													options={assignableUsers}
+													getOptionLabel={(option) =>
+														`${option.name} (${option.designation || option.role})`
+													}
+													value={
+														assignableUsers.find((user) => user.id === field.value) || null
+													}
+													onChange={(_, option) => field.onChange(option?.id || '')}
+													isOptionEqualToValue={(option, value) => option.id === value.id}
+													disabled={isPrivateCreator}
+													renderInput={(params) => (
+														<TextField
 														{...params}
 														label="Assign To"
 														fullWidth
 														error={!!errors.assignedToId}
-														helperText={errors.assignedToId?.message}
-														sx={TEXT_FIELD_STYLES}
+															helperText={
+																isPrivateCreator
+																	? 'Private task: only you can be assignee'
+																	: errors.assignedToId?.message
+															}
+															sx={TEXT_FIELD_STYLES}
 														InputProps={{
 															...params.InputProps,
 															startAdornment: (
@@ -374,7 +410,7 @@ const AddTaskDrawer = () => {
 													sx={TEXT_FIELD_STYLES}
 												>
 													<MenuItem value="">None</MenuItem>
-													{projects.map((p) => (
+													{availableProjects.map((p) => (
 														<MenuItem key={p.id} value={p.id}>
 															{p.name}
 														</MenuItem>

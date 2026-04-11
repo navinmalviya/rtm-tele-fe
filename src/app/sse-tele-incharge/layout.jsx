@@ -5,6 +5,7 @@ import {
 	Assessment,
 	AssignmentTurnedIn,
 	BuildCircle,
+	Forum,
 	Dashboard,
 	Hub,
 	Inventory,
@@ -26,6 +27,7 @@ export default function Layout({ children }) {
 			icon: <AssignmentTurnedIn />,
 			path: '/sse-tele-incharge/projects-tasks',
 		},
+		{ text: 'Chat', icon: <Forum />, path: '/sse-tele-incharge/chat' },
 		{
 			text: 'Sections & Sub-sections',
 			icon: <AccountTree />,

@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { getSession, signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useToast } from '@/hooks/common';
 import RtmLoader from '@/lib/common/loader';
 import { redirectUser } from '@/lib/util';
 
@@ -26,6 +27,7 @@ export default function LoginPage() {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
 	const router = useRouter();
+	const showToast = useToast();
 
 	const {
 		control,
@@ -40,19 +42,38 @@ export default function LoginPage() {
 	});
 
 	const onSubmit = async (credentials) => {
-		setLoading(true);
-		const response = await signIn('credentials', {
-			username: credentials.username,
-			password: credentials.password,
-			redirect: false,
-		});
+		try {
+			setLoading(true);
+			const response = await signIn('credentials', {
+				username: credentials.username,
+				password: credentials.password,
+				redirect: false,
+			});
 
-		const session = await getSession();
-		if (response?.status === 200 && session) {
-			redirectUser(session, router);
-		} else {
+			const session = await getSession();
+			if (response?.status === 200 && session) {
+				redirectUser(session, router);
+				return;
+			}
+
+			const rawError = response?.error || '';
+			let message = 'Unable to login. Please try again.';
+			if (rawError === 'CredentialsSignin') {
+				message = 'Incorrect username or password.';
+			} else if (rawError === 'AccessDenied') {
+				message = 'Access denied. Please contact administrator.';
+			} else if (rawError) {
+				message = `Login failed: ${rawError}`;
+			}
+			showToast(message, 'error');
+		} catch (error) {
+			const message =
+				error?.response?.data?.message ||
+				error?.message ||
+				'Unable to login due to a server error.';
+			showToast(message, 'error');
+		} finally {
 			setLoading(false);
-			// Optional: Add a toast or error state here
 		}
 	};
 

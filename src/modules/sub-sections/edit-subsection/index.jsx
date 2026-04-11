@@ -36,8 +36,6 @@ export default function EditSubSectionDrawer({ subSection }) {
 		formState: { errors, isDirty },
 	} = useForm({
 		defaultValues: {
-			code: '',
-			name: '',
 			fromStationId: '',
 			toStationId: '',
 			startKm: '',
@@ -49,8 +47,6 @@ export default function EditSubSectionDrawer({ subSection }) {
 	useEffect(() => {
 		if (!subSection) return;
 		reset({
-			code: subSection.code || '',
-			name: subSection.name || '',
 			fromStationId: subSection.fromStation?.id || '',
 			toStationId: subSection.toStation?.id || '',
 			startKm: subSection.startKm ?? '',
@@ -60,14 +56,28 @@ export default function EditSubSectionDrawer({ subSection }) {
 	}, [subSection, reset]);
 
 	const selectedFrom = watch('fromStationId');
+	const selectedTo = watch('toStationId');
 	const stationOptions = useMemo(
 		() =>
 			stations.map((station) => ({
 				id: station.id,
-				label: `${station.data?.code || '-'} - ${station.data?.label || station.id}`,
+				code: station.data?.code || station.code || '',
+				name: station.data?.label || station.name || station.id,
+				label: `${station.data?.code || station.code || '-'} - ${station.data?.label || station.name || station.id}`,
 			})),
 		[stations]
 	);
+
+	const derivedIdentity = useMemo(() => {
+		if (!selectedFrom || !selectedTo) return { code: '', name: '' };
+		const from = stationOptions.find((station) => station.id === selectedFrom);
+		const to = stationOptions.find((station) => station.id === selectedTo);
+		if (!from || !to) return { code: '', name: '' };
+		return {
+			code: `${from.code}-${to.code}`,
+			name: `${from.name} - ${to.name}`,
+		};
+	}, [selectedFrom, selectedTo, stationOptions]);
 
 	const handleSubmitForm = (data) => {
 		if (!subSection?.id) return;
@@ -114,43 +124,27 @@ export default function EditSubSectionDrawer({ subSection }) {
 				<Box sx={{ p: 4, flexGrow: 1, overflowY: 'auto', bgcolor: 'background.paper' }}>
 					<form id="edit-subsection-form" onSubmit={handleSubmit(handleSubmitForm)}>
 						<Stack spacing={3}>
-							<Controller
-								name="code"
-								control={control}
-								rules={{ required: 'Sub-section code is required' }}
-								render={({ field }) => (
-									<TextField
-										{...field}
-										label="Sub-section Code"
-										fullWidth
-										error={!!errors.code}
-										helperText={errors.code?.message}
-										InputProps={{
-											sx: { borderRadius: 2 },
-											startAdornment: (
-												<InputAdornment position="start">
-													<LinearScale sx={{ color: 'primary.main', fontSize: 20 }} />
-												</InputAdornment>
-											),
-										}}
-									/>
-								)}
+							<TextField
+								label="Sub-section Code (Auto)"
+								value={derivedIdentity.code}
+								placeholder="Select From and To stations"
+								fullWidth
+								InputProps={{
+									readOnly: true,
+									sx: { borderRadius: 2 },
+									startAdornment: (
+										<InputAdornment position="start">
+											<LinearScale sx={{ color: 'primary.main', fontSize: 20 }} />
+										</InputAdornment>
+									),
+								}}
 							/>
-
-							<Controller
-								name="name"
-								control={control}
-								rules={{ required: 'Sub-section name is required' }}
-								render={({ field }) => (
-									<TextField
-										{...field}
-										label="Sub-section Name"
-										fullWidth
-										error={!!errors.name}
-										helperText={errors.name?.message}
-										InputProps={{ sx: { borderRadius: 2 } }}
-									/>
-								)}
+							<TextField
+								label="Sub-section Name (Auto)"
+								value={derivedIdentity.name}
+								placeholder="Select From and To stations"
+								fullWidth
+								InputProps={{ readOnly: true, sx: { borderRadius: 2 } }}
 							/>
 
 							<Stack direction="row" spacing={2}>
