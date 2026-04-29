@@ -97,10 +97,11 @@ const TaskTab = () => {
 						displayEmpty
 					>
 						<MenuItem value="ALL">All Types</MenuItem>
+						<MenuItem value="TASK">Task</MenuItem>
 						<MenuItem value="FAILURE">Failure</MenuItem>
 						<MenuItem value="MAINTENANCE">Maintenance</MenuItem>
 						<MenuItem value="TRC">TRC Request</MenuItem>
-						<MenuItem value="PLANNED">Planned</MenuItem>
+						<MenuItem value="PROJECT">Planned Project Work</MenuItem>
 					</Select>
 
 					{/* Assignee Filter */}

@@ -48,7 +48,7 @@ const TEXT_FIELD_STYLES = {
 const AddTaskDrawer = () => {
 	const dispatch = useDispatch();
 	const { data: session } = useSession();
-	const { mutate: addTask } = useAddTask();
+	const { mutateAsync: addTask, isPending: isCreatingTask } = useAddTask();
 	const { data: projects = [] } = useProjects();
 	const { data: users = [] } = useUsers();
 
@@ -78,6 +78,9 @@ const AddTaskDrawer = () => {
 	const sessionRole = session?.user?.originalRole || session?.user?.role || '';
 	const currentUserId = session?.user?.id || '';
 	const isPrivateCreator = PRIVATE_CREATOR_ROLES.has(sessionRole);
+	const currentUserLabel = session?.user?.name
+		? `${session.user.name} (${session.user.designation || sessionRole || 'User'})`
+		: 'Current user';
 	const assignableUsers = isPrivateCreator
 		? users.filter((user) => user.id === currentUserId)
 		: users;
@@ -94,16 +97,26 @@ const AddTaskDrawer = () => {
 		dispatch(closeDrawer({ drawerName: 'addTaskDrawer' }));
 	};
 
-	const onFormSubmit = (formData) => {
+	const onFormSubmit = async (formData) => {
+		if (isPrivateCreator && !currentUserId) {
+			return;
+		}
+
 		const payload = { ...formData };
 		if (isPrivateCreator && currentUserId) {
 			payload.assignedToId = currentUserId;
+		}
+		if (!payload.assignedToId) {
+			payload.assignedToId = null;
 		}
 
 		// If not a Project task, we clear project-specific progress data
 		if (payload.type !== 'PROJECT') {
 			payload.projectId = null;
 			payload.weight = 0;
+		} else {
+			payload.projectId = payload.projectId || null;
+			payload.weight = payload.weight ? Number(payload.weight) : 0;
 		}
 
 		if (payload.type === 'FAILURE') {
@@ -120,8 +133,7 @@ const AddTaskDrawer = () => {
 		delete payload.isHqRepeated;
 		delete payload.isIcmsRepeated;
 
-		console.log('taskPayload', payload);
-		addTask(payload);
+		await addTask(payload);
 		reset();
 	};
 
@@ -196,7 +208,6 @@ const AddTaskDrawer = () => {
 									<Controller
 										name="description"
 										control={control}
-										rules={{ required: 'Description is required' }}
 										render={({ field }) => (
 											<TextField
 												{...field}
@@ -233,6 +244,7 @@ const AddTaskDrawer = () => {
 													fullWidth
 													sx={TEXT_FIELD_STYLES}
 												>
+													<MenuItem value="TASK">Task</MenuItem>
 													<MenuItem value="FAILURE">Failure</MenuItem>
 													<MenuItem value="MAINTENANCE">Maintenance</MenuItem>
 													<MenuItem value="TRC">TRC Request</MenuItem>
@@ -263,8 +275,25 @@ const AddTaskDrawer = () => {
 									<Controller
 										name="assignedToId"
 										control={control}
-										rules={{ required: 'Assignee is required' }}
-											render={({ field }) => (
+										rules={isPrivateCreator ? undefined : { required: 'Assignee is required' }}
+										render={({ field }) =>
+											isPrivateCreator ? (
+												<TextField
+													value={currentUserLabel}
+													label="Assign To"
+													fullWidth
+													disabled
+													helperText="Private task: it will be assigned to you automatically."
+													sx={TEXT_FIELD_STYLES}
+													InputProps={{
+														startAdornment: (
+															<InputAdornment position="start">
+																<Person fontSize="small" sx={{ color: 'info.main' }} />
+															</InputAdornment>
+														),
+													}}
+												/>
+											) : (
 												<Autocomplete
 													options={assignableUsers}
 													getOptionLabel={(option) =>
@@ -275,34 +304,30 @@ const AddTaskDrawer = () => {
 													}
 													onChange={(_, option) => field.onChange(option?.id || '')}
 													isOptionEqualToValue={(option, value) => option.id === value.id}
-													disabled={isPrivateCreator}
 													renderInput={(params) => (
 														<TextField
-														{...params}
-														label="Assign To"
-														fullWidth
-														error={!!errors.assignedToId}
-															helperText={
-																isPrivateCreator
-																	? 'Private task: only you can be assignee'
-																	: errors.assignedToId?.message
-															}
+															{...params}
+															label="Assign To"
+															fullWidth
+															error={!!errors.assignedToId}
+															helperText={errors.assignedToId?.message}
 															sx={TEXT_FIELD_STYLES}
-														InputProps={{
-															...params.InputProps,
-															startAdornment: (
-																<>
-																	<InputAdornment position="start">
-																		<Person fontSize="small" sx={{ color: 'info.main' }} />
-																	</InputAdornment>
-																	{params.InputProps.startAdornment}
-																</>
-															),
-														}}
-													/>
-												)}
-											/>
-										)}
+															InputProps={{
+																...params.InputProps,
+																startAdornment: (
+																	<>
+																		<InputAdornment position="start">
+																			<Person fontSize="small" sx={{ color: 'info.main' }} />
+																		</InputAdornment>
+																		{params.InputProps.startAdornment}
+																	</>
+																),
+															}}
+														/>
+													)}
+												/>
+											)
+										}
 									/>
 								</Stack>
 							</Box>
@@ -462,6 +487,7 @@ const AddTaskDrawer = () => {
 							form="task-form"
 							variant="contained"
 							fullWidth
+							disabled={isCreatingTask || (isPrivateCreator && !currentUserId)}
 							disableElevation
 							sx={{
 								bgcolor: 'primary.main',

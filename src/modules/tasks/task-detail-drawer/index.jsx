@@ -399,7 +399,6 @@ export default function TaskDetailDrawer() {
 										<Controller
 											name="description"
 											control={taskControl}
-											rules={{ required: 'Description is required' }}
 											render={({ field }) => <input type="hidden" {...field} />}
 										/>
 
